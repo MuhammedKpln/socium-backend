@@ -14,7 +14,7 @@ export class SocketAdapter extends IoAdapter {
     const server = super.createIOServer(port, {
       ...options,
       cors: {
-        origin: 'http://2.249.89.61:8000',
+        origin: process.env.CORS_ORIGIN,
         credentials: true,
         transports: ['websocket', 'polling'],
         methods: ['GET', 'POST'],
@@ -34,6 +34,6 @@ async function bootstrap() {
     origin: true,
     credentials: true,
   });
-  await app.listen(3000);
+  await app.listen(process.env.PORT);
 }
 bootstrap();
