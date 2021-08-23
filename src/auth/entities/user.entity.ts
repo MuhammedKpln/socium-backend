@@ -29,6 +29,9 @@ export class User {
   @Column()
   gender: GENDER;
 
+  @Column({ nullable: true })
+  emoji: string;
+
   @Column()
   @Exclude({ toPlainOnly: true })
   password: string;
