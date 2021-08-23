@@ -1,5 +1,5 @@
 import { Exclude } from 'class-transformer';
-import { cryptPassword } from 'src/cryptHelper';
+import { hashText } from 'src/cryptHelper';
 import {
   Entity,
   Column,
@@ -36,6 +36,13 @@ export class User {
   @Exclude({ toPlainOnly: true })
   password: string;
 
+  @Column({ default: false })
+  public isEmailConfirmed: boolean;
+
+  @Column({ nullable: true })
+  @Exclude({ toPlainOnly: true })
+  public emailConfirmationCode: number;
+
   @CreateDateColumn()
   created_at: Date;
 
@@ -46,8 +53,14 @@ export class User {
   @BeforeInsert()
   async cryptPassword() {
     const plainPassword = this.password;
-    const hashedPassword = await cryptPassword(plainPassword);
+    const hashedPassword = await hashText(plainPassword);
 
     this.password = hashedPassword;
+  }
+
+  @BeforeInsert()
+  async generateRandomConfirmationCode() {
+    const randomCode = Math.floor(Math.random() * 100000 + 100000);
+    this.emailConfirmationCode = randomCode;
   }
 }

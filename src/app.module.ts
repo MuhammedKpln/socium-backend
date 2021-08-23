@@ -5,6 +5,7 @@ import { ChatGateway } from './chat.gateway';
 import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthService } from './auth/auth.service';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
   imports: [
@@ -13,6 +14,15 @@ import { AuthService } from './auth/auth.service';
       database: '/Users/muhammedkpln/Documents/dert/data.db',
       synchronize: process.env.NODE_ENV !== 'production',
       autoLoadEntities: true,
+    }),
+    MailerModule.forRoot({
+      transport:
+        process.env.SMTP_ADRESS ||
+        'smtp://0432c7d1ef71e7:1f0621b32bc577@smtp.mailtrap.io',
+      defaults: {
+        from: '"Derdevan" <noreply@derdevan.com>',
+        port: 25,
+      },
     }),
     AuthModule,
   ],

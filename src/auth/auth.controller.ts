@@ -1,8 +1,9 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ERROR_CODES } from 'src/error_code';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dtos/createUser.dto';
 import { LoginUserDto } from './dtos/loginUser.dto';
+import { NotVerifiedGuard } from './guards/not-verified.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -42,5 +43,11 @@ export class AuthController {
     }
 
     return register;
+  }
+
+  @Get('confirm/:email/:confirmationCode')
+  @UseGuards(NotVerifiedGuard)
+  async confirmEmail(@Param('email') email: string) {
+    return this.authService.verifyEmail(email);
   }
 }

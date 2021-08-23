@@ -1,7 +1,8 @@
+import { MailerService } from '@nestjs-modules/mailer';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { comparePassword } from 'src/cryptHelper';
+import { compareHash, hashText, hashWithMD5 } from 'src/cryptHelper';
 import { ERROR_CODES } from 'src/error_code';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/createUser.dto';
@@ -13,6 +14,7 @@ export class AuthService {
   constructor(
     private jwtService: JwtService,
     @InjectRepository(User) private usersService: Repository<User>,
+    private mailerService: MailerService,
   ) {}
 
   async validateUser(username: string, password: string): Promise<boolean> {
@@ -21,7 +23,7 @@ export class AuthService {
     });
 
     if (user) {
-      const compare = await comparePassword(password, user.password);
+      const compare = await compareHash(password, user.password);
       if (compare) {
         return true;
       }
@@ -44,11 +46,22 @@ export class AuthService {
 
   async register(user: CreateUserDto): Promise<User> {
     const create = this.usersService.create(user);
-
     return this.usersService
       .save(create)
-      .then((resp) => resp)
+      .then(async (resp) => {
+        const hashedConfirmationCode = await hashWithMD5(
+          resp.emailConfirmationCode.toString(),
+        );
+        await this.mailerService.sendMail({
+          to: resp.email,
+          subject: 'Email Dogrulama',
+          text: `Email dogrulama kodunuz: /auth/confirm/${resp.email}/${hashedConfirmationCode}`,
+        });
+
+        return resp;
+      })
       .catch((err) => {
+        console.log(err);
         throw new HttpException(
           {
             status: false,
@@ -57,5 +70,22 @@ export class AuthService {
           HttpStatus.NOT_ACCEPTABLE,
         );
       });
+  }
+  async verifyEmail(email: string): Promise<User> {
+    const user = await this.usersService.findOne({
+      email,
+    });
+
+    if (user) {
+      const update = await this.usersService.save({
+        ...user,
+        isEmailConfirmed: true,
+        emailConfirmationCode: null,
+      });
+
+      if (update) {
+        return update;
+      }
+    }
   }
 }
