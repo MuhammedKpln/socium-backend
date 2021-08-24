@@ -27,6 +27,11 @@ interface ICallAnswer {
   to: string;
 }
 
+interface ITypingData {
+  typing: boolean;
+  username: string;
+}
+
 interface IRoomMessage {
   roomName: string;
   message?: string;
@@ -110,10 +115,15 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
     });
   }
 
-  handleConnection(client: Socket) {
-    console.log('user connected');
+  @SubscribeMessage('user is typing')
+  handleTyping(client: Socket, data: ITypingData) {
+    return client.broadcast.emit('user is done with typing', {
+      typing: data.typing,
+      username: data.username,
+    });
+  }
 
-    // TODO: dinleyici anlatici // anlatici sayi almiyacak // dinleyici sayi alicak
+  handleConnection(client: Socket) {
     this.logger.log('user connected');
   }
 
