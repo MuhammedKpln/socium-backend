@@ -16,6 +16,7 @@ if (process.env.NODE_ENV == 'production') {
     host: process.env.DATABASE_HOST,
     username: process.env.DATABASE_USER,
     password: process.env.DATABASE_PASS,
+    ssl: true,
   };
 } else {
   DATABASE_OPTIONS = {
