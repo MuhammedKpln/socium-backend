@@ -2,7 +2,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { compareHash, hashText, hashWithMD5 } from 'src/cryptHelper';
+import { compareHash, hashWithMD5 } from 'src/cryptHelper';
 import { ERROR_CODES } from 'src/error_code';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/createUser.dto';
@@ -16,6 +16,12 @@ export class AuthService {
     @InjectRepository(User) private usersService: Repository<User>,
     private mailerService: MailerService,
   ) {}
+
+  async findOne(username: string) {
+    return this.usersService.findOneOrFail({
+      username,
+    });
+  }
 
   async validateUser(username: string, password: string): Promise<boolean> {
     const user = await this.usersService.findOne({

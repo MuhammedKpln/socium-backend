@@ -4,8 +4,8 @@ import { AppService } from './app.service';
 import { ChatGateway } from './chat.gateway';
 import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthService } from './auth/auth.service';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [
@@ -25,6 +25,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
       },
     }),
     AuthModule,
+    ProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService, ChatGateway],

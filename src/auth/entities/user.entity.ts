@@ -32,6 +32,9 @@ export class User {
   @Column({ nullable: true })
   emoji: string;
 
+  @Column({ nullable: true })
+  bio: string;
+
   @Column()
   @Exclude({ toPlainOnly: true })
   password: string;
