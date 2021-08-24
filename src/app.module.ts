@@ -3,18 +3,29 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ChatGateway } from './chat.gateway';
 import { AuthModule } from './auth/auth.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { ProfileModule } from './profile/profile.module';
 
+let DATABASE_OPTIONS: TypeOrmModuleOptions;
+
+if (process.env.NODE_ENV == 'production') {
+  DATABASE_OPTIONS = {
+    type: 'postgres',
+    database: process.env.DATABASE_URL,
+  };
+} else {
+  DATABASE_OPTIONS = {
+    type: 'sqlite',
+    database: '/Users/muhammedkpln/Documents/dert/data.db',
+    synchronize: process.env.NODE_ENV !== 'production',
+    autoLoadEntities: true,
+  };
+}
+
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: '/Users/muhammedkpln/Documents/dert/data.db',
-      synchronize: process.env.NODE_ENV !== 'production',
-      autoLoadEntities: true,
-    }),
+    TypeOrmModule.forRoot(DATABASE_OPTIONS),
     MailerModule.forRoot({
       transport:
         process.env.SMTP_ADRESS ||
