@@ -12,11 +12,7 @@ let DATABASE_OPTIONS: TypeOrmModuleOptions;
 if (process.env.NODE_ENV == 'production') {
   DATABASE_OPTIONS = {
     type: 'postgres',
-    database: process.env.DATABASE_NAME,
-    host: process.env.DATABASE_HOST,
-    username: process.env.DATABASE_USER,
-    password: process.env.DATABASE_PASS,
-    ssl: true,
+    url: process.env.DATABASE_URL,
   };
 } else {
   DATABASE_OPTIONS = {
