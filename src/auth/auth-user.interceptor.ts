@@ -16,8 +16,12 @@ export class AuthUserInterceptor implements NestInterceptor {
 
   async intercept(context: ExecutionContext, next: CallHandler): Promise<any> {
     const request = context.switchToHttp().getRequest();
-    const usertoken = request.headers.authorization;
-    const token = usertoken.split(' ');
+    const userToken = request.headers.authorization;
+
+    if (!userToken) {
+      return next.handle();
+    }
+    const token = userToken.split(' ');
 
     const decoded = await this.jwtService.verifyAsync(token[1]);
     const user = await this.authService.findOne(decoded['username']);
