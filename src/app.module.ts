@@ -16,6 +16,7 @@ if (process.env.NODE_ENV == 'production') {
     ssl: {
       rejectUnauthorized: false,
     },
+    autoLoadEntities: true,
   };
 } else {
   DATABASE_OPTIONS = {
