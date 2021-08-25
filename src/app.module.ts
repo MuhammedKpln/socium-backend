@@ -13,7 +13,9 @@ if (process.env.NODE_ENV == 'production') {
   DATABASE_OPTIONS = {
     type: 'postgres',
     url: process.env.DATABASE_URL,
-    ssl: true,
+    ssl: {
+      rejectUnauthorized: true,
+    },
   };
 } else {
   DATABASE_OPTIONS = {
