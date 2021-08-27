@@ -70,7 +70,7 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
       }
 
       client.emit('clientPaired', {
-        clientId: client.id,
+        clientId: pairedClient,
         roomName: randomRoomName,
       });
 
@@ -131,5 +131,6 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
     this.tellersPool = this.tellersPool.filter(
       (teller) => teller === client.id,
     );
+    this.logger.log('user disconnected');
   }
 }
