@@ -31,10 +31,7 @@ export class SocketAdapter extends IoAdapter {
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestFastifyApplication>(
-    AppModule,
-    new FastifyAdapter(),
-  );
+  const app = await NestFactory.create<NestFastifyApplication>(AppModule);
   app.useGlobalPipes(new ValidationPipe());
   app.useWebSocketAdapter(new SocketAdapter(app));
 
