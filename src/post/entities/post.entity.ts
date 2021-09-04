@@ -33,6 +33,9 @@ export class PostEntity {
   @Column() // TODO: number for postgres
   type: PostType;
 
+  @Column()
+  color: string;
+
   @CreateDateColumn()
   created_at?: Date;
 
