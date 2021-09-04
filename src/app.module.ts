@@ -9,6 +9,7 @@ import { ProfileModule } from './profile/profile.module';
 import { PostController } from './post/post.controller';
 import { PostService } from './post/post.service';
 import { PostModule } from './post/post.module';
+import { FollowerModule } from './follower/follower.module';
 
 let DATABASE_OPTIONS: TypeOrmModuleOptions;
 
@@ -45,6 +46,7 @@ if (process.env.NODE_ENV == 'production') {
     AuthModule,
     ProfileModule,
     PostModule,
+    FollowerModule,
   ],
   controllers: [AppController, PostController],
   providers: [AppService, ChatGateway, PostService],
