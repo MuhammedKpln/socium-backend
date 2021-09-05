@@ -25,8 +25,4 @@ export class CreateUserDto {
   @IsNotEmpty()
   @IsEmail()
   email: string;
-
-  @IsNotEmpty()
-  @IsString()
-  gender: 1 | 2 | 3;
 }

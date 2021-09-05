@@ -97,7 +97,10 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
     }
     console.log(data);
     if (data.message) {
-      this.server.to(data.roomName).emit('message', data.message);
+      this.server.to(data.roomName).emit('message', {
+        message: data.message,
+        clientId: client.id,
+      });
     }
   }
   @SubscribeMessage('call-user')
