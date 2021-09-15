@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { compareHash, hashWithMD5 } from 'src/cryptHelper';
 import { ERROR_CODES } from 'src/error_code';
+import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/createUser.dto';
 import { LoginUserDto } from './dtos/loginUser.dto';
@@ -13,6 +14,7 @@ import { User } from './entities/user.entity';
 export class AuthService {
   constructor(
     private jwtService: JwtService,
+    private user: UserService,
     @InjectRepository(User) private usersService: Repository<User>,
     private mailerService: MailerService,
   ) {}
@@ -41,9 +43,8 @@ export class AuthService {
 
   async login(user: LoginUserDto) {
     const payload = { username: user.username };
-    const userDb = await this.usersService.findOne({
-      username: user.username,
-    });
+    const userDb = await this.user.getUserByUsername(user.username);
+
     return {
       access_token: await this.jwtService.signAsync(payload),
       user: userDb,

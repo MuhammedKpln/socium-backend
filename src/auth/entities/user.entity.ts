@@ -1,5 +1,7 @@
 import { Exclude } from 'class-transformer';
 import { hashText } from 'src/cryptHelper';
+import { Follower } from 'src/follower/entities/follower.entity';
+import { PostEntity } from 'src/post/entities/post.entity';
 import {
   Entity,
   Column,
@@ -7,6 +9,8 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   BeforeInsert,
+  OneToMany,
+  JoinColumn,
 } from 'typeorm';
 
 enum GENDER {
@@ -52,6 +56,24 @@ export class User {
   //TODO: onupdate change date auto
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToMany(() => PostEntity, (post) => post.user)
+  @JoinColumn({
+    referencedColumnName: 'user',
+  })
+  posts?: PostEntity[];
+
+  @OneToMany(() => Follower, (follower) => follower.user)
+  @JoinColumn({
+    referencedColumnName: 'user',
+  })
+  followers?: Follower[];
+
+  @OneToMany(() => Follower, (follower) => follower.actor)
+  @JoinColumn({
+    referencedColumnName: 'actor',
+  })
+  following?: Follower[];
 
   @BeforeInsert()
   async cryptPassword() {

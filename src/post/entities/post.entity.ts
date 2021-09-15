@@ -1,5 +1,11 @@
 import { User } from 'src/auth/entities/user.entity';
+import { Comment } from 'src/comment/entities/comment.entity';
+import { getRandomString } from 'src/helpers/randomString';
+import { PostLike } from 'src/likes/entities/PostLike.entity';
+import { UserLike } from 'src/likes/entities/UserLike.entity';
 import {
+  BeforeInsert,
+  BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
@@ -8,6 +14,7 @@ import {
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
+  RelationId,
   UpdateDateColumn,
 } from 'typeorm';
 
@@ -23,8 +30,11 @@ export class PostEntity {
   @PrimaryGeneratedColumn()
   id?: number;
 
-  @Column()
+  @Column({ nullable: true })
   title: string;
+
+  @Column({ nullable: true })
+  content: string;
 
   @ManyToOne(() => User, (user) => user.id)
   @JoinColumn()
@@ -33,12 +43,37 @@ export class PostEntity {
   @Column() // TODO: number for postgres
   type: PostType;
 
+  @Column({ nullable: true }) // TODO: number for postgres
+  slug?: string;
+
   @Column()
   color: string;
 
   @CreateDateColumn()
   created_at?: Date;
 
+  @OneToMany(() => Comment, (comment) => comment.post)
+  @JoinColumn({
+    referencedColumnName: 'post',
+  })
+  comments?: Comment[];
+
+  @OneToOne(() => UserLike, (like) => like.post)
+  userlike?: UserLike;
+
+  @OneToOne(() => PostLike, (like) => like.post)
+  postLike?: PostLike;
+
   @UpdateDateColumn()
   updated_at?: Date;
+
+  @BeforeInsert()
+  slugify?() {
+    var slugify = require('slugify');
+    if (this.title) {
+      this.slug = slugify(this.title);
+    } else {
+      this.slug = slugify(getRandomString(100));
+    }
+  }
 }

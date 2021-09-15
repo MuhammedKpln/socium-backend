@@ -10,6 +10,9 @@ import { PostController } from './post/post.controller';
 import { PostService } from './post/post.service';
 import { PostModule } from './post/post.module';
 import { FollowerModule } from './follower/follower.module';
+import { UserModule } from './user/user.module';
+import { CommentModule } from './comment/comment.module';
+import { LikesModule } from './likes/likes.module';
 
 let DATABASE_OPTIONS: TypeOrmModuleOptions;
 
@@ -21,6 +24,7 @@ if (process.env.NODE_ENV == 'production') {
       rejectUnauthorized: false,
     },
     autoLoadEntities: true,
+    subscribers: [],
   };
 } else {
   DATABASE_OPTIONS = {
@@ -28,6 +32,7 @@ if (process.env.NODE_ENV == 'production') {
     database: '/Users/muhammedkpln/Documents/dert/data.db',
     synchronize: process.env.NODE_ENV !== 'production',
     autoLoadEntities: true,
+    subscribers: [],
   };
 }
 
@@ -47,6 +52,9 @@ if (process.env.NODE_ENV == 'production') {
     ProfileModule,
     PostModule,
     FollowerModule,
+    UserModule,
+    CommentModule,
+    LikesModule,
   ],
   controllers: [AppController, PostController],
   providers: [AppService, ChatGateway, PostService],

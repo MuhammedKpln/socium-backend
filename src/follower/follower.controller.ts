@@ -1,9 +1,13 @@
 import {
   Controller,
+  DefaultValuePipe,
   Delete,
+  Get,
   Param,
   ParseIntPipe,
   Post,
+  Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { User } from 'src/auth/decorators/user.decorator';
@@ -16,6 +20,41 @@ import { FollowerService } from './follower.service';
 @Controller('follower')
 export class FollowerController {
   constructor(private readonly followersService: FollowerService) {}
+
+  @Get(':userId')
+  async getByFollowersById(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+    @Req() req,
+  ) {
+    limit = parseInt(process.env.PAGINATION_LIMIT) || limit;
+    let routePath = req.url;
+    const options = {
+      page,
+      limit,
+      route: routePath,
+    };
+
+    return this.followersService.getFollowersById(userId, options);
+  }
+  @Get('following/:userId')
+  async getByFollowingById(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+    @Req() req,
+  ) {
+    limit = parseInt(process.env.PAGINATION_LIMIT) || limit;
+    let routePath = req.url;
+    const options = {
+      page,
+      limit,
+      route: routePath,
+    };
+
+    return this.followersService.getFollowingsById(userId, options);
+  }
 
   @Post(':actor')
   @UseGuards(JwtAuthGuard)

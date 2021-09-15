@@ -40,7 +40,10 @@ interface IRoomMessage {
 
 @WebSocketGateway({ cors: true, namespace: 'PairingScreen' })
 export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
-  private activeSockets: { queueNumber?: number; id: string }[] = [];
+  private activeSockets: {
+    room: string;
+    users: string[];
+  }[] = [];
   private tellersPool: string[] = [];
 
   private logger: Logger = new Logger();
@@ -69,6 +72,11 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
         return false;
       }
 
+      this.activeSockets.push({
+        room: randomRoomName,
+        users: [pairedClient, client.id],
+      });
+
       client.emit('clientPaired', {
         clientId: pairedClient,
         roomName: randomRoomName,
@@ -87,14 +95,6 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
   handleRoom(client: Socket, data: IRoomMessage) {
     client.join(data.roomName);
 
-    if (data.firstJoined) {
-      client.emit(
-        'message',
-        'Matched arkadaslar sikis konusabilirsiniz artik, tsk bb.',
-      );
-
-      return false;
-    }
     console.log(data);
     if (data.message) {
       this.server.to(data.roomName).emit('message', {
@@ -103,15 +103,19 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
       });
     }
   }
+
   @SubscribeMessage('call-user')
   handleCall(client: Socket, data: ICallOffer) {
+    this.logger.log('Call made', data);
     this.server.to(data.to).emit('call-made', {
       offer: data.offer,
       socket: client.id,
     });
   }
+
   @SubscribeMessage('make-answer')
   handleCallAnswer(client: Socket, data: ICallAnswer) {
+    this.logger.log('answer made');
     this.server.to(data.to).emit('answer-made', {
       answer: data.answer,
       socket: client.id,
@@ -126,6 +130,13 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
     });
   }
 
+  @SubscribeMessage('hang up call')
+  handleCloseCall(client: Socket, data: { to: string }) {
+    return client.to(data.to).emit('user hanged up call', {
+      hangup: true,
+    });
+  }
+
   handleConnection(client: Socket) {
     this.logger.log('user connected');
   }
@@ -133,6 +144,20 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
   handleDisconnect(client: Socket) {
     this.tellersPool = this.tellersPool.filter(
       (teller) => teller === client.id,
+    );
+
+    const socket = this.activeSockets.find((socket) => {
+      if (socket.room.includes(client.id)) {
+        return socket;
+      }
+    });
+
+    if (socket) {
+      this.server.to(socket.room).emit('client disconnected');
+    }
+
+    this.activeSockets = this.activeSockets.filter((socket) =>
+      socket.room.includes(client.id),
     );
     this.logger.log('user disconnected');
   }

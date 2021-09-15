@@ -16,6 +16,7 @@ import { Request } from 'express';
 import { User } from 'src/auth/decorators/user.decorator';
 import { User as UserEntity } from 'src/auth/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
+import { notFound, response } from 'src/helpers/response';
 import { CreatePostDto } from './dtos/createPost';
 import { PostService } from './post.service';
 
@@ -25,12 +26,27 @@ export class PostController {
 
   @Get()
   async index(
+    @Query('username') username,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
     @Req() req: Request,
   ) {
     limit = parseInt(process.env.PAGINATION_LIMIT) || limit;
     let routePath = req.url;
+
+    if (username) {
+      const posts = await this.postService.getByUsername(username, {
+        page,
+        limit,
+        route: routePath,
+      });
+
+      if (!posts) {
+        return notFound();
+      }
+
+      return response(posts);
+    }
 
     return this.postService.paginate({
       page,
@@ -39,9 +55,19 @@ export class PostController {
     });
   }
 
-  @Get('/:username')
+  @Get(':slug')
+  async getPost(@Param('slug') slug: string) {
+    const post = await this.postService.getPost(slug);
+
+    if (post) {
+      return post;
+    }
+
+    return notFound();
+  }
+
   getUserPosts(
-    @Param('username') username,
+    @Query('username') username,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
     @Req() req: Request,
@@ -69,7 +95,4 @@ export class PostController {
       );
     });
   }
-}
-function PATH_METADATA(PATH_METADATA: any, StaticController: any) {
-  throw new Error('Function not implemented.');
 }

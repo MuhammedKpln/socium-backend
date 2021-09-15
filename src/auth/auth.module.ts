@@ -10,6 +10,8 @@ import { AuthController } from './auth.controller';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { SerializeOutput } from './intercepters/output.interceptor';
 import { AuthUserInterceptor } from './auth-user.interceptor';
+import { UserService } from 'src/user/user.service';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   providers: [
@@ -23,16 +25,18 @@ import { AuthUserInterceptor } from './auth-user.interceptor';
       provide: APP_INTERCEPTOR,
       useClass: AuthUserInterceptor,
     },
+    UserService,
   ],
   imports: [
     TypeOrmModule.forFeature([User]),
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.SECRET_KEY,
-      signOptions: { expiresIn: '2 days' },
+      signOptions: { expiresIn: '7 days' },
     }),
+    UserModule,
   ],
-  exports: [TypeOrmModule, JwtModule],
+  exports: [TypeOrmModule, JwtModule, UserService],
   controllers: [AuthController],
 })
 export class AuthModule {}
