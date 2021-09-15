@@ -11,7 +11,7 @@ export class UserService {
 
   async getUserByUsername(username: string) {
     const qb = this.usersService.createQueryBuilder('user');
-    qb.where('username = :username', { username });
+    qb.where('user.username = :username', { username });
     qb.loadRelationCountAndMap('user.postsCount', 'user.posts');
     qb.loadRelationCountAndMap('user.followersCount', 'user.followers');
     qb.loadRelationCountAndMap('user.followingsCount', 'user.following');

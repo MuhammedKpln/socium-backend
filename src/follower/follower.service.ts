@@ -16,7 +16,7 @@ export class FollowerService {
 
   async getFollowersById(userId: number, options: IPaginationOptions) {
     const qb = this.followersService.createQueryBuilder('follower');
-    qb.where('actorId = :id', { id: userId });
+    qb.where('follower.actorId = :id', { id: userId });
     qb.leftJoinAndSelect('follower.user', 'user');
     qb.leftJoinAndSelect('follower.actor', 'actor');
 
@@ -24,7 +24,7 @@ export class FollowerService {
   }
   async getFollowingsById(userId: number, options: IPaginationOptions) {
     const qb = this.followersService.createQueryBuilder('follower');
-    qb.where('userId = :id', { id: userId });
+    qb.where('follower.userId = :id', { id: userId });
     qb.leftJoinAndSelect('follower.user', 'user');
     qb.leftJoinAndSelect('follower.actor', 'actor');
 
