@@ -24,7 +24,7 @@ if (process.env.NODE_ENV == 'production') {
       rejectUnauthorized: false,
     },
     autoLoadEntities: true,
-    subscribers: [],
+    synchronize: true,
   };
 } else {
   DATABASE_OPTIONS = {
@@ -32,7 +32,6 @@ if (process.env.NODE_ENV == 'production') {
     database: '/Users/muhammedkpln/Documents/dert/data.db',
     synchronize: process.env.NODE_ENV !== 'production',
     autoLoadEntities: true,
-    subscribers: [],
   };
 }
 
