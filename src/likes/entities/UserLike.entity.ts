@@ -2,12 +2,12 @@ import { IsOptional } from 'class-validator';
 import { User as UserEntity } from 'src/auth/entities/user.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { PostEntity } from 'src/post/entities/post.entity';
-import { StaticEntityFields } from 'src/typeorm/StaticEntityFields';
+import { BaseStruct } from 'src/typeorm/BaseStruct';
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
 import { PostLike } from './PostLike.entity';
 
 @Entity()
-export class UserLike extends StaticEntityFields {
+export class UserLike extends BaseStruct {
   @ManyToOne(() => UserEntity, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn()
   user: UserEntity;

@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ChatGateway } from './chat.gateway';
 import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { MailerModule } from '@nestjs-modules/mailer';
@@ -13,6 +12,9 @@ import { FollowerModule } from './follower/follower.module';
 import { UserModule } from './user/user.module';
 import { CommentModule } from './comment/comment.module';
 import { LikesModule } from './likes/likes.module';
+import { NotificationModule } from './notification/notification.module';
+import { ChatModule } from './chat/chat.module';
+import { StarModule } from './star/star.module';
 
 let DATABASE_OPTIONS: TypeOrmModuleOptions;
 
@@ -28,7 +30,7 @@ if (process.env.NODE_ENV == 'production') {
   };
 } else {
   DATABASE_OPTIONS = {
-    type: 'sqlite',
+    type: 'better-sqlite3',
     database: '/Users/muhammedkpln/Documents/dert/data.db',
     synchronize: process.env.NODE_ENV !== 'production',
     autoLoadEntities: true,
@@ -54,8 +56,11 @@ if (process.env.NODE_ENV == 'production') {
     UserModule,
     CommentModule,
     LikesModule,
+    NotificationModule,
+    ChatModule,
+    StarModule,
   ],
   controllers: [AppController, PostController],
-  providers: [AppService, ChatGateway, PostService],
+  providers: [AppService, PostService],
 })
 export class AppModule {}

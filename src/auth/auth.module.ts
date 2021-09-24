@@ -12,6 +12,9 @@ import { SerializeOutput } from './intercepters/output.interceptor';
 import { AuthUserInterceptor } from './auth-user.interceptor';
 import { UserService } from 'src/user/user.service';
 import { UserModule } from 'src/user/user.module';
+import { Star } from 'src/star/entities/star.entity';
+import { StarModule } from 'src/star/star.module';
+import { StarService } from 'src/star/star.service';
 
 @Module({
   providers: [
@@ -26,6 +29,7 @@ import { UserModule } from 'src/user/user.module';
       useClass: AuthUserInterceptor,
     },
     UserService,
+    StarService,
   ],
   imports: [
     TypeOrmModule.forFeature([User]),
@@ -35,8 +39,9 @@ import { UserModule } from 'src/user/user.module';
       signOptions: { expiresIn: '7 days' },
     }),
     UserModule,
+    StarModule,
   ],
-  exports: [TypeOrmModule, JwtModule, UserService],
+  exports: [TypeOrmModule, JwtModule, UserService, StarService],
   controllers: [AuthController],
 })
 export class AuthModule {}

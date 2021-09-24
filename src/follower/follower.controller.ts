@@ -13,7 +13,7 @@ import {
 import { User } from 'src/auth/decorators/user.decorator';
 import { User as UserEntity } from 'src/auth/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
-import { response } from 'src/helpers/response';
+import { notFound, response } from 'src/helpers/response';
 import { STATUS_CODE } from 'src/status_code';
 import { FollowerService } from './follower.service';
 
@@ -21,7 +21,25 @@ import { FollowerService } from './follower.service';
 export class FollowerController {
   constructor(private readonly followersService: FollowerService) {}
 
-  @Get(':userId')
+  @Get('follows/:userId/:actorId')
+  async isUserFollow(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Param('actorId', ParseIntPipe) actorId: number,
+    @Req() req,
+  ) {
+    const model = await this.followersService.isUserFollowingActor(
+      userId,
+      actorId,
+    );
+
+    if (model) {
+      return model;
+    }
+
+    return notFound();
+  }
+
+  @Get('user/:userId')
   async getByFollowersById(
     @Param('userId', ParseIntPipe) userId: number,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
@@ -76,6 +94,7 @@ export class FollowerController {
       status_code: STATUS_CODE.ALREADY_FOLLOWING_USER,
     });
   }
+
   @Delete(':actor')
   @UseGuards(JwtAuthGuard)
   async unfollow(

@@ -20,7 +20,7 @@ export class PostService {
 
   async paginate(options: IPaginationOptions): Promise<Pagination<PostEntity>> {
     const qb = this.postsService.createQueryBuilder('post');
-    qb.leftJoinAndSelect('post.userlike', 'userlike');
+    qb.leftJoinAndSelect('post.userLike', 'userLike');
     qb.leftJoinAndSelect('post.postLike', 'postLike');
     qb.leftJoinAndSelect('post.user', 'user');
     qb.loadRelationCountAndMap('post.commentsCount', 'post.comments');
@@ -35,7 +35,7 @@ export class PostService {
     if (user) {
       const queryBuilder = this.postsService.createQueryBuilder('post');
       queryBuilder.where('post.userId = :userId', { userId: user.id });
-      queryBuilder.leftJoinAndSelect('post.userlike', 'userlike');
+      queryBuilder.leftJoinAndSelect('post.userLike', 'userLike');
       queryBuilder.leftJoinAndSelect('post.postLike', 'postLike');
       queryBuilder.leftJoinAndSelect('post.user', 'user');
       queryBuilder.loadRelationCountAndMap(

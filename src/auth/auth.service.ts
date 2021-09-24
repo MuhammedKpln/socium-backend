@@ -7,8 +7,11 @@ import { ERROR_CODES } from 'src/error_code';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/createUser.dto';
+import { CreateUserGoogleDto } from './dtos/createUserGoogle.dto';
 import { LoginUserDto } from './dtos/loginUser.dto';
+import { LoginUserGoogleDto } from './dtos/loginUserGoogle.dto';
 import { User } from './entities/user.entity';
+import { StarService } from 'src/star/star.service';
 
 @Injectable()
 export class AuthService {
@@ -17,11 +20,17 @@ export class AuthService {
     private user: UserService,
     @InjectRepository(User) private usersService: Repository<User>,
     private mailerService: MailerService,
+    private starRepo: StarService,
   ) {}
 
   async findOne(username: string) {
-    return this.usersService.findOneOrFail({
+    return await this.usersService.findOneOrFail({
       username,
+    });
+  }
+  async findOneWithEmail(email: string) {
+    return await this.usersService.findOneOrFail({
+      email,
     });
   }
 
@@ -50,6 +59,15 @@ export class AuthService {
       user: userDb,
     };
   }
+  async loginGoogle(user: LoginUserGoogleDto) {
+    const userDb = await this.user.getUserByEmail(user.email);
+    const payload = { username: userDb.username };
+
+    return {
+      access_token: await this.jwtService.signAsync(payload),
+      user: userDb,
+    };
+  }
 
   async register(user: CreateUserDto): Promise<User> {
     const create = this.usersService.create(user);
@@ -65,6 +83,8 @@ export class AuthService {
           text: `Email dogrulama kodunuz: /auth/confirm/${resp.email}/${hashedConfirmationCode}`,
         });
 
+        await this.starRepo.create(resp.id);
+
         return resp;
       })
       .catch((err) => {
@@ -78,6 +98,24 @@ export class AuthService {
         );
       });
   }
+  async registerGoogle(user: CreateUserGoogleDto) {
+    const create = await this.usersService.create({
+      username: user.username,
+      email: user.email,
+      password: user.idToken,
+      isEmailConfirmed: true,
+    });
+
+    const model = await this.usersService.save(create);
+
+    return {
+      access_token: await this.jwtService.signAsync({
+        username: user.username,
+      }),
+      user: model,
+    };
+  }
+
   async verifyEmail(email: string): Promise<User> {
     const user = await this.usersService.findOne({
       email,

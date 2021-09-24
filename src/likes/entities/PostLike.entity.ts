@@ -1,7 +1,7 @@
 import { IsOptional } from 'class-validator';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { PostEntity } from 'src/post/entities/post.entity';
-import { StaticEntityFields } from 'src/typeorm/StaticEntityFields';
+import { BaseStruct } from 'src/typeorm/BaseStruct';
 import {
   AfterInsert,
   Column,
@@ -12,7 +12,7 @@ import {
 } from 'typeorm';
 
 @Entity()
-export class PostLike extends StaticEntityFields {
+export class PostLike extends BaseStruct {
   @Column({ type: 'numeric', default: 0 })
   likeCount: number;
 

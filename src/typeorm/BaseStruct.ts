@@ -4,7 +4,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-export class StaticEntityFields {
+export class BaseStruct {
   @PrimaryGeneratedColumn()
   id: number;
 

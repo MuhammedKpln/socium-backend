@@ -11,7 +11,7 @@ export const ALLOWED_COLORS: string[] = [
 ];
 
 export class CreatePostDto {
-  title: string;
+  @IsNotEmpty()
   content: string;
 
   @IsNotEmpty()

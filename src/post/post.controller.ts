@@ -16,8 +16,14 @@ import { Request } from 'express';
 import { User } from 'src/auth/decorators/user.decorator';
 import { User as UserEntity } from 'src/auth/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
+import { stripHtml } from 'src/helpers';
 import { notFound, response } from 'src/helpers/response';
+import {
+  fetchTwitterMetaData,
+  fetchYoutubeMetaData,
+} from 'src/likes/utils/fetchMetaData';
 import { CreatePostDto } from './dtos/createPost';
+import { PostType } from './entities/post.entity';
 import { PostService } from './post.service';
 
 @Controller('post')
@@ -84,7 +90,30 @@ export class PostController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  createPost(@Body() post: CreatePostDto, @User() user: UserEntity) {
+  async createPost(@Body() post: CreatePostDto, @User() user: UserEntity) {
+    const postContent: string = post?.content;
+    let videoId: string;
+
+    if (postContent.includes('youtu.be')) {
+      videoId = postContent.split('https://youtu.be/')[1];
+    }
+    if (postContent.includes('watch?v=')) {
+      videoId = postContent.split('watch?v=')[1];
+    }
+
+    if (post.type === PostType.Youtube) {
+      const youtubeMetaData = await fetchYoutubeMetaData(videoId);
+
+      post.content = `youtube##${postContent}##${youtubeMetaData.title}`;
+    }
+
+    if (post.type === PostType.Twitter) {
+      const twitterMetaData = await fetchTwitterMetaData(postContent);
+      const text = stripHtml(twitterMetaData.html);
+
+      post.content = `twitter##${postContent}##${text}`;
+    }
+
     return this.postService.createPost(post, user).catch((err) => {
       console.log(err);
       throw new HttpException(

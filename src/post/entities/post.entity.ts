@@ -1,3 +1,4 @@
+import { IsOptional } from 'class-validator';
 import { User } from 'src/auth/entities/user.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { getRandomString } from 'src/helpers/randomString';
@@ -30,10 +31,7 @@ export class PostEntity {
   @PrimaryGeneratedColumn()
   id?: number;
 
-  @Column({ nullable: true })
-  title: string;
-
-  @Column({ nullable: true })
+  @Column()
   content: string;
 
   @ManyToOne(() => User, (user) => user.id)
@@ -59,7 +57,7 @@ export class PostEntity {
   comments?: Comment[];
 
   @OneToOne(() => UserLike, (like) => like.post)
-  userlike?: UserLike;
+  userLike?: UserLike;
 
   @OneToOne(() => PostLike, (like) => like.post)
   postLike?: PostLike;
@@ -70,10 +68,7 @@ export class PostEntity {
   @BeforeInsert()
   slugify?() {
     var slugify = require('slugify');
-    if (this.title) {
-      this.slug = slugify(this.title);
-    } else {
-      this.slug = slugify(getRandomString(100));
-    }
+
+    this.slug = slugify(getRandomString(100));
   }
 }

@@ -6,9 +6,9 @@ import {
   ValidationArguments,
 } from 'class-validator';
 
-@ValidatorConstraint({ async: true })
+@ValidatorConstraint({ async: false })
 export class OneOf implements ValidatorConstraintInterface {
-  validate(value: string, args: ValidationArguments) {
+  validate(value: any, args: ValidationArguments) {
     const array = args.constraints;
 
     return array.includes(value);
