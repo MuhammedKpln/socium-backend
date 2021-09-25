@@ -3,6 +3,8 @@ import {
   DefaultValuePipe,
   Delete,
   Get,
+  NotAcceptableException,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Post,
@@ -23,8 +25,8 @@ export class FollowerController {
 
   @Get('follows/:userId/:actorId')
   async isUserFollow(
-    @Param('userId', ParseIntPipe) userId: number,
-    @Param('actorId', ParseIntPipe) actorId: number,
+    @Param('userId') userId: number,
+    @Param('actorId') actorId: number,
     @Req() req,
   ) {
     const model = await this.followersService.isUserFollowingActor(
@@ -36,7 +38,7 @@ export class FollowerController {
       return model;
     }
 
-    return notFound();
+    throw new NotFoundException(notFound());
   }
 
   @Get('user/:userId')
@@ -83,15 +85,12 @@ export class FollowerController {
     const followed = await this.followersService.followUser(user, actorId);
 
     if (followed) {
-      return response({
-        status: true,
-        status_code: STATUS_CODE.FOLLOWED_USER,
-      });
+      return followed;
     }
 
-    return response({
+    throw new NotFoundException({
       status: false,
-      status_code: STATUS_CODE.ALREADY_FOLLOWING_USER,
+      error_code: STATUS_CODE.ALREADY_FOLLOWING_USER,
     });
   }
 
@@ -110,9 +109,9 @@ export class FollowerController {
       });
     }
 
-    return response({
+    throw new NotFoundException({
       status: false,
-      status_code: STATUS_CODE.NOT_FOLLOWING_USER,
+      error_code: STATUS_CODE.NOT_FOLLOWING_USER,
     });
   }
 }

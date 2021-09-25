@@ -95,6 +95,7 @@ export class ChatController {
     @UserDecorator() user: User,
   ) {
     const checkForStars = await this.chatService.checkIfUserHasStars(user.id);
+    console.log(checkForStars);
     if (!checkForStars) {
       throw new NotAcceptableException({
         error_code: ERROR_CODES.NOT_ENOUGH_STARS,

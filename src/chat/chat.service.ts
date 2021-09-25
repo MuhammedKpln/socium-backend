@@ -21,13 +21,11 @@ export class ChatService {
     private starRepo: Repository<Star>,
   ) {}
 
-  async checkIfUserHasStars(userId: number): Promise<Star | boolean> {
-    const entity = await this.starRepo
-      .createQueryBuilder('star')
-      .where('star.userId = :userId', { userId })
-      .where('star.starCount >= :starCount', { starCount: 0 });
+  async checkIfUserHasStars(userId: number): Promise<Star | false> {
+    const user = new User();
+    user.id = userId;
 
-    const result = await entity.getOne();
+    const result = await this.starRepo.findOne({ user });
 
     if (result.starCount > 0) {
       return result;
@@ -222,7 +220,10 @@ export class ChatService {
       .leftJoinAndSelect('message.sender', 'sender')
       .leftJoinAndSelect('message.receiver', 'receiver')
       .addGroupBy('message.room')
-      .orderBy('message.created_at', 'DESC');
+      .addGroupBy('message.id')
+      .addGroupBy('room.id')
+      .addGroupBy('sender.id')
+      .addGroupBy('receiver.id');
 
     return paginate(messages, options);
   }

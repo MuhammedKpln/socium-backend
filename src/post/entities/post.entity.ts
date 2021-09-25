@@ -59,7 +59,8 @@ export class PostEntity {
   @OneToOne(() => UserLike, (like) => like.post)
   userLike?: UserLike;
 
-  @OneToOne(() => PostLike, (like) => like.post)
+  @OneToOne(() => PostLike, (like) => like.post, { cascade: true })
+  @JoinColumn()
   postLike?: PostLike;
 
   @UpdateDateColumn()
@@ -67,7 +68,7 @@ export class PostEntity {
 
   @BeforeInsert()
   slugify?() {
-    var slugify = require('slugify');
+    const slugify = require('slugify');
 
     this.slug = slugify(getRandomString(100));
   }

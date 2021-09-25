@@ -54,16 +54,13 @@ export class AuthController {
 
   @Get('loginGoogle/:email')
   async checkIfUserIsRegistered(@Param('email') email: string) {
-    try {
-      console.log(email);
-      const user = await this.authService.findOneWithEmail(email);
-      console.log(user);
-      if (user) {
-        return response({});
-      }
-    } catch (err) {
-      throw new NotFoundException(err);
+    const user = await this.authService.findOneWithEmail(email);
+
+    if (user) {
+      return response(user);
     }
+
+    throw new NotFoundException();
   }
 
   @Post('register')

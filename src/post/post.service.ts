@@ -63,7 +63,7 @@ export class PostService {
       user: user,
     };
 
-    const model = this.postsService.create(postModel);
-    return this.postsService.save(model);
+    const model = await this.postsService.create(postModel);
+    return await this.postsService.save(model);
   }
 }

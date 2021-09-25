@@ -1,8 +1,8 @@
 import { ERROR_CODES } from 'src/error_code';
 
-export function response(data: any) {
+export function response(data: any, status = true) {
   return {
-    status: true,
+    status,
     data,
   };
 }

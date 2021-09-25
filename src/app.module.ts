@@ -30,8 +30,10 @@ if (process.env.NODE_ENV == 'production') {
   };
 } else {
   DATABASE_OPTIONS = {
-    type: 'better-sqlite3',
-    database: '/Users/muhammedkpln/Documents/dert/data.db',
+    type: 'postgres',
+    host: 'localhost',
+    database: 'postgres',
+    username: 'postgres',
     synchronize: process.env.NODE_ENV !== 'production',
     autoLoadEntities: true,
   };

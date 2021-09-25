@@ -32,13 +32,16 @@ export class FollowerService {
   }
 
   async isUserFollowingActor(userId: number, actorId: number) {
-    const qb = this.followersService.createQueryBuilder('follower');
-    qb.where('follower.userId = :id', { id: userId });
-    qb.where('follower.actorId = :id', { id: actorId });
-    qb.leftJoinAndSelect('follower.user', 'user');
-    qb.leftJoinAndSelect('follower.actor', 'actor');
+    const user = new User();
+    user.id = userId;
 
-    return qb.getOne();
+    const actor = new User();
+    user.id = actorId;
+
+    return await this.followersService.findOne({
+      user,
+      actor,
+    });
   }
 
   async followUser(user: User, actorId: number): Promise<boolean> {

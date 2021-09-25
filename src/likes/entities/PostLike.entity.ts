@@ -17,8 +17,7 @@ export class PostLike extends BaseStruct {
   likeCount: number;
 
   @IsOptional()
-  @OneToOne(() => PostEntity)
-  @JoinColumn()
+  @OneToOne(() => PostEntity, (post) => post.id)
   post: PostEntity;
 
   @IsOptional()

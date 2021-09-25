@@ -26,12 +26,12 @@ export class PostSubscriber implements EntitySubscriberInterface<PostEntity> {
     return PostEntity;
   }
 
-  async afterInsert(event: InsertEvent<PostEntity>) {
-    const model = await this.postLikeRepo.create({
-      post: event.entity,
-      likeCount: 0,
-    });
+  async beforeInsert(event: InsertEvent<PostEntity>) {
+    const postLike = new PostLike();
+    postLike.likeCount = 0;
 
-    await this.postLikeRepo.save(model);
+    const postLikeSave = await this.postLikeRepo.save(postLike);
+
+    event.entity.postLike = postLikeSave;
   }
 }

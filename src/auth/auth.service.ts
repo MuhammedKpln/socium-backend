@@ -29,7 +29,7 @@ export class AuthService {
     });
   }
   async findOneWithEmail(email: string) {
-    return await this.usersService.findOneOrFail({
+    return await this.usersService.findOne({
       email,
     });
   }
@@ -107,7 +107,7 @@ export class AuthService {
     });
 
     const model = await this.usersService.save(create);
-
+    await this.starRepo.create(model.id);
     return {
       access_token: await this.jwtService.signAsync({
         username: user.username,
