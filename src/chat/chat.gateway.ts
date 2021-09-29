@@ -19,7 +19,10 @@ import {
   ITypingData,
 } from './chat.types';
 
-@WebSocketGateway({ cors: true, namespace: 'PairingScreen' })
+@WebSocketGateway({
+  cors: true,
+  namespace: 'PairingScreen',
+})
 export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
   constructor(private chatService: ChatService) {}
 
@@ -108,6 +111,12 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
     const { message, roomName, user, receiverId, userId } = data;
 
     if (message) {
+      if (message.includes('am')) {
+        this.server.to(client.id).emit('abuse is detected');
+
+        return;
+      }
+
       this.server.to(data.roomName).emit('message', {
         message: message,
         clientId: client.id,

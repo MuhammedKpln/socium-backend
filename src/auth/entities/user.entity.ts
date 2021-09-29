@@ -1,3 +1,4 @@
+import { Field, ObjectType } from '@nestjs/graphql';
 import { Exclude } from 'class-transformer';
 import { hashText } from 'src/cryptHelper';
 import { Follower } from 'src/follower/entities/follower.entity';
@@ -20,23 +21,30 @@ enum GENDER {
 }
 
 @Entity()
+@ObjectType()
 export class User {
   @PrimaryGeneratedColumn()
+  @Field()
   id: number;
 
   @Column({ unique: true })
+  @Field()
   username: string;
 
   @Column({ unique: true })
+  @Field()
   email: string;
 
   @Column({ nullable: true })
+  @Field({ nullable: true })
   gender: GENDER;
 
   @Column({ nullable: true })
+  @Field({ nullable: true })
   emoji: string;
 
   @Column({ nullable: true })
+  @Field({ nullable: true })
   bio: string;
 
   @Column()
@@ -44,6 +52,7 @@ export class User {
   password: string;
 
   @Column({ default: false })
+  @Field()
   public isEmailConfirmed: boolean;
 
   @Column({ nullable: true })
@@ -51,27 +60,30 @@ export class User {
   public emailConfirmationCode: number;
 
   @CreateDateColumn()
+  @Field()
   created_at: Date;
 
   //TODO: onupdate change date auto
   @UpdateDateColumn()
+  @Field()
   updated_at: Date;
 
   @OneToMany(() => PostEntity, (post) => post.user)
   @JoinColumn({
     referencedColumnName: 'user',
   })
+  @Field((returns) => [PostEntity])
   posts?: PostEntity[];
-
-  @OneToMany(() => Follower, (follower) => follower.user)
-  @JoinColumn({
-    referencedColumnName: 'user',
-  })
-  followers?: Follower[];
 
   @OneToMany(() => Follower, (follower) => follower.actor)
   @JoinColumn({
     referencedColumnName: 'actor',
+  })
+  followers?: Follower[];
+
+  @OneToMany(() => Follower, (follower) => follower.user)
+  @JoinColumn({
+    referencedColumnName: 'user',
   })
   following?: Follower[];
 

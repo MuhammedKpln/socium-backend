@@ -14,7 +14,7 @@ import { CreateUserDto } from './dtos/createUser.dto';
 import { CreateUserGoogleDto } from './dtos/createUserGoogle.dto';
 import { LoginUserDto } from './dtos/loginUser.dto';
 import { LoginUserGoogleDto } from './dtos/loginUserGoogle.dto';
-import { NotVerifiedGuard } from './guards/not-verified.guard';
+import { NotVerifiedGraphqlGuard } from './guards/not-verified-gql.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -92,7 +92,7 @@ export class AuthController {
   }
 
   @Get('confirm/:email/:confirmationCode')
-  @UseGuards(NotVerifiedGuard)
+  @UseGuards(NotVerifiedGraphqlGuard)
   async confirmEmail(@Param('email') email: string) {
     return this.authService.verifyEmail(email);
   }

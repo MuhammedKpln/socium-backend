@@ -9,6 +9,7 @@ import { MessageRequest } from './entities/messageRequest.entity';
 import { Messages } from './entities/messages.entity';
 import { Room } from './entities/room.entity';
 import { Star } from '../star/entities/star.entity';
+import { PaginationParams } from 'src/inputypes/pagination.input';
 
 @Injectable()
 export class ChatService {
@@ -142,26 +143,35 @@ export class ChatService {
     });
   }
 
-  async currentUserSendedRequests(userId: number, options: IPaginationOptions) {
-    const qb = this.messageRequestRepo.createQueryBuilder('message');
-    qb.where('message.requestFromId = :userId', { userId });
-    qb.leftJoinAndSelect('message.requestFrom', 'requestFrom');
-    qb.leftJoinAndSelect('message.requestTo', 'requestTo');
-    return paginate(qb, options);
+  async currentUserSendedRequests(userId: number, options: PaginationParams) {
+    const qb = this.messageRequestRepo
+      .createQueryBuilder('messageRequest')
+      .where('messageRequest.requestFrom = :userId', { userId })
+      .andWhere('NOT messageRequest.requestTo = :userId', { userId })
+      .andWhere('messageRequest.request = :request', { request: false })
+      .leftJoinAndSelect('messageRequest.requestFrom', 'requestFrom')
+      .leftJoinAndSelect('messageRequest.requestTo', 'requestTo')
+      .offset(options.offset)
+      .limit(options.limit);
+
+    return await qb.getMany();
   }
 
-  async currentUserRequests(userId: number, options: IPaginationOptions) {
+  async currentUserRequests(
+    userId: number,
+    options: PaginationParams,
+  ): Promise<MessageRequest[]> {
     const qb = this.messageRequestRepo
-      .createQueryBuilder('message')
-      .where('message.requestToId = :userId', { userId })
-      .where('message.requestFromId != :userId', { userId })
-      .where('message.request = :request', { request: false })
-      .leftJoinAndSelect('message.requestFrom', 'requestFrom')
-      .leftJoinAndSelect('message.requestTo', 'requestTo');
+      .createQueryBuilder('messageRequest')
+      .where('messageRequest.requestTo = :userId', { userId })
+      .andWhere('NOT messageRequest.requestFrom = :userId', { userId })
+      .andWhere('messageRequest.request = :request', { request: false })
+      .leftJoinAndSelect('messageRequest.requestFrom', 'requestFrom')
+      .leftJoinAndSelect('messageRequest.requestTo', 'requestTo')
+      .offset(options.offset)
+      .limit(options.limit);
 
-    console.log(await qb.getMany());
-
-    return paginate(qb, options);
+    return await qb.getMany();
   }
 
   async answerRequest(id: number, userId: number, receiverId: number) {
@@ -211,7 +221,7 @@ export class ChatService {
     return false;
   }
 
-  async findMessageRoom(userId: number, options: IPaginationOptions) {
+  async findMessageRoom(userId: number, options: PaginationParams) {
     const messages = this.messageRepo
       .createQueryBuilder('message')
       .where('message.receiver = :userId', { userId })
@@ -219,13 +229,22 @@ export class ChatService {
       .leftJoinAndSelect('message.room', 'room')
       .leftJoinAndSelect('message.sender', 'sender')
       .leftJoinAndSelect('message.receiver', 'receiver')
-      .addGroupBy('message.room')
-      .addGroupBy('message.id')
-      .addGroupBy('room.id')
-      .addGroupBy('sender.id')
-      .addGroupBy('receiver.id');
+      .groupBy('room.id')
+      .select('MIN(message)', 'message')
+      .addSelect('MAX(room.id)', 'room')
+      .addSelect('MAX(sender.id)', 'senderId')
+      .addSelect('MAX(sender.username)', 'sender')
+      .addSelect('MAX(receiver.id)', 'receiverId')
+      .addSelect('MAX(receiver.username)', 'receiver')
+      .addSelect('bool_or(message.seen)', 'seen')
+      .offset(options.offset)
+      .limit(options.limit);
 
-    return paginate(messages, options);
+    console.log(await messages.getSql());
+
+    console.log(await messages.getRawMany());
+
+    return await messages.getRawMany();
   }
 
   async getMessages(userId: number, roomId: number) {

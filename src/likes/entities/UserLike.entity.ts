@@ -1,3 +1,4 @@
+import { Field, ObjectType } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
 import { User as UserEntity } from 'src/auth/entities/user.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
@@ -7,6 +8,7 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
 import { PostLike } from './PostLike.entity';
 
 @Entity()
+@ObjectType()
 export class UserLike extends BaseStruct {
   @ManyToOne(() => UserEntity, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn()
@@ -32,5 +34,6 @@ export class UserLike extends BaseStruct {
   postLike: PostLike;
 
   @Column({ type: 'boolean' })
+  @Field()
   liked: boolean;
 }

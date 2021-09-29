@@ -76,6 +76,7 @@ export class ChatController {
     @UserDecorator() user: User,
     @Param('toUserId') toUserId: number,
   ) {
+    console.log('sa', toUserId, user.id);
     const availableRequest = await this.chatService.checkForRequest(
       user.id,
       toUserId,

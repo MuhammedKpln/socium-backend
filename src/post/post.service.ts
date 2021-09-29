@@ -27,23 +27,62 @@ export class PostService {
 
     return paginate(qb, options);
   }
+  async getAllPosts(): Promise<PostEntity[]> {
+    const queryBuilder = this.postsService.createQueryBuilder('post');
+    queryBuilder.leftJoinAndSelect('post.userLike', 'userLike');
+    queryBuilder.leftJoinAndSelect('post.postLike', 'postLike');
+    queryBuilder.leftJoinAndSelect('post.user', 'user');
+    queryBuilder.loadRelationCountAndMap('post.commentsCount', 'post.comments');
+    queryBuilder.limit(10);
+
+    return await queryBuilder.getMany();
+  }
+
+  async getAllPostsFromUser(username: string) {
+    const user = await this.usersService.findOne({
+      username,
+    });
+
+    const queryBuilder = this.postsService.createQueryBuilder('post');
+    queryBuilder.where('post.userId = :userId', { userId: user.id });
+    queryBuilder.leftJoinAndSelect('post.userLike', 'userLike');
+    queryBuilder.leftJoinAndSelect('post.postLike', 'postLike');
+    queryBuilder.leftJoinAndSelect('post.user', 'user');
+    queryBuilder.loadRelationCountAndMap('post.commentsCount', 'post.comments');
+
+    return await queryBuilder.getMany();
+  }
 
   async getByUsername(username: string, options: IPaginationOptions) {
     const user = await this.usersService.findOne({
       username,
     });
     if (user) {
-      const queryBuilder = this.postsService.createQueryBuilder('post');
-      queryBuilder.where('post.userId = :userId', { userId: user.id });
-      queryBuilder.leftJoinAndSelect('post.userLike', 'userLike');
-      queryBuilder.leftJoinAndSelect('post.postLike', 'postLike');
-      queryBuilder.leftJoinAndSelect('post.user', 'user');
-      queryBuilder.loadRelationCountAndMap(
-        'post.commentsCount',
-        'post.comments',
-      );
+      const queryBuilder = this.postsService
+        .createQueryBuilder('post')
+        .where('post.userId = :userId', { userId: user.id })
+        .leftJoinAndSelect('post.userLike', 'userLike')
+        .leftJoinAndSelect('post.postLike', 'postLike')
+        .leftJoinAndSelect('post.user', 'user')
+        .loadRelationCountAndMap('post.commentsCount', 'post.comments');
 
       return paginate(queryBuilder, options);
+    }
+  }
+  private async getOneBySlug(slug: string) {
+    const post = await this.postsService.findOne({
+      slug,
+    });
+    if (post) {
+      const queryBuilder = this.postsService
+        .createQueryBuilder('post')
+        .where('post.slug = :slug', { slug })
+        .leftJoinAndSelect('post.userLike', 'userLike')
+        .leftJoinAndSelect('post.postLike', 'postLike')
+        .leftJoinAndSelect('post.user', 'user')
+        .loadRelationCountAndMap('post.commentsCount', 'post.comments');
+
+      return await queryBuilder.getOne();
     }
   }
 
@@ -55,15 +94,18 @@ export class PostService {
     if (post) {
       return post;
     }
+
+    return false;
   }
 
   async createPost(post: CreatePostDto, user: User) {
     const postModel: PostEntity = {
       ...post,
-      user: user,
+      user,
     };
 
     const model = await this.postsService.create(postModel);
-    return await this.postsService.save(model);
+    const save = await this.postsService.save(model);
+    return await this.getOneBySlug(save.slug);
   }
 }

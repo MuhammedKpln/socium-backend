@@ -23,10 +23,10 @@ export class SocketAdapter extends IoAdapter {
       cors: {
         origin: process.env.CORS_ORIGIN,
         credentials: true,
-        transports: ['websocket', 'polling'],
         methods: ['GET', 'POST'],
       },
-      allowEIO3: true,
+      allowEIO3: false,
+      transports: ['websocket', 'polling'],
     });
     return server;
   }
@@ -43,7 +43,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(AppModule);
   app.useGlobalPipes(new ValidationPipe());
   app.useWebSocketAdapter(new SocketAdapter(app));
-  app.useGlobalFilters(new AllExceptionsFilter());
+  // app.useGlobalFilters(new AllExceptionsFilter());
   app.enableCors({
     origin: true,
     credentials: true,

@@ -15,6 +15,7 @@ import { UserModule } from 'src/user/user.module';
 import { Star } from 'src/star/entities/star.entity';
 import { StarModule } from 'src/star/star.module';
 import { StarService } from 'src/star/star.service';
+import { AuthResolver } from './auth.resolver';
 
 @Module({
   providers: [
@@ -30,6 +31,7 @@ import { StarService } from 'src/star/star.service';
     },
     UserService,
     StarService,
+    AuthResolver,
   ],
   imports: [
     TypeOrmModule.forFeature([User]),

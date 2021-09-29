@@ -7,6 +7,7 @@ import { PostLike } from 'src/likes/entities/PostLike.entity';
 import { UserLike } from 'src/likes/entities/UserLike.entity';
 import { PostEntity } from './entities/post.entity';
 import { PostController } from './post.controller';
+import { PostsResolver } from './post.resolver';
 import { PostService } from './post.service';
 import { PostSubscriber } from './subscribers/post.subscriber';
 
@@ -16,7 +17,7 @@ import { PostSubscriber } from './subscribers/post.subscriber';
     TypeOrmModule.forFeature([PostEntity, Comment, UserLike, PostLike]),
     AuthModule,
   ],
-  providers: [PostService, AuthService, PostSubscriber],
+  providers: [PostService, AuthService, PostSubscriber, PostsResolver],
   exports: [TypeOrmModule],
 })
 export class PostModule {}

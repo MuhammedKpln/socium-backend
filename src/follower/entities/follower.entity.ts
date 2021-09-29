@@ -1,22 +1,16 @@
+import { Field, ObjectType } from '@nestjs/graphql';
 import { User } from 'src/auth/entities/user.entity';
-import {
-  CreateDateColumn,
-  Entity,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { BaseStruct } from 'src/typeorm/BaseStruct';
+import { Entity, ManyToOne } from 'typeorm';
 
 @Entity()
-export class Follower {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+@ObjectType()
+export class Follower extends BaseStruct {
   @ManyToOne((type) => User)
+  @Field((_returns) => User)
   user: User;
 
   @ManyToOne((type) => User)
+  @Field((_returns) => User)
   actor: User;
-
-  @CreateDateColumn()
-  created_at: Date;
 }

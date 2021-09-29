@@ -15,6 +15,7 @@ import { LikesModule } from './likes/likes.module';
 import { NotificationModule } from './notification/notification.module';
 import { ChatModule } from './chat/chat.module';
 import { StarModule } from './star/star.module';
+import { GraphQLModule } from '@nestjs/graphql';
 
 let DATABASE_OPTIONS: TypeOrmModuleOptions;
 
@@ -50,6 +51,12 @@ if (process.env.NODE_ENV == 'production') {
         from: '"Derdevan" <noreply@derdevan.com>',
         port: 25,
       },
+    }),
+    GraphQLModule.forRoot({
+      playground: true,
+      installSubscriptionHandlers: true,
+      debug: false,
+      autoSchemaFile: 'schema.gql',
     }),
     AuthModule,
     ProfileModule,
