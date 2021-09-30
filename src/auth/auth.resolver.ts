@@ -71,7 +71,7 @@ export class AuthResolver {
 
     if (alreadyRegistered) {
       throw new UserInputError('Could not register', {
-        error_code: STATUS_CODE.ALREADY_REGISTERED,
+        error_code: ERROR_CODES.USER_IS_ALREADY_REGISTERED,
       });
     }
 
@@ -86,7 +86,7 @@ export class AuthResolver {
 
     if (alreadyRegistered) {
       throw new UserInputError('Could not register', {
-        error_code: STATUS_CODE.ALREADY_REGISTERED,
+        error_code: ERROR_CODES.USER_IS_ALREADY_REGISTERED,
       });
     }
 

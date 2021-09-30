@@ -1,11 +1,27 @@
-import { IsNotEmpty, Validate } from 'class-validator';
-import { IS_UNICODE } from 'src/validators/unicode.validator';
+import { Field, InputType } from '@nestjs/graphql';
+import { IsOptional } from 'class-validator';
 
+export enum EmojiPack {
+  'Neutralface' = 0,
+  'Palmsuptogether' = 1,
+  'Partyingface' = 2,
+  'Pensiveface' = 3,
+  'Poutingface' = 4,
+  'Scrunchedface' = 5,
+  'Tiredface' = 5,
+  'Shushingface' = 6,
+  'Smilingfacewithhearts' = 7,
+  'Smilingfacewithsunglasses' = 8,
+  'Smilingface' = 9,
+}
+
+@InputType()
 export class EditProfileDto {
-  @IsNotEmpty()
-  @Validate(IS_UNICODE)
+  @IsOptional()
+  @Field({ nullable: true })
   emoji: string;
 
-  @IsNotEmpty()
+  @IsOptional()
+  @Field({ nullable: true })
   bio: string;
 }

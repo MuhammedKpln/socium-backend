@@ -1,0 +1,234 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Follower {
+  id: Float!
+  created_at: DateTime!
+  updated_at: DateTime!
+  user: User!
+  actor: User!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Comment {
+  id: Float!
+  content: String!
+  user: User!
+  post: PostEntity!
+  parentUser: User!
+  created_at: DateTime!
+  updated_at: DateTime!
+}
+
+type PostLike {
+  id: Float!
+  created_at: DateTime!
+  updated_at: DateTime!
+  likeCount: Float!
+  post: PostEntity!
+  commment: Comment!
+}
+
+type UserLike {
+  id: Float!
+  created_at: DateTime!
+  updated_at: DateTime!
+  liked: Boolean!
+}
+
+type PostEntity {
+  id: Float!
+  content: String!
+  user: User!
+  type: Float!
+  slug: String!
+  color: String!
+  created_at: DateTime!
+  comments: [Comment!]!
+  userLike: UserLike
+  postLike: PostLike!
+  updated_at: DateTime!
+  commentsCount: Float!
+}
+
+type User {
+  id: Float!
+  username: String!
+  email: String!
+  gender: Float
+  emoji: String
+  bio: String
+  isEmailConfirmed: Boolean!
+  created_at: DateTime!
+  updated_at: DateTime!
+  posts: [PostEntity!]!
+}
+
+type Star {
+  id: Float!
+  created_at: DateTime!
+  updated_at: DateTime!
+  starCount: Float!
+  user: User!
+}
+
+type LoginResponse {
+  access_token: String!
+  user: User!
+}
+
+type LoginUserGoogleResponse {
+  access_token: String!
+  user: User!
+}
+
+type CustomUserResponse {
+  id: Float!
+  username: String!
+  email: String!
+  gender: Float
+  emoji: String
+  bio: String
+  isEmailConfirmed: Boolean!
+  created_at: DateTime!
+  updated_at: DateTime!
+  posts: [PostEntity!]!
+  postsCount: Float!
+  followersCount: Float!
+  followingsCount: Float!
+}
+
+type Notification {
+  id: Float!
+  created_at: DateTime!
+  updated_at: DateTime!
+  user: User!
+  actor: User!
+  notificationType: Float!
+  readed: Boolean!
+}
+
+type MessageRequest {
+  id: Float!
+  created_at: DateTime!
+  updated_at: DateTime!
+  requestFrom: User!
+  requestTo: User!
+  request: Boolean!
+}
+
+type Room {
+  id: Float!
+  created_at: DateTime!
+  updated_at: DateTime!
+  roomAdress: String!
+  expireDate: DateTime!
+  messages: [Messages!]!
+}
+
+type Messages {
+  id: Float!
+  created_at: DateTime!
+  updated_at: DateTime!
+  room: Room!
+  sender: User!
+  receiver: User!
+  message: String!
+  seen: Boolean!
+}
+
+type m {
+  room: Float!
+  message: String!
+  senderId: Float!
+  receiverId: Float!
+  sender: String!
+  receiver: String!
+  seen: String!
+}
+
+type Query {
+  checkIfUserIsRegistered(email: String!): Boolean!
+  confirmEmail(confirmationCode: String!, email: String!): Boolean!
+  getUser(username: String!): CustomUserResponse!
+  getUserStars: Star!
+  posts(page: Float): [PostEntity!]!
+  post(slug: String!): PostEntity!
+  userPosts(username: String!): [PostEntity!]!
+  userFollowsActor(actorId: Float!, userId: Float!): Boolean!
+  getUserFollowers(pagination: PaginationParams!, userId: Float!): [Follower!]!
+  getUserFollowings(pagination: PaginationParams!, userId: Float!): [Follower!]!
+  getPostComments(pagination: PaginationParams!, postId: Float!): [Comment!]!
+  getNotifications: [Notification!]!
+  messageRequests(pagination: PaginationParams!): [MessageRequest!]!
+  messageRequestsSended(pagination: PaginationParams!): [MessageRequest!]!
+  checkForRequests(toUserId: Float!): MessageRequest!
+  messages(pagination: PaginationParams!): [m!]!
+  messagesFromRoom(roomId: Float!): [Messages!]!
+}
+
+input PaginationParams {
+  offset: Float!
+  limit: Float!
+}
+
+type Mutation {
+  login(data: LoginUserDto!): LoginResponse!
+  loginGoogle(data: LoginUserGoogleDto!): LoginUserGoogleResponse!
+  register(data: CreateUserDto!): User!
+  registerWithGoogle(data: CreateUserGoogleDto!): LoginResponse!
+  addNewStar: Star!
+  deleteStar: Boolean!
+  editProfile(profile: EditProfileDto!): User!
+  createPost(post: CreatePostDto!): PostEntity!
+  followUser(actorId: Float!): Boolean!
+  unfollowUser(actorId: Float!): Boolean!
+  newComment(data: CreteNewCommentDto!, postId: Float!): Comment!
+  markNotificationAsRead(id: Float!): Boolean!
+  newMessageRequest(toUserId: Float!): Boolean!
+  acceptRequest(receiverId: Float!, id: Float!): MessageRequest!
+  rejectRequest(id: Float!): Boolean!
+}
+
+input LoginUserDto {
+  username: String!
+  password: String!
+}
+
+input LoginUserGoogleDto {
+  email: String!
+  idToken: String!
+}
+
+input CreateUserDto {
+  username: String!
+  password: String!
+  password_confirmation: String!
+  email: String!
+}
+
+input CreateUserGoogleDto {
+  username: String!
+  email: String!
+  idToken: String!
+}
+
+input EditProfileDto {
+  emoji: String
+  bio: String
+}
+
+input CreatePostDto {
+  content: String!
+  type: Float!
+  color: String!
+}
+
+input CreteNewCommentDto {
+  content: String!
+}

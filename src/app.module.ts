@@ -16,6 +16,8 @@ import { NotificationModule } from './notification/notification.module';
 import { ChatModule } from './chat/chat.module';
 import { StarModule } from './star/star.module';
 import { GraphQLModule } from '@nestjs/graphql';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 let DATABASE_OPTIONS: TypeOrmModuleOptions;
 
@@ -57,6 +59,14 @@ if (process.env.NODE_ENV == 'production') {
       installSubscriptionHandlers: true,
       debug: false,
       autoSchemaFile: 'schema.gql',
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'static'),
+      serveStaticOptions: {
+        cacheControl: true,
+        maxAge: 604 * 100000,
+        index: false,
+      },
     }),
     AuthModule,
     ProfileModule,

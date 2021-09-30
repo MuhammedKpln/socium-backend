@@ -2,7 +2,9 @@ import { Field, ObjectType } from '@nestjs/graphql';
 import { Exclude } from 'class-transformer';
 import { hashText } from 'src/cryptHelper';
 import { Follower } from 'src/follower/entities/follower.entity';
+import { getRandomString } from 'src/helpers/randomString';
 import { PostEntity } from 'src/post/entities/post.entity';
+import { EmojiPack } from 'src/profile/dtos/edit-profile.dto';
 import {
   Entity,
   Column,
@@ -12,6 +14,7 @@ import {
   BeforeInsert,
   OneToMany,
   JoinColumn,
+  AfterLoad,
 } from 'typeorm';
 
 enum GENDER {
@@ -99,5 +102,20 @@ export class User {
   async generateRandomConfirmationCode() {
     const randomCode = Math.floor(Math.random() * 100000 + 100000);
     this.emailConfirmationCode = randomCode;
+  }
+
+  @AfterLoad()
+  parseEmoji() {
+    if (this.emoji) {
+      this.emoji = `emoji/` + this.emoji;
+
+      return this.emoji;
+    }
+
+    function randomInteger(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    this.emoji = `emoji/` + EmojiPack[randomInteger(0, 9)];
   }
 }

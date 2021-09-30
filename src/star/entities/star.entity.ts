@@ -10,7 +10,7 @@ export class Star extends BaseStruct {
   @Field()
   starCount: number;
 
-  @OneToOne(() => User, { eager: true })
+  @OneToOne(() => User, { eager: true, onDelete: 'CASCADE' })
   @JoinColumn()
   @Field((_returns) => User)
   user: User;

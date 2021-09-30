@@ -11,9 +11,9 @@ export class ProfileService {
 
   async editProfile(userId: number, updates: EditProfileDto): Promise<boolean> {
     const plainUpdates = classToPlain(updates);
-    const update = this.usersService.update({ id: userId }, plainUpdates);
+    const update = await this.usersService.update({ id: userId }, plainUpdates);
 
-    if (update) {
+    if (update.affected !== 0) {
       return true;
     }
 

@@ -11,11 +11,11 @@ export class Messages extends BaseStruct {
   @Field((_returns) => Room)
   room: Room;
 
-  @ManyToOne(() => User, { eager: true })
+  @ManyToOne(() => User, { eager: true, onDelete: 'CASCADE' })
   @Field((_returns) => User)
   sender: User;
 
-  @ManyToOne(() => User, { eager: true })
+  @ManyToOne(() => User, { eager: true, onDelete: 'CASCADE' })
   @Field((_returns) => User)
   receiver: User;
 
