@@ -64,16 +64,16 @@ export class PostEntity {
   @JoinColumn({
     referencedColumnName: 'post',
   })
-  @Field((returns) => [Comment])
+  @Field((_returns) => [Comment])
   comments?: Comment[];
 
   @OneToOne(() => UserLike, (like) => like.post, { eager: true })
-  @Field((returns) => UserLike, { nullable: true })
+  @Field((_returns) => UserLike, { nullable: true })
   userLike?: UserLike;
 
   @OneToOne(() => PostLike, (like) => like.post, { cascade: true, eager: true })
   @JoinColumn()
-  @Field((returns) => PostLike)
+  @Field((_returns) => PostLike)
   postLike?: PostLike;
 
   @UpdateDateColumn()

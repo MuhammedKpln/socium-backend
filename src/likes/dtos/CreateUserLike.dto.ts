@@ -1,13 +1,15 @@
+import { Field, InputType } from '@nestjs/graphql';
 import { IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
 
+@InputType()
 export class CreateUserLikeDto {
-  @IsNotEmpty() liked: boolean;
-
   @IsOptional()
   @IsNumber()
+  @Field({ nullable: true })
   post?: number;
 
   @IsOptional()
   @IsNumber()
+  @Field({ nullable: true })
   comment?: number;
 }

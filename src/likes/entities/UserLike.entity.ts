@@ -14,7 +14,6 @@ export class UserLike extends BaseStruct {
   @JoinColumn()
   user: UserEntity;
 
-  @IsOptional({ always: true })
   @OneToOne(() => PostEntity, {
     nullable: true,
     onDelete: 'CASCADE',
@@ -27,8 +26,9 @@ export class UserLike extends BaseStruct {
   @JoinColumn()
   comment?: Comment;
 
-  @OneToOne(() => PostLike, (postlike) => postlike.post, {
+  @OneToOne(() => PostLike, {
     onDelete: 'CASCADE',
+    eager: true,
   })
   @JoinColumn()
   postLike: PostLike;

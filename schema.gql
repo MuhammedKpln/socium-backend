@@ -15,16 +15,6 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
-type Comment {
-  id: Float!
-  content: String!
-  user: User!
-  post: PostEntity!
-  parentUser: User!
-  created_at: DateTime!
-  updated_at: DateTime!
-}
-
 type PostLike {
   id: Float!
   created_at: DateTime!
@@ -39,6 +29,18 @@ type UserLike {
   created_at: DateTime!
   updated_at: DateTime!
   liked: Boolean!
+}
+
+type Comment {
+  id: Float!
+  created_at: DateTime!
+  updated_at: DateTime!
+  content: String!
+  user: User!
+  post: PostEntity!
+  parentUser: User!
+  postLike: PostLike!
+  userLike: UserLike
 }
 
 type PostEntity {
@@ -189,6 +191,8 @@ type Mutation {
   followUser(actorId: Float!): Boolean!
   unfollowUser(actorId: Float!): Boolean!
   newComment(data: CreteNewCommentDto!, postId: Float!): Comment!
+  likeEntry(data: CreateUserLikeDto!): UserLike!
+  unlikeEntry(data: CreateUserLikeDto!): Boolean!
   markNotificationAsRead(id: Float!): Boolean!
   newMessageRequest(toUserId: Float!): Boolean!
   acceptRequest(receiverId: Float!, id: Float!): MessageRequest!
@@ -231,4 +235,9 @@ input CreatePostDto {
 
 input CreteNewCommentDto {
   content: String!
+}
+
+input CreateUserLikeDto {
+  post: Float
+  comment: Float
 }

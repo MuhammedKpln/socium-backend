@@ -1,43 +1,39 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { User } from 'src/auth/entities/user.entity';
+import { PostLike } from 'src/likes/entities/PostLike.entity';
+import { UserLike } from 'src/likes/entities/UserLike.entity';
 import { PostEntity } from 'src/post/entities/post.entity';
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { BaseStruct } from 'src/typeorm/BaseStruct';
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
 
 @Entity()
 @ObjectType()
-export class Comment {
-  @PrimaryGeneratedColumn()
-  @Field()
-  id: number;
-
+export class Comment extends BaseStruct {
   @Column()
   @Field()
   content: string;
 
   @ManyToOne(() => User, { eager: true })
-  @Field((returns) => User)
+  @Field((_returns) => User)
   user: User;
 
   @ManyToOne(() => PostEntity)
-  @Field((returns) => PostEntity)
+  @Field((_returns) => PostEntity)
   post: PostEntity;
 
   @ManyToOne(() => User, { eager: true })
-  @Field((returns) => User)
+  @Field((_returns) => User)
   parentUser: User;
 
-  @CreateDateColumn()
-  @Field()
-  created_at: Date;
+  @OneToOne(() => PostLike, (like) => like.commment, {
+    cascade: true,
+    eager: true,
+  })
+  @JoinColumn()
+  @Field((_returns) => PostLike)
+  postLike?: PostLike;
 
-  @UpdateDateColumn()
-  @Field()
-  updated_at: Date;
+  @OneToOne(() => UserLike, (like) => like.comment, { eager: true })
+  @Field((_returns) => UserLike, { nullable: true })
+  userLike?: UserLike;
 }

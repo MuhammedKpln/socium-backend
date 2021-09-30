@@ -87,9 +87,7 @@ export class PostService {
   }
 
   async getPost(slug: string) {
-    const post = await this.postsService.findOne({
-      slug,
-    });
+    const post = await this.getOneBySlug(slug);
 
     if (post) {
       return post;

@@ -6,7 +6,7 @@ import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 @Entity()
 @ObjectType()
 export class Star extends BaseStruct {
-  @Column({ type: 'numeric', default: 0 })
+  @Column({ type: 'smallint', default: 0 })
   @Field()
   starCount: number;
 
