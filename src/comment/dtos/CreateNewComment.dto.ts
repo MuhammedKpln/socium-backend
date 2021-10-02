@@ -6,7 +6,7 @@ export class CreteNewCommentDto {
   @IsNotEmpty()
   @IsString()
   @MinLength(10)
-  @MaxLength(100)
+  @MaxLength(200)
   @Field()
   content: string;
 }
