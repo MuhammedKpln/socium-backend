@@ -1,6 +1,5 @@
 import { NotFoundException, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Pagination } from 'nestjs-typeorm-paginate';
 import { User as UserDecorator } from 'src/auth/decorators/user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
@@ -9,7 +8,7 @@ import { CommentService } from './comment.service';
 import { CreteNewCommentDto } from './dtos/CreateNewComment.dto';
 import { Comment } from './entities/comment.entity';
 
-@Resolver((of) => Pagination)
+@Resolver((of) => Comment)
 export class CommentResolver {
   constructor(private readonly commentsService: CommentService) {}
 

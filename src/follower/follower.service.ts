@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ApolloError } from 'apollo-server-errors';
-import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { User } from 'src/auth/entities/user.entity';
 import { PaginationParams } from 'src/inputypes/pagination.input';
 import { STATUS_CODE } from 'src/status_code';

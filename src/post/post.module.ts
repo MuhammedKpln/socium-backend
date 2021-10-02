@@ -6,13 +6,11 @@ import { Comment } from 'src/comment/entities/comment.entity';
 import { PostLike } from 'src/likes/entities/PostLike.entity';
 import { UserLike } from 'src/likes/entities/UserLike.entity';
 import { PostEntity } from './entities/post.entity';
-import { PostController } from './post.controller';
 import { PostsResolver } from './post.resolver';
 import { PostService } from './post.service';
 import { PostSubscriber } from './subscribers/post.subscriber';
 
 @Module({
-  controllers: [PostController],
   imports: [
     TypeOrmModule.forFeature([PostEntity, Comment, UserLike, PostLike]),
     AuthModule,

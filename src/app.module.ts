@@ -1,11 +1,9 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { ProfileModule } from './profile/profile.module';
-import { PostController } from './post/post.controller';
 import { PostService } from './post/post.service';
 import { PostModule } from './post/post.module';
 import { FollowerModule } from './follower/follower.module';
@@ -79,7 +77,6 @@ if (process.env.NODE_ENV == 'production') {
     ChatModule,
     StarModule,
   ],
-  controllers: [AppController, PostController],
   providers: [AppService, PostService],
 })
 export class AppModule {}

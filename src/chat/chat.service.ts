@@ -1,6 +1,5 @@
 import { Injectable, NotAcceptableException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { User } from 'src/auth/entities/user.entity';
 import { getRandomString } from 'src/helpers/randomString';
 import { Not, Repository } from 'typeorm';

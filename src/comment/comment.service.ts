@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { User } from 'src/auth/entities/user.entity';
 import { PaginationParams } from 'src/inputypes/pagination.input';
 import { PostEntity } from 'src/post/entities/post.entity';
@@ -27,17 +26,6 @@ export class CommentService {
         post,
       },
     });
-  }
-
-  async getPostComments(postId: number, options: IPaginationOptions) {
-    const post = await this.postService.findOne(postId);
-
-    const queryBuilder = this.commentsService.createQueryBuilder('comments');
-    queryBuilder.where('comments.post = :postId', { postId: post.id });
-    queryBuilder.leftJoinAndSelect('comments.post', 'post');
-    queryBuilder.leftJoinAndSelect('comments.user', 'user');
-
-    return paginate(queryBuilder, options);
   }
 
   async createEntity(postId: number, entity: CreteNewCommentDto, user: User) {

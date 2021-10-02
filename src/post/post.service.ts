@@ -1,10 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  IPaginationOptions,
-  paginate,
-  Pagination,
-} from 'nestjs-typeorm-paginate';
+
 import { User } from 'src/auth/entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreatePostDto } from './dtos/createPost';
@@ -18,15 +14,6 @@ export class PostService {
     @InjectRepository(User) private readonly usersService: Repository<User>,
   ) {}
 
-  async paginate(options: IPaginationOptions): Promise<Pagination<PostEntity>> {
-    const qb = this.postsService.createQueryBuilder('post');
-    qb.leftJoinAndSelect('post.userLike', 'userLike');
-    qb.leftJoinAndSelect('post.postLike', 'postLike');
-    qb.leftJoinAndSelect('post.user', 'user');
-    qb.loadRelationCountAndMap('post.commentsCount', 'post.comments');
-
-    return paginate(qb, options);
-  }
   async getAllPosts(): Promise<PostEntity[]> {
     const queryBuilder = this.postsService.createQueryBuilder('post');
     queryBuilder.leftJoinAndSelect('post.userLike', 'userLike');
@@ -53,22 +40,6 @@ export class PostService {
     return await queryBuilder.getMany();
   }
 
-  async getByUsername(username: string, options: IPaginationOptions) {
-    const user = await this.usersService.findOne({
-      username,
-    });
-    if (user) {
-      const queryBuilder = this.postsService
-        .createQueryBuilder('post')
-        .where('post.userId = :userId', { userId: user.id })
-        .leftJoinAndSelect('post.userLike', 'userLike')
-        .leftJoinAndSelect('post.postLike', 'postLike')
-        .leftJoinAndSelect('post.user', 'user')
-        .loadRelationCountAndMap('post.commentsCount', 'post.comments');
-
-      return paginate(queryBuilder, options);
-    }
-  }
   private async getOneBySlug(slug: string) {
     const post = await this.postsService.findOne({
       slug,

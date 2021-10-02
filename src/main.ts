@@ -8,7 +8,6 @@ import {
 } from '@nestjs/platform-fastify';
 import { ValidationPipe } from '@nestjs/common';
 import { AllExceptionsFilter } from './exceptions';
-import { CrudConfigService } from '@nestjsx/crud';
 import * as redis from 'redis';
 import { readFile } from 'fs/promises';
 
@@ -43,12 +42,6 @@ export class SocketAdapter extends IoAdapter {
 }
 
 async function bootstrap() {
-  CrudConfigService.load({
-    query: {
-      alwaysPaginate: true,
-      cache: false,
-    },
-  });
   await redisClient.connect();
   redisClient.once('connect', async () => {
     const badWordsJson = await readFile(__dirname + '/data/badWords.json');
