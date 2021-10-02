@@ -14,7 +14,9 @@ export class Room extends BaseStruct {
   @Field()
   expireDate: Date;
 
-  @ManyToMany(() => Messages, (messages) => messages.room)
+  @ManyToMany(() => Messages, (messages) => messages.room, {
+    onDelete: 'CASCADE',
+  })
   @Field((_returns) => [Messages])
   messages: Messages;
 }

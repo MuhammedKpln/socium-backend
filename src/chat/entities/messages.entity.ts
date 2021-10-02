@@ -7,7 +7,7 @@ import { Room } from './room.entity';
 @Entity()
 @ObjectType()
 export class Messages extends BaseStruct {
-  @ManyToOne(() => Room, { eager: true })
+  @ManyToOne(() => Room, { eager: true, onDelete: 'CASCADE' })
   @Field((_returns) => Room)
   room: Room;
 

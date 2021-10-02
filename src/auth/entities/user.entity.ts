@@ -15,6 +15,7 @@ import {
   OneToMany,
   JoinColumn,
   AfterLoad,
+  AfterInsert,
 } from 'typeorm';
 
 enum GENDER {
@@ -106,6 +107,7 @@ export class User {
 
   @AfterLoad()
   parseEmoji() {
+    console.log(this.emoji);
     if (this.emoji) {
       this.emoji = `emoji/` + this.emoji;
 

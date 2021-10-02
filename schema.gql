@@ -197,6 +197,7 @@ type Mutation {
   newMessageRequest(toUserId: Float!): Boolean!
   acceptRequest(receiverId: Float!, id: Float!): MessageRequest!
   rejectRequest(id: Float!): Boolean!
+  deleteRoom(roomId: Float!): Boolean!
 }
 
 input LoginUserDto {

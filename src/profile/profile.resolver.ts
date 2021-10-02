@@ -20,7 +20,7 @@ export class ProfileResolver {
     );
 
     if (updateProfile) {
-      return user;
+      return updateProfile;
     }
 
     throw new UserInputError('Could not update profile');

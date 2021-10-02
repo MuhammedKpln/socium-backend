@@ -240,11 +240,19 @@ export class ChatService {
       .offset(options.offset)
       .limit(options.limit);
 
-    console.log(await messages.getSql());
-
-    console.log(await messages.getRawMany());
-
     return await messages.getRawMany();
+  }
+
+  async removeMessage(roomId: number) {
+    const deleted = await this.roomRepo.delete({
+      id: roomId,
+    });
+
+    if (deleted.affected) {
+      return true;
+    }
+
+    return false;
   }
 
   async getMessages(userId: number, roomId: number) {

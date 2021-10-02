@@ -1,5 +1,12 @@
 import { UseGuards } from '@nestjs/common';
-import { Args, Field, ObjectType, Query, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  Field,
+  Mutation,
+  ObjectType,
+  Query,
+  Resolver,
+} from '@nestjs/graphql';
 import { User as UserDecorator } from 'src/auth/decorators/user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
@@ -49,6 +56,13 @@ export class MessagesResolver {
     @UserDecorator() user: User,
   ) {
     const roomsService = await this.chatService.getMessages(user.id, roomId);
+
+    return roomsService;
+  }
+
+  @Mutation((_returns) => Boolean)
+  async deleteRoom(@Args('roomId') roomId: number) {
+    const roomsService = await this.chatService.removeMessage(roomId);
 
     return roomsService;
   }

@@ -9,12 +9,22 @@ import { EditProfileDto } from './dtos/edit-profile.dto';
 export class ProfileService {
   constructor(@InjectRepository(User) private usersService: Repository<User>) {}
 
-  async editProfile(userId: number, updates: EditProfileDto): Promise<boolean> {
+  async editProfile(
+    userId: number,
+    updates: EditProfileDto,
+  ): Promise<User | false> {
     const plainUpdates = classToPlain(updates);
-    const update = await this.usersService.update({ id: userId }, plainUpdates);
+    const model = await this.usersService.create({
+      id: userId,
+      ...plainUpdates,
+    });
 
-    if (update.affected !== 0) {
-      return true;
+    const update = await this.usersService.save(model);
+
+    update.emoji = `emoji/` + update.emoji;
+
+    if (update) {
+      return update;
     }
 
     return false;
