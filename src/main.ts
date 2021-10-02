@@ -43,13 +43,12 @@ export class SocketAdapter extends IoAdapter {
 
 async function bootstrap() {
   await redisClient.connect();
-  redisClient.once('connect', async () => {
-    const badWordsJson = await readFile(__dirname + '/data/badWords.json');
-    const badWords: string[] = JSON.parse(Buffer.from(badWordsJson).toString());
 
-    badWords.forEach((badWord) => {
-      redisClient.set(badWord, badWord);
-    });
+  const badWordsJson = await readFile(__dirname + '/data/badWords.json');
+  const badWords: string[] = JSON.parse(Buffer.from(badWordsJson).toString());
+
+  badWords.forEach((badWord) => {
+    redisClient.set(badWord, badWord);
   });
 
   const app = await NestFactory.create<NestFastifyApplication>(AppModule);
