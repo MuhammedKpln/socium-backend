@@ -16,6 +16,8 @@ import { StarModule } from './star/star.module';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { BullModule } from '@nestjs/bull';
+import { redisUrl } from './main';
 
 let DATABASE_OPTIONS: TypeOrmModuleOptions;
 
@@ -64,6 +66,12 @@ if (process.env.NODE_ENV == 'production') {
         cacheControl: true,
         maxAge: 604 * 100000,
         index: false,
+      },
+    }),
+    BullModule.forRoot({
+      redis: {
+        url: redisUrl,
+        database: 1,
       },
     }),
     AuthModule,

@@ -9,6 +9,8 @@ import { Messages } from './entities/messages.entity';
 import { Room } from './entities/room.entity';
 import { Star } from '../star/entities/star.entity';
 import { PaginationParams } from 'src/inputypes/pagination.input';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 
 @Injectable()
 export class ChatService {
@@ -19,6 +21,7 @@ export class ChatService {
     private messageRequestRepo: Repository<MessageRequest>,
     @InjectRepository(Star)
     private starRepo: Repository<Star>,
+    @InjectQueue('deleteOutdatedMessages') private queue: Queue,
   ) {}
 
   async checkIfUserHasStars(userId: number): Promise<Star | false> {
@@ -201,7 +204,7 @@ export class ChatService {
         newMessage.room = room;
 
         await this.messageRepo.save(newMessage);
-
+        this.addQueue(room.id);
         return await this.messageRequestRepo.findOne(id);
       }
 
@@ -266,5 +269,16 @@ export class ChatService {
       .orderBy('message.created_at', 'ASC');
 
     return await messages.getMany();
+  }
+
+  private async addQueue(roomId: number) {
+    await this.queue.add(
+      {
+        roomId,
+      },
+      {
+        delay: 86400000,
+      },
+    );
   }
 }

@@ -11,7 +11,7 @@ import { AllExceptionsFilter } from './exceptions';
 import * as redis from 'redis';
 import { readFile } from 'fs/promises';
 
-const redisUrl =
+export const redisUrl =
   process.env.NODE_ENV !== 'production'
     ? null
     : { url: process.env.REDIS_TLS_URL };

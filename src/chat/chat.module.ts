@@ -9,10 +9,18 @@ import { Room } from './entities/room.entity';
 import { Star } from '../star/entities/star.entity';
 import { ChatResolver } from './chat.resolver';
 import { MessagesResolver } from './messages.resolver';
+import { BullModule } from '@nestjs/bull';
+import { join } from 'path';
 
 @Module({
   controllers: [ChatController],
-  imports: [TypeOrmModule.forFeature([Messages, Room, Star, MessageRequest])],
+  imports: [
+    TypeOrmModule.forFeature([Messages, Room, Star, MessageRequest]),
+    BullModule.registerQueue({
+      name: 'deleteOutdatedMessages',
+      processors: [join(__dirname, 'deleteOudatedMessages.queue.js')],
+    }),
+  ],
   providers: [ChatService, ChatGateway, ChatResolver, MessagesResolver],
   exports: [TypeOrmModule],
 })
