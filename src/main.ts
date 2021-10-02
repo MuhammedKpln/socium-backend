@@ -9,6 +9,15 @@ import {
 import { ValidationPipe } from '@nestjs/common';
 import { AllExceptionsFilter } from './exceptions';
 import { CrudConfigService } from '@nestjsx/crud';
+import * as redis from 'redis';
+import { readFile } from 'fs/promises';
+
+const redisUrl =
+  process.env.NODE_ENV !== 'production'
+    ? null
+    : { url: process.env.REDIS_TLS_URL };
+
+export const redisClient = redis.createClient(redisUrl);
 
 export class SocketAdapter extends IoAdapter {
   createIOServer(
@@ -28,6 +37,7 @@ export class SocketAdapter extends IoAdapter {
       allowEIO3: false,
       transports: ['websocket', 'polling'],
     });
+
     return server;
   }
 }
@@ -39,28 +49,25 @@ async function bootstrap() {
       cache: false,
     },
   });
+  await redisClient.connect();
+  redisClient.once('connect', async () => {
+    const badWordsJson = await readFile(__dirname + '/data/badWords.json');
+    const badWords: string[] = JSON.parse(Buffer.from(badWordsJson).toString());
+
+    badWords.forEach((badWord) => {
+      redisClient.set(badWord, badWord);
+    });
+  });
 
   const app = await NestFactory.create<NestFastifyApplication>(AppModule);
   app.useGlobalPipes(new ValidationPipe());
   app.useWebSocketAdapter(new SocketAdapter(app));
+
   // app.useGlobalFilters(new AllExceptionsFilter());
   app.enableCors({
     origin: true,
     credentials: true,
   });
-
-  if (process.env.NODE_ENV !== 'production') {
-    const { SwaggerModule, DocumentBuilder } = require('@nestjs/swagger');
-
-    const config = new DocumentBuilder()
-      .setTitle('Cats example')
-      .setDescription('The cats API description')
-      .setVersion('1.0')
-      .addTag('cats')
-      .build();
-    const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api', app, document);
-  }
 
   await app.listen(process.env.PORT || 3000, '0.0.0.0');
 }

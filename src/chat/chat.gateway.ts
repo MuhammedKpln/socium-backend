@@ -8,6 +8,7 @@ import {
 } from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
 import { User } from 'src/auth/entities/user.entity';
+import { redisClient } from 'src/main';
 import { rangeNumber, removeItem, shuffleArray } from '../helpers';
 import { ChatService } from './chat.service';
 import {
@@ -111,26 +112,27 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
     const { message, roomName, user, receiverId, userId } = data;
 
     if (message) {
-      if (message.includes('am')) {
+      const splittedMessage = message.split(' ');
+      const abuseDetected = await this.abuseDetector(splittedMessage);
+
+      if (!abuseDetected) {
+        this.server.to(data.roomName).emit('message', {
+          message: message,
+          clientId: client.id,
+        });
+
+        const seen = false;
+
+        await this.chatService.saveMessage({
+          message,
+          receiverId,
+          userId,
+          roomAdress: roomName,
+          seen,
+        });
+      } else {
         this.server.to(client.id).emit('abuse is detected');
-
-        return;
       }
-
-      this.server.to(data.roomName).emit('message', {
-        message: message,
-        clientId: client.id,
-      });
-
-      let seen = false;
-
-      await this.chatService.saveMessage({
-        message,
-        receiverId,
-        userId,
-        roomAdress: roomName,
-        seen,
-      });
     }
   }
 
@@ -197,6 +199,25 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
     return client.emit('user is online', {
       status: false,
     });
+  }
+
+  private async abuseDetector(messages: string[]): Promise<boolean> {
+    const abuseDetectedMessages: string[] = [];
+
+    for (let i = 0; i < messages.length; i++) {
+      const message = messages[i];
+
+      const found = await redisClient.get(message.toLowerCase());
+      if (found) {
+        abuseDetectedMessages.push(found);
+      }
+    }
+
+    if (abuseDetectedMessages.length > 0) {
+      return true;
+    }
+
+    return false;
   }
 
   handleConnection(client: Socket) {
