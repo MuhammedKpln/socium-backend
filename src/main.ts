@@ -12,9 +12,7 @@ import * as redis from 'redis';
 import { readFile } from 'fs/promises';
 
 export const redisUrl =
-  process.env.NODE_ENV !== 'production'
-    ? null
-    : { url: process.env.REDIS_TLS_URL };
+  process.env.NODE_ENV !== 'production' ? null : { url: process.env.REDIS_URL };
 
 export const redisClient = redis.createClient(redisUrl);
 
