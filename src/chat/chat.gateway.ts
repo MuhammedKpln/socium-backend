@@ -96,7 +96,7 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
   // }
 
   @SubscribeMessage('join room')
-  async handleRoom(client: Socket, data: IRoomMessage) {
+  async joinRoom(client: Socket, data: IRoomMessage) {
     client.join(data.roomName);
 
     console.log(client.id, data.pairedClientId);
@@ -105,6 +105,18 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
     } else {
       client.emit('user', data.user);
     }
+  }
+
+  @SubscribeMessage('leave queue')
+  async leaveQueue(client: Socket) {
+    this.pool = this.pool.filter((id) => id !== client.id);
+  }
+
+  @SubscribeMessage('leave room')
+  async leaveRoom(client: Socket, data: IRoomMessage) {
+    this.server.to(data.roomName).emit('client disconnected');
+
+    client.leave(data.roomName);
   }
 
   @SubscribeMessage('send message')
@@ -116,7 +128,7 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
       const abuseDetected = await this.abuseDetector(splittedMessage);
 
       if (!abuseDetected) {
-        this.server.to(data.roomName).emit('message', {
+        this.server.volatile.to(data.roomName).emit('message', {
           message: message,
           clientId: client.id,
         });
@@ -207,7 +219,7 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
     for (let i = 0; i < messages.length; i++) {
       const message = messages[i];
 
-      const found = await redisClient.get(message.toLowerCase());
+      const found = await redisClient.GET(message.toLowerCase());
       if (found) {
         abuseDetectedMessages.push(found);
       }
@@ -229,16 +241,6 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
       (teller) => teller === client.id,
     );
     this.pool = this.pool.filter((teller) => teller === client.id);
-
-    const socket = this.activeSockets.find((socket) => {
-      if (socket.room.includes(client.id)) {
-        return socket;
-      }
-    });
-
-    if (socket) {
-      this.server.to(socket.room).emit('client disconnected');
-    }
 
     this.activeSockets = this.activeSockets.filter((socket) =>
       socket.room.includes(client.id),
