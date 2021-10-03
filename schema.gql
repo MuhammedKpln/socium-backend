@@ -49,7 +49,6 @@ type PostEntity {
   user: User!
   type: Float!
   slug: String!
-  color: String!
   created_at: DateTime!
   comments: [Comment!]!
   userLike: UserLike
@@ -231,7 +230,6 @@ input EditProfileDto {
 input CreatePostDto {
   content: String!
   type: Float!
-  color: String!
 }
 
 input CreteNewCommentDto {

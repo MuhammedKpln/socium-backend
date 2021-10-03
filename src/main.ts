@@ -42,9 +42,8 @@ export class SocketAdapter extends IoAdapter {
 }
 
 async function bootstrap() {
-  redisClient.on('err', (err) => console.log(err));
-
   await redisClient.connect();
+  redisClient.on('error', (err) => console.log('Redis Client Error', err));
 
   const badWordsJson = await readFile(__dirname + '/data/badWords.json');
   const badWords: string[] = JSON.parse(Buffer.from(badWordsJson).toString());

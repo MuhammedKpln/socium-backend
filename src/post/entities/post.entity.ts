@@ -52,10 +52,6 @@ export class PostEntity {
   @Field()
   slug?: string;
 
-  @Column()
-  @Field()
-  color: string;
-
   @CreateDateColumn()
   @Field()
   created_at?: Date;

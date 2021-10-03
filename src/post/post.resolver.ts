@@ -71,11 +71,8 @@ export class PostsResolver {
 
     if (post.type === PostType.Youtube) {
       const youtubeMetaData = await fetchYoutubeMetaData(videoId);
-      console.log('swee');
       post.content = `youtube##${postContent}##${youtubeMetaData.title}`;
     }
-
-    console.log(post.content);
 
     if (post.type === PostType.Twitter) {
       const twitterMetaData = await fetchTwitterMetaData(postContent);
