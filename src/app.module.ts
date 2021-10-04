@@ -17,11 +17,10 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { BullModule } from '@nestjs/bull';
-import { redisClient, redisUrl } from './main';
 
 let DATABASE_OPTIONS: TypeOrmModuleOptions;
 
-if (process.env.NODE_ENV == 'production') {
+if (process.env.NODE_ENV === 'production') {
   DATABASE_OPTIONS = {
     type: 'postgres',
     url: process.env.DATABASE_URL,
