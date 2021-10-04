@@ -24,4 +24,8 @@ export class EditProfileDto {
   @IsOptional()
   @Field({ nullable: true })
   bio: string;
+
+  @IsOptional()
+  @Field({ nullable: true })
+  username: string;
 }

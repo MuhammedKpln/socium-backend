@@ -4,8 +4,11 @@ import { User } from 'src/auth/decorators/user.decorator';
 import { User as UserEntity } from 'src/auth/entities/user.entity';
 import { EditProfileDto } from './dtos/edit-profile.dto';
 import { UserInputError } from 'apollo-server-errors';
+import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
+import { UseGuards } from '@nestjs/common';
 
 @Resolver((_of) => User)
+@UseGuards(JwtAuthGuard)
 export class ProfileResolver {
   constructor(private profileService: ProfileService) {}
 

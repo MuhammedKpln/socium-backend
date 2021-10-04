@@ -1,9 +1,11 @@
-import { MailerService } from '@nestjs-modules/mailer';
+import { InjectQueue } from '@nestjs/bull';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { compareHash, hashWithMD5 } from 'src/cryptHelper';
+import { Queue } from 'bull';
+import { compareHash } from 'src/cryptHelper';
 import { ERROR_CODES } from 'src/error_code';
+import { StarService } from 'src/star/star.service';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/createUser.dto';
@@ -11,7 +13,6 @@ import { CreateUserGoogleDto } from './dtos/createUserGoogle.dto';
 import { LoginUserDto } from './dtos/loginUser.dto';
 import { LoginUserGoogleDto } from './dtos/loginUserGoogle.dto';
 import { User } from './entities/user.entity';
-import { StarService } from 'src/star/star.service';
 
 @Injectable()
 export class AuthService {
@@ -19,8 +20,8 @@ export class AuthService {
     private jwtService: JwtService,
     private user: UserService,
     @InjectRepository(User) private usersService: Repository<User>,
-    private mailerService: MailerService,
     private starRepo: StarService,
+    @InjectQueue('sendVerificationMail') private mailQueue: Queue,
   ) {}
 
   async findOne(username: string) {
@@ -74,14 +75,19 @@ export class AuthService {
     return this.usersService
       .save(create)
       .then(async (resp) => {
-        const hashedConfirmationCode = await hashWithMD5(
-          resp.emailConfirmationCode.toString(),
+        const randomNumber = Math.floor(Math.random() * 1000000);
+
+        await this.mailQueue.add(
+          'confirmation',
+          {
+            to: resp.email,
+            verificationCode: randomNumber,
+          },
+          {
+            attempts: 3,
+            removeOnComplete: true,
+          },
         );
-        await this.mailerService.sendMail({
-          to: resp.email,
-          subject: 'Email Dogrulama',
-          text: `Email dogrulama kodunuz: /auth/confirm/${resp.email}/${hashedConfirmationCode}`,
-        });
 
         await this.starRepo.create(resp.id);
 
@@ -116,21 +122,46 @@ export class AuthService {
     };
   }
 
-  async verifyEmail(email: string): Promise<User> {
+  async verifyEmail(
+    email: string,
+    verificationCode: number,
+  ): Promise<User | false> {
     const user = await this.usersService.findOne({
       email,
     });
 
-    if (user) {
-      const update = await this.usersService.save({
-        ...user,
-        isEmailConfirmed: true,
-        emailConfirmationCode: null,
-      });
+    if (user && user.emailConfirmationCode === verificationCode) {
+      if (user) {
+        const update = await this.usersService.save({
+          ...user,
+          isEmailConfirmed: true,
+          emailConfirmationCode: null,
+        });
 
-      if (update) {
-        return update;
+        if (update) {
+          return update;
+        }
       }
     }
+
+    return false;
+  }
+
+  async resendConfirmMail(email: string): Promise<boolean> {
+    const randomNumber = Math.floor(Math.random() * 1000000);
+
+    await this.mailQueue.add(
+      'confirmation',
+      {
+        to: email,
+        verificationCode: randomNumber,
+      },
+      {
+        attempts: 3,
+        removeOnComplete: true,
+      },
+    );
+
+    return true;
   }
 }

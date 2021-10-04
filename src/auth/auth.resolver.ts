@@ -4,7 +4,8 @@ import { UserInputError } from 'apollo-server-errors';
 import { ERROR_CODES } from 'src/error_code';
 import { STATUS_CODE } from 'src/status_code';
 import { AuthService } from './auth.service';
-import { CreateUserDto } from './dtos/createUser.dto';
+import { User as UserDecorator } from './decorators/user.decorator';
+import { CreateUserDto, VerifyEmailDto } from './dtos/createUser.dto';
 import { CreateUserGoogleDto } from './dtos/createUserGoogle.dto';
 import { LoginResponse, LoginUserDto } from './dtos/loginUser.dto';
 import {
@@ -12,6 +13,7 @@ import {
   LoginUserGoogleResponse,
 } from './dtos/loginUserGoogle.dto';
 import { User } from './entities/user.entity';
+import { JwtAuthGuard } from './guards/auth.guard';
 import { NotVerifiedGraphqlGuard } from './guards/not-verified-gql.guard';
 
 @Resolver((of) => User)
@@ -93,13 +95,26 @@ export class AuthResolver {
     return await this.authService.registerGoogle(user);
   }
 
-  @Query((returns) => Boolean)
+  @Mutation((returns) => Boolean)
   @UseGuards(NotVerifiedGraphqlGuard)
-  async confirmEmail(
-    @Args('email') email: string,
-    @Args('confirmationCode') confirmationCode: string,
-  ) {
-    const verified = await this.authService.verifyEmail(email);
+  async confirmEmail(@Args('data') data: VerifyEmailDto) {
+    const verified = await this.authService.verifyEmail(
+      data.email,
+      data.verificationCode,
+    );
+
+    if (verified) {
+      return true;
+    }
+
+    return false;
+  }
+
+  @Mutation((returns) => Boolean)
+  @UseGuards(NotVerifiedGraphqlGuard)
+  @UseGuards(JwtAuthGuard)
+  async resendConfirmMail(@UserDecorator() user: User) {
+    const verified = await this.authService.resendConfirmMail(user.email);
 
     if (verified) {
       return true;

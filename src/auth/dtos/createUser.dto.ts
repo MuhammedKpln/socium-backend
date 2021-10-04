@@ -1,12 +1,10 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { Exclude } from 'class-transformer';
 import {
-  IsNotEmpty,
   IsEmail,
+  IsNotEmpty,
   IsNumber,
-  MinLength,
   MaxLength,
-  IsString,
+  MinLength,
 } from 'class-validator';
 
 @InputType()
@@ -31,4 +29,17 @@ export class CreateUserDto {
   @IsEmail()
   @Field()
   email: string;
+}
+
+@InputType()
+export class VerifyEmailDto {
+  @IsNotEmpty()
+  @IsEmail()
+  @Field()
+  email: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  @Field()
+  verificationCode: number;
 }

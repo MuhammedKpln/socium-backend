@@ -8,7 +8,7 @@ import { User } from '../entities/user.entity';
 
 interface IContextArgs {
   email: string;
-  confirmationCode: string;
+  verificationCode: string;
 }
 
 @Injectable()
@@ -17,25 +17,16 @@ export class NotVerifiedGraphqlGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const ctx = GqlExecutionContext.create(context);
-    const { confirmationCode, email }: IContextArgs = ctx.getArgs();
-
+    const { data }: { data: IContextArgs } = ctx.getArgs();
+    const { email } = data;
     const user = await this.userService.findOne({
       email,
     });
 
     if (user) {
-      const { emailConfirmationCode, isEmailConfirmed } = user;
+      const { isEmailConfirmed } = user;
 
       if (isEmailConfirmed) {
-        return false;
-      }
-
-      const compareConfirmtionCode = await compareMD5(
-        emailConfirmationCode.toString(),
-        confirmationCode,
-      );
-
-      if (!compareConfirmtionCode) {
         return false;
       }
 

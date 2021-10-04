@@ -10,7 +10,7 @@ import { createConnection, LessThan, MoreThan } from 'typeorm';
 import { Messages } from './entities/messages.entity';
 import { Room } from './entities/room.entity';
 
-export default async function (job: Job, cb: DoneCallback) {
+export default async function (job: Job<{ roomId: number }>, cb: DoneCallback) {
   let DATABASE_OPTIONS;
 
   if (process.env.NODE_ENV == 'production') {
@@ -57,6 +57,6 @@ export default async function (job: Job, cb: DoneCallback) {
   dateNow.setHours(24);
 
   await db.getRepository(Room).delete({
-    id: job.roomId,
+    id: job.data.roomId,
   });
 }

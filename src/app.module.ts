@@ -17,7 +17,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { BullModule } from '@nestjs/bull';
-import { redisUrl } from './main';
+import { redisClient, redisUrl } from './main';
 
 let DATABASE_OPTIONS: TypeOrmModuleOptions;
 
@@ -70,8 +70,10 @@ if (process.env.NODE_ENV == 'production') {
     }),
     BullModule.forRoot({
       redis: {
-        url: redisUrl,
-        database: 1,
+        host: process.env.REDIS_HOST || 'localhost',
+        password: process.env.REDIS_PASSWORD || '',
+        port: parseInt(process.env.REDIS_PORT) || 6379,
+        db: 1,
       },
     }),
     AuthModule,
