@@ -35,9 +35,9 @@ export class AuthService {
     });
   }
 
-  async validateUser(username: string, password: string): Promise<boolean> {
+  async validateUser(email: string, password: string): Promise<boolean> {
     const user = await this.usersService.findOne({
-      username,
+      email,
     });
 
     if (user) {
@@ -52,14 +52,15 @@ export class AuthService {
   }
 
   async login(user: LoginUserDto) {
-    const payload = { username: user.username };
-    const userDb = await this.user.getUserByUsername(user.username);
+    const payload = { email: user.email };
+    const userDb = await this.user.getUserByEmail(user.email);
 
     return {
       access_token: await this.jwtService.signAsync(payload),
       user: userDb,
     };
   }
+
   async loginGoogle(user: LoginUserGoogleDto) {
     const userDb = await this.user.getUserByEmail(user.email);
     const payload = { username: userDb.username };

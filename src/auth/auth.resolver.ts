@@ -22,12 +22,9 @@ export class AuthResolver {
 
   @Mutation((returns) => LoginResponse)
   async login(@Args('data') login: LoginUserDto) {
-    const { username, password } = login;
+    const { email, password } = login;
 
-    const validateUser = await this.authService.validateUser(
-      username,
-      password,
-    );
+    const validateUser = await this.authService.validateUser(email, password);
 
     if (!validateUser) {
       throw new UserInputError('Incorrect username or password', {
@@ -36,7 +33,7 @@ export class AuthResolver {
     }
 
     return await this.authService.login({
-      username,
+      email,
       password,
     });
   }
