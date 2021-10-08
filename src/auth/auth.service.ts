@@ -63,7 +63,7 @@ export class AuthService {
 
   async loginGoogle(user: LoginUserGoogleDto) {
     const userDb = await this.user.getUserByEmail(user.email);
-    const payload = { username: userDb.username };
+    const payload = { email: userDb.email };
 
     return {
       access_token: await this.jwtService.signAsync(payload),
