@@ -18,7 +18,7 @@ export class UserService {
     qb.loadRelationCountAndMap('user.followersCount', 'user.followers');
     qb.loadRelationCountAndMap('user.followingsCount', 'user.following');
 
-    return qb.getOne();
+    return await qb.getOne();
   }
   async getUserByEmail(email: string) {
     const qb = this.usersService.createQueryBuilder('user');
@@ -27,7 +27,7 @@ export class UserService {
     qb.loadRelationCountAndMap('user.followersCount', 'user.followers');
     qb.loadRelationCountAndMap('user.followingsCount', 'user.following');
 
-    return qb.getOne();
+    return await qb.getOne();
   }
 
   async getUserStars(userId: number): Promise<Star | false> {

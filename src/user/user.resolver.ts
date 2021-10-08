@@ -1,4 +1,4 @@
-import { NotFoundException, UseGuards } from '@nestjs/common';
+import { Inject, NotFoundException, UseGuards } from '@nestjs/common';
 import {
   Args,
   Field,
@@ -6,6 +6,7 @@ import {
   ObjectType,
   Query,
   Resolver,
+  Subscription,
 } from '@nestjs/graphql';
 import { User } from 'src/auth/entities/user.entity';
 import { User as UserDecorator } from 'src/auth/decorators/user.decorator';
@@ -13,6 +14,9 @@ import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
 import { Star } from 'src/star/entities/star.entity';
 import { UserService } from './user.service';
 import { ApolloError } from 'apollo-server-errors';
+import { PUB_SUB } from 'src/pubsub/pubsub.module';
+import { PubSub } from 'graphql-subscriptions';
+import { PROFILE_UPDATED_EVENT } from '../profile/events.pubsub';
 
 @ObjectType()
 class CustomUserResponse extends User {
@@ -26,7 +30,18 @@ class CustomUserResponse extends User {
 
 @Resolver((_of) => User)
 export class UserResolver {
-  constructor(private readonly usersService: UserService) {}
+  constructor(
+    private readonly usersService: UserService,
+    @Inject(PUB_SUB) private pubSub: PubSub,
+  ) {}
+
+  @Subscription((_) => CustomUserResponse, {
+    filter: (payload, variables) =>
+      payload.profileUpdated.username === variables.username,
+  })
+  profileUpdated(@Args('username') username: string) {
+    return this.pubSub.asyncIterator(PROFILE_UPDATED_EVENT);
+  }
 
   @Query((_returns) => CustomUserResponse)
   async getUser(@Args('username') username: string) {
@@ -54,9 +69,11 @@ export class UserResolver {
   @Mutation((_returns) => Star)
   @UseGuards(JwtAuthGuard)
   async addNewStar(@UserDecorator() user: User) {
-    const stars = await this.usersService.addNewStar(user.id);
+    const stars = await this.usersService.addNewStar(1);
 
     if (stars) {
+      this.pubSub.publish('userlendim', { userlendim: stars });
+
       return stars;
     }
 

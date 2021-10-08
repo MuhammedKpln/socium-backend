@@ -21,10 +21,7 @@ import { JwtStrategy } from './providers/jwt.strategy';
   providers: [
     AuthService,
     JwtStrategy,
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: SerializeOutput,
-    },
+
     {
       provide: APP_INTERCEPTOR,
       useClass: AuthUserInterceptor,

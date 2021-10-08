@@ -17,6 +17,9 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { BullModule } from '@nestjs/bull';
+import { PubsubModule } from './pubsub/pubsub.module';
+import { verify, sign, decode } from 'jsonwebtoken';
+import { jwtConstants } from './auth/constans';
 
 let DATABASE_OPTIONS: TypeOrmModuleOptions;
 
@@ -58,6 +61,29 @@ if (process.env.NODE_ENV === 'production') {
       installSubscriptionHandlers: true,
       debug: false,
       autoSchemaFile: 'schema.gql',
+      subscriptions: {
+        'graphql-ws': {
+          path: '/graphql',
+          onConnect: async ({ connectionParams }) => {
+            const authToken = <string>connectionParams.authToken;
+            if (!authToken) {
+              throw new Error('FORBIDDEN');
+            }
+
+            const verified = verify(authToken, jwtConstants.SECRET_KEY);
+
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            //@ts-ignore
+            if (verified.email) {
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              //@ts-ignore
+              return { user: verified.email };
+            } else {
+              return {};
+            }
+          },
+        },
+      },
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'static'),
@@ -85,6 +111,7 @@ if (process.env.NODE_ENV === 'production') {
     NotificationModule,
     ChatModule,
     StarModule,
+    PubsubModule,
   ],
   providers: [AppService, PostService],
 })

@@ -78,16 +78,6 @@ type Star {
   user: User!
 }
 
-type LoginResponse {
-  access_token: String!
-  user: User!
-}
-
-type LoginUserGoogleResponse {
-  access_token: String!
-  user: User!
-}
-
 type CustomUserResponse {
   id: Float!
   username: String!
@@ -102,6 +92,16 @@ type CustomUserResponse {
   postsCount: Float!
   followersCount: Float!
   followingsCount: Float!
+}
+
+type LoginResponse {
+  access_token: String!
+  user: User!
+}
+
+type LoginUserGoogleResponse {
+  access_token: String!
+  user: User!
 }
 
 type Notification {
@@ -155,7 +155,6 @@ type m {
 
 type Query {
   checkIfUserIsRegistered(email: String!): Boolean!
-  confirmEmail(confirmationCode: String!, email: String!): Boolean!
   getUser(username: String!): CustomUserResponse!
   getUserStars: Star!
   posts(page: Float): [PostEntity!]!
@@ -183,6 +182,8 @@ type Mutation {
   loginGoogle(data: LoginUserGoogleDto!): LoginUserGoogleResponse!
   register(data: CreateUserDto!): User!
   registerWithGoogle(data: CreateUserGoogleDto!): LoginResponse!
+  confirmEmail(data: VerifyEmailDto!): Boolean!
+  resendConfirmMail: Boolean!
   addNewStar: Star!
   deleteStar: Boolean!
   editProfile(profile: EditProfileDto!): User!
@@ -200,7 +201,7 @@ type Mutation {
 }
 
 input LoginUserDto {
-  username: String!
+  email: String!
   password: String!
 }
 
@@ -222,9 +223,15 @@ input CreateUserGoogleDto {
   idToken: String!
 }
 
+input VerifyEmailDto {
+  email: String!
+  verificationCode: Float!
+}
+
 input EditProfileDto {
   emoji: String
   bio: String
+  username: String
 }
 
 input CreatePostDto {
@@ -239,4 +246,9 @@ input CreteNewCommentDto {
 input CreateUserLikeDto {
   post: Float
   comment: Float
+}
+
+type Subscription {
+  profileUpdated(username: String!): CustomUserResponse!
+  newCommentPublished(postSlug: String!): Comment!
 }
