@@ -1,20 +1,31 @@
-import { NotFoundException, UseGuards } from '@nestjs/common';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Inject, NotFoundException, UseGuards } from '@nestjs/common';
+import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
 import { ApolloError } from 'apollo-server-errors';
+import { PubSub } from 'graphql-subscriptions';
 import { User as UserDecorator } from 'src/auth/decorators/user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
 import { ERROR_CODES } from 'src/error_code';
 import { PaginationParams } from 'src/inputypes/pagination.input';
+import { PUB_SUB } from 'src/pubsub/pubsub.module';
 import { ChatService } from './chat.service';
 import { MessageRequest } from './entities/messageRequest.entity';
+import { Messages } from './entities/messages.entity';
+import {
+  MESSAGE_REQUEST_ACCEPTED,
+  NEW_MESSAGE_REQUEST_SENDED_EVENT,
+} from './events.pubsub';
+import { CustomMessagesEntity } from './messages.resolver';
 
 @Resolver((_of) => MessageRequest)
-@UseGuards(JwtAuthGuard)
 export class ChatResolver {
-  constructor(private chatService: ChatService) {}
+  constructor(
+    private chatService: ChatService,
+    @Inject(PUB_SUB) private readonly pubSub: PubSub,
+  ) {}
 
   @Query((_returns) => [MessageRequest])
+  @UseGuards(JwtAuthGuard)
   async messageRequests(
     @Args('pagination') pagination: PaginationParams,
     @UserDecorator() user: User,
@@ -23,6 +34,7 @@ export class ChatResolver {
   }
 
   @Query((_returns) => [MessageRequest])
+  @UseGuards(JwtAuthGuard)
   async messageRequestsSended(
     @Args('pagination') pagination: PaginationParams,
     @UserDecorator() user: User,
@@ -34,6 +46,7 @@ export class ChatResolver {
   }
 
   @Query((_returns) => MessageRequest)
+  @UseGuards(JwtAuthGuard)
   async checkForRequests(
     @Args('toUserId') toUserId: number,
     @UserDecorator() user: User,
@@ -52,7 +65,27 @@ export class ChatResolver {
     });
   }
 
+  @Subscription((_returns) => MessageRequest, {
+    filter: (payload, variables) =>
+      payload.newMessageRequestSended.requestTo.id === variables.toUserId,
+  })
+  newMessageRequestSended(@Args('toUserId') userId: number) {
+    return this.pubSub.asyncIterator(NEW_MESSAGE_REQUEST_SENDED_EVENT);
+  }
+
+  @Subscription((_returns) => Messages, {
+    filter: (payload, variables) => {
+      console.log(payload, variables);
+
+      return payload.messageRequestAccepted.sender.id === variables.toUserId;
+    },
+  })
+  messageRequestAccepted(@Args('toUserId') userId: number) {
+    return this.pubSub.asyncIterator(MESSAGE_REQUEST_ACCEPTED);
+  }
+
   @Mutation((_returns) => Boolean)
+  @UseGuards(JwtAuthGuard)
   async newMessageRequest(
     @Args('toUserId') toUserId: number,
     @UserDecorator() user: User,
@@ -80,7 +113,14 @@ export class ChatResolver {
       );
     }
 
-    const create = this.chatService.createNewMessageRequest(user.id, toUserId);
+    const create = await this.chatService.createNewMessageRequest(
+      user.id,
+      toUserId,
+    );
+
+    this.pubSub.publish(NEW_MESSAGE_REQUEST_SENDED_EVENT, {
+      newMessageRequestSended: create,
+    });
 
     if (create) {
       return true;
@@ -90,6 +130,7 @@ export class ChatResolver {
   }
 
   @Mutation((_returns) => MessageRequest)
+  @UseGuards(JwtAuthGuard)
   async acceptRequest(
     @Args('id') id: number,
     @Args('receiverId') receiverId: number,
@@ -105,6 +146,7 @@ export class ChatResolver {
   }
 
   @Mutation((_returns) => Boolean)
+  @UseGuards(JwtAuthGuard)
   async rejectRequest(@Args('id') id: number) {
     if (await this.chatService.rejectRequest(id)) {
       return true;

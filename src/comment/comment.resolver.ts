@@ -1,10 +1,13 @@
+import { InjectQueue } from '@nestjs/bull';
 import { Inject, NotFoundException, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
+import { Queue } from 'bull';
 import { PubSub } from 'graphql-subscriptions';
 import { User as UserDecorator } from 'src/auth/decorators/user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
 import { PaginationParams } from 'src/inputypes/pagination.input';
+import { NotificationType } from 'src/notification/entities/notification.type';
 import { PUB_SUB } from 'src/pubsub/pubsub.module';
 import { CommentService } from './comment.service';
 import { CreteNewCommentDto } from './dtos/CreateNewComment.dto';
@@ -16,6 +19,7 @@ export class CommentResolver {
   constructor(
     private readonly commentsService: CommentService,
     @Inject(PUB_SUB) private pubSub: PubSub,
+    @InjectQueue('sendNotification') private readonly notification: Queue,
   ) {}
 
   @Query((returns) => [Comment])
@@ -50,7 +54,15 @@ export class CommentResolver {
       comment,
       user,
     );
-    this.pubSub.publish(NEW_COMMENT_EVENT, {
+
+    await this.notification.add('notification', {
+      fromUser: user,
+      toUser: commentEntity.post.user.id,
+      notificationType: NotificationType.CommentedToPost,
+      body: comment.content,
+    });
+
+    await this.pubSub.publish(NEW_COMMENT_EVENT, {
       newCommentPublished: commentEntity,
     });
 

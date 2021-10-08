@@ -59,7 +59,7 @@ if (process.env.NODE_ENV === 'production') {
     GraphQLModule.forRoot({
       playground: true,
       installSubscriptionHandlers: true,
-      debug: false,
+      debug: true,
       autoSchemaFile: 'schema.gql',
       subscriptions: {
         'graphql-ws': {

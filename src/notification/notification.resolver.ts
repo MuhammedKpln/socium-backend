@@ -20,4 +20,12 @@ export class NotificationResolver {
   async markNotificationAsRead(@Args('id') id: number) {
     return await this.notificationService.markNotificationAsRead(id);
   }
+
+  @Mutation((_returns) => Boolean)
+  async saveUserFcmToken(
+    @UserDecorator() user: User,
+    @Args('fcmToken') fcmToken: string,
+  ) {
+    return await this.notificationService.saveFcmToken(user.id, fcmToken);
+  }
 }

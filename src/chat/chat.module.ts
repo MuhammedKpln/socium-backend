@@ -11,6 +11,7 @@ import { ChatResolver } from './chat.resolver';
 import { MessagesResolver } from './messages.resolver';
 import { BullModule } from '@nestjs/bull';
 import { join } from 'path';
+import { PubsubModule } from 'src/pubsub/pubsub.module';
 
 @Module({
   controllers: [ChatController],
@@ -20,6 +21,7 @@ import { join } from 'path';
       name: 'deleteOutdatedMessages',
       processors: [join(__dirname, 'deleteOudatedMessages.queue.js')],
     }),
+    PubsubModule,
   ],
   providers: [ChatService, ChatGateway, ChatResolver, MessagesResolver],
   exports: [TypeOrmModule],

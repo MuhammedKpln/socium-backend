@@ -15,7 +15,7 @@ import { ChatService } from './chat.service';
 import { Messages } from './entities/messages.entity';
 
 @ObjectType()
-class m {
+export class CustomMessagesEntity {
   @Field()
   room: number;
   @Field()
@@ -37,7 +37,7 @@ class m {
 export class MessagesResolver {
   constructor(private chatService: ChatService) {}
 
-  @Query((_returns) => [m])
+  @Query((_returns) => [CustomMessagesEntity])
   async messages(
     @UserDecorator() user: User,
     @Args('pagination') pagination: PaginationParams,

@@ -57,6 +57,7 @@ export class UserResolver {
   @Query((_returns) => Star)
   @UseGuards(JwtAuthGuard)
   async getUserStars(@UserDecorator() user: User) {
+    console.log(user.id);
     const stars = await this.usersService.getUserStars(user.id);
 
     if (stars) {

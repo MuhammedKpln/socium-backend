@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "nest build && mkdir dist/data && mv src/data/badWords.json dist/data/badWords.json",
+    "build": "nest build && mkdir dist/data && cp src/data/badWords.json dist/data/badWords.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -41,6 +41,8 @@
     "bull": "^3.29.2",
     "class-transformer": "^0.4.0",
     "class-validator": "^0.13.1",
+    "expo-server-sdk": "^3.6.0",
+    "firebase-admin": "^9.12.0",
     "got": "^11.8.2",
     "graphql": "^15.6.0",
     "graphql-redis-subscriptions": "^2.4.0",

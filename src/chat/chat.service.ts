@@ -1,4 +1,4 @@
-import { Injectable, NotAcceptableException } from '@nestjs/common';
+import { Inject, Injectable, NotAcceptableException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/auth/entities/user.entity';
 import { getRandomString } from 'src/helpers/randomString';
@@ -11,6 +11,9 @@ import { Star } from '../star/entities/star.entity';
 import { PaginationParams } from 'src/inputypes/pagination.input';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
+import { PUB_SUB } from 'src/pubsub/pubsub.module';
+import { PubSub } from 'graphql-subscriptions';
+import { MESSAGE_REQUEST_ACCEPTED } from './events.pubsub';
 
 @Injectable()
 export class ChatService {
@@ -22,6 +25,7 @@ export class ChatService {
     @InjectRepository(Star)
     private starRepo: Repository<Star>,
     @InjectQueue('deleteOutdatedMessages') private queue: Queue,
+    @Inject(PUB_SUB) private readonly pubSub: PubSub,
   ) {}
 
   async checkIfUserHasStars(userId: number): Promise<Star | false> {
@@ -203,8 +207,11 @@ export class ChatService {
         newMessage.seen = false;
         newMessage.room = room;
 
-        await this.messageRepo.save(newMessage);
+        const message = await this.messageRepo.save(newMessage);
         this.addQueue(room.id);
+        this.pubSub.publish(MESSAGE_REQUEST_ACCEPTED, {
+          messageRequestAccepted: message,
+        });
         return await this.messageRequestRepo.findOne(id);
       }
 
@@ -234,8 +241,8 @@ export class ChatService {
       .groupBy('room.id')
       .select('MIN(message)', 'message')
       .addSelect('MAX(room.id)', 'room')
-      .addSelect('MAX(sender.id)', 'senderId')
-      .addSelect('MAX(sender.username)', 'sender')
+      .addSelect('MIN(sender.id)', 'senderId')
+      .addSelect('MIN(sender.username)', 'sender')
       .addSelect('MAX(receiver.id)', 'receiverId')
       .addSelect('MAX(receiver.username)', 'receiver')
       .addSelect('bool_or(message.seen)', 'seen')
