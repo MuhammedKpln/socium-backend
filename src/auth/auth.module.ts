@@ -13,7 +13,6 @@ import { AuthResolver } from './auth.resolver';
 import { AuthService } from './auth.service';
 import { jwtConstants } from './constans';
 import { User } from './entities/user.entity';
-import { SerializeOutput } from './intercepters/output.interceptor';
 import { EmailVerificationConsumer } from './providers/EmailVerification.consumer';
 import { JwtStrategy } from './providers/jwt.strategy';
 

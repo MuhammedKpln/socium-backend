@@ -1,24 +1,22 @@
-import { MailerService } from '@nestjs-modules/mailer';
 import {
   OnQueueActive,
-  OnQueueStalled,
   OnQueueCompleted,
-  OnQueueEvent,
-  Process,
-  Processor,
   OnQueueError,
   OnQueueFailed,
+  OnQueueStalled,
+  Process,
+  Processor,
 } from '@nestjs/bull';
+import { InjectRepository } from '@nestjs/typeorm';
 import { DoneCallback, Job } from 'bull';
+import * as firebase from 'firebase-admin';
+import { User } from 'src/auth/entities/user.entity';
+import { Repository } from 'typeorm';
+import { FcmNotificationUser } from '../entities/fcmNotifications.entity';
 import {
   NotificationTitle,
   NotificationType,
 } from '../entities/notification.type';
-import * as firebase from 'firebase-admin';
-import { InjectRepository } from '@nestjs/typeorm';
-import { FcmNotificationUser } from '../entities/fcmNotifications.entity';
-import { Repository } from 'typeorm';
-import { User } from 'src/auth/entities/user.entity';
 
 interface IJobData {
   fromUser: User;

@@ -1,4 +1,4 @@
-import { Injectable, Post } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/auth/entities/user.entity';
 import { Comment } from 'src/comment/entities/comment.entity';

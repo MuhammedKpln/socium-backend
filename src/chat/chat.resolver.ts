@@ -15,7 +15,6 @@ import {
   MESSAGE_REQUEST_ACCEPTED,
   NEW_MESSAGE_REQUEST_SENDED_EVENT,
 } from './events.pubsub';
-import { CustomMessagesEntity } from './messages.resolver';
 
 @Resolver((_of) => MessageRequest)
 export class ChatResolver {

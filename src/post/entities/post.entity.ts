@@ -1,5 +1,5 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import { IsOptional } from 'class-validator';
+import slugify from 'slugify';
 import { User } from 'src/auth/entities/user.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { getRandomString } from 'src/helpers/randomString';
@@ -7,7 +7,6 @@ import { PostLike } from 'src/likes/entities/PostLike.entity';
 import { UserLike } from 'src/likes/entities/UserLike.entity';
 import {
   BeforeInsert,
-  BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
@@ -16,10 +15,8 @@ import {
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
-  RelationId,
   UpdateDateColumn,
 } from 'typeorm';
-import slugify from 'slugify';
 
 export enum PostType {
   Content = 0,

@@ -2,7 +2,6 @@ import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { UserInputError } from 'apollo-server-errors';
 import { ERROR_CODES } from 'src/error_code';
-import { STATUS_CODE } from 'src/status_code';
 import { AuthService } from './auth.service';
 import { User as UserDecorator } from './decorators/user.decorator';
 import { CreateUserDto, VerifyEmailDto } from './dtos/createUser.dto';

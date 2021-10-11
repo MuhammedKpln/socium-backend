@@ -1,15 +1,15 @@
+import { Inject, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
-import { ProfileService } from './profile.service';
+import { UserInputError } from 'apollo-server-errors';
+import { PubSub } from 'graphql-subscriptions';
 import { User } from 'src/auth/decorators/user.decorator';
 import { User as UserEntity } from 'src/auth/entities/user.entity';
-import { EditProfileDto } from './dtos/edit-profile.dto';
-import { UserInputError } from 'apollo-server-errors';
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
-import { Inject, UseGuards } from '@nestjs/common';
-import { UserService } from 'src/user/user.service';
-import { PUB_SUB } from 'src/pubsub/pubsub.module';
-import { PubSub } from 'graphql-subscriptions';
 import { PROFILE_UPDATED_EVENT } from 'src/profile/events.pubsub';
+import { PUB_SUB } from 'src/pubsub/pubsub.module';
+import { UserService } from 'src/user/user.service';
+import { EditProfileDto } from './dtos/edit-profile.dto';
+import { ProfileService } from './profile.service';
 
 @Resolver((_of) => User)
 @UseGuards(JwtAuthGuard)

@@ -1,7 +1,7 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { User } from 'src/auth/entities/user.entity';
 import { BaseStruct } from 'src/typeorm/BaseStruct';
-import { Column, Entity, JoinTable, ManyToMany, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToOne } from 'typeorm';
 import { NotificationType } from './notification.type';
 
 @Entity()

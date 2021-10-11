@@ -1,18 +1,18 @@
-import { Inject, Injectable, NotAcceptableException } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bull';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Queue } from 'bull';
+import { PubSub } from 'graphql-subscriptions';
 import { User } from 'src/auth/entities/user.entity';
 import { getRandomString } from 'src/helpers/randomString';
-import { Not, Repository } from 'typeorm';
+import { PaginationParams } from 'src/inputypes/pagination.input';
+import { PUB_SUB } from 'src/pubsub/pubsub.module';
+import { Repository } from 'typeorm';
+import { Star } from '../star/entities/star.entity';
 import { ICheckForRoomProps, ISaveMessageProps } from './chat.types';
 import { MessageRequest } from './entities/messageRequest.entity';
 import { Messages } from './entities/messages.entity';
 import { Room } from './entities/room.entity';
-import { Star } from '../star/entities/star.entity';
-import { PaginationParams } from 'src/inputypes/pagination.input';
-import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
-import { PUB_SUB } from 'src/pubsub/pubsub.module';
-import { PubSub } from 'graphql-subscriptions';
 import { MESSAGE_REQUEST_ACCEPTED } from './events.pubsub';
 
 @Injectable()

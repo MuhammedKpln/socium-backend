@@ -1,7 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Observable } from 'rxjs';
-import { compareHash, compareMD5 } from 'src/cryptHelper';
+import { compareMD5 } from 'src/cryptHelper';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
 

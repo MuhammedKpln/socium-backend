@@ -1,8 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Observable } from 'rxjs';
-import { compareHash, compareMD5 } from 'src/cryptHelper';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
 

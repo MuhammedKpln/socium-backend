@@ -6,7 +6,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Socket, Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { User } from 'src/auth/entities/user.entity';
 import { redisClient } from 'src/main';
 import { rangeNumber, removeItem, shuffleArray } from '../helpers';

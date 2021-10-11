@@ -1,12 +1,11 @@
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { Job, DoneCallback } from 'bull';
+import { DoneCallback, Job } from 'bull';
 import { User } from 'src/auth/entities/user.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { Follower } from 'src/follower/entities/follower.entity';
 import { PostLike } from 'src/likes/entities/PostLike.entity';
 import { UserLike } from 'src/likes/entities/UserLike.entity';
 import { PostEntity } from 'src/post/entities/post.entity';
-import { createConnection, LessThan, MoreThan } from 'typeorm';
+import { createConnection } from 'typeorm';
 import { Messages } from './entities/messages.entity';
 import { Room } from './entities/room.entity';
 

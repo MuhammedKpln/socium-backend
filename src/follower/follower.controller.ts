@@ -3,7 +3,6 @@ import {
   DefaultValuePipe,
   Delete,
   Get,
-  NotAcceptableException,
   NotFoundException,
   Param,
   ParseIntPipe,

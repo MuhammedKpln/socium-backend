@@ -2,20 +2,18 @@ import { Field, ObjectType } from '@nestjs/graphql';
 import { Exclude } from 'class-transformer';
 import { hashText } from 'src/cryptHelper';
 import { Follower } from 'src/follower/entities/follower.entity';
-import { getRandomString } from 'src/helpers/randomString';
 import { PostEntity } from 'src/post/entities/post.entity';
 import { EmojiPack } from 'src/profile/dtos/edit-profile.dto';
 import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
-  BeforeInsert,
-  OneToMany,
-  JoinColumn,
   AfterLoad,
-  AfterInsert,
+  BeforeInsert,
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 enum GENDER {

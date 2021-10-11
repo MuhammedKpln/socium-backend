@@ -1,6 +1,6 @@
 import { MailerService } from '@nestjs-modules/mailer';
-import { OnQueueActive, Process, Processor } from '@nestjs/bull';
-import { DoneCallback, Job } from 'bull';
+import { Process, Processor } from '@nestjs/bull';
+import { Job } from 'bull';
 
 interface IJobData {
   to: string;

@@ -1,5 +1,5 @@
-import { ITwitterMeta, IYoutubeMeta } from './fetchMetaData.types';
 import got from 'got';
+import { ITwitterMeta, IYoutubeMeta } from './fetchMetaData.types';
 
 export const fetchYoutubeMetaData = async (
   videoId: string,

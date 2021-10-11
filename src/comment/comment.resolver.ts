@@ -1,5 +1,5 @@
 import { InjectQueue } from '@nestjs/bull';
-import { Inject, NotFoundException, UseGuards } from '@nestjs/common';
+import { Inject, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
 import { Queue } from 'bull';
 import { PubSub } from 'graphql-subscriptions';
