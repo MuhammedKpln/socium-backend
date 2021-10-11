@@ -1,5 +1,14 @@
 import { MailerService } from '@nestjs-modules/mailer';
-import { OnQueueActive, Process, Processor } from '@nestjs/bull';
+import {
+  OnQueueActive,
+  OnQueueStalled,
+  OnQueueCompleted,
+  OnQueueEvent,
+  Process,
+  Processor,
+  OnQueueError,
+  OnQueueFailed,
+} from '@nestjs/bull';
 import { DoneCallback, Job } from 'bull';
 import {
   NotificationTitle,
@@ -18,12 +27,14 @@ interface IJobData {
   body: string;
 }
 
-@Processor('sendNotification')
+@Processor('notification')
 export class NotificationConsumer {
   constructor(
     @InjectRepository(FcmNotificationUser)
     private readonly fcmRepo: Repository<FcmNotificationUser>,
   ) {
+    console.log(process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'));
+    console.log(process.env.FIREBASE_PRIVATE_KEY);
     const adminConfig: firebase.ServiceAccount = {
       projectId: process.env.FIREBASE_PROJECT_ID,
       privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
@@ -35,8 +46,8 @@ export class NotificationConsumer {
     });
   }
 
-  @Process('notification')
-  async sendVerificationMail(job: Job<IJobData>, cb) {
+  @Process('sendNotification')
+  async sendVerificationMail(job: Job<IJobData>, cb: DoneCallback) {
     const user = new User();
     user.id = job.data.toUser;
 
@@ -49,12 +60,47 @@ export class NotificationConsumer {
         job.data.notificationType
       ].replace('{0}', job.data.fromUser.username);
 
-      await firebase.messaging().sendToDevice(fcmUser.fcmToken, {
-        notification: {
-          title: notificationTitle,
-          body: job.data.body,
-        },
-      });
+      const message = await firebase
+        .messaging()
+        .sendToDevice(fcmUser.fcmToken, {
+          notification: {
+            title: notificationTitle,
+            body: job.data?.body || undefined,
+          },
+        });
+
+      if (message.successCount > 0) {
+        return cb(null, true);
+      }
     }
+
+    await job.moveToFailed(new Error('User not found'));
+    return cb(new Error('Could not find user'));
+  }
+
+  @OnQueueStalled()
+  async onStalled(job: Job<IJobData>) {
+    await job.moveToFailed(new Error('User not found'));
+    if (job.isFailed()) {
+      console.log(job.failedReason);
+    }
+  }
+  @OnQueueActive()
+  onActive(job: Job<IJobData>) {
+    console.log('Active job: ', job.id);
+  }
+
+  @OnQueueCompleted()
+  async onCompleted(job: Job<IJobData>, result) {
+    console.log('Completed ', job.id, result);
+  }
+  @OnQueueError()
+  async onError(job: Job<IJobData>, error: Error) {
+    console.log('Error ', job.id, error.message);
+  }
+
+  @OnQueueFailed()
+  onFailed(job: Job<IJobData>, error: Error) {
+    console.log('Failed ' + job.id, error);
   }
 }

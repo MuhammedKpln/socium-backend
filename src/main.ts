@@ -1,15 +1,11 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { IoAdapter } from '@nestjs/platform-socket.io';
-import { ServerOptions } from 'socket.io';
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify';
 import { ValidationPipe } from '@nestjs/common';
-import { AllExceptionsFilter } from './exceptions';
-import * as redis from 'redis';
+import { NestFactory } from '@nestjs/core';
+import { NestFastifyApplication } from '@nestjs/platform-fastify';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 import { readFile } from 'fs/promises';
+import * as redis from 'redis';
+import { ServerOptions } from 'socket.io';
+import { AppModule } from './app.module';
 
 export const redisUrl =
   process.env.NODE_ENV !== 'production' ? null : process.env.REDIS_URL;

@@ -2,6 +2,7 @@ import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PubsubModule } from 'src/pubsub/pubsub.module';
+import { Queues } from 'src/types';
 import { FcmNotificationUser } from './entities/fcmNotifications.entity';
 import { Notification } from './entities/notification.entity';
 import { NotificationResolver } from './notification.resolver';
@@ -13,7 +14,7 @@ import { NotificationConsumer } from './providers/Notification.consumer';
     TypeOrmModule.forFeature([Notification, FcmNotificationUser]),
     PubsubModule,
     BullModule.registerQueueAsync({
-      name: 'sendNotification',
+      name: Queues.Notification,
     }),
   ],
   providers: [NotificationService, NotificationResolver, NotificationConsumer],

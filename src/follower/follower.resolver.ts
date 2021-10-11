@@ -1,16 +1,23 @@
-import { NotFoundException, UseGuards } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bull';
+import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Queue } from 'bull';
 import { User as UserDecorator } from 'src/auth/decorators/user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
 import { PaginationParams } from 'src/inputypes/pagination.input';
-import { STATUS_CODE } from 'src/status_code';
+import { NotificationType } from 'src/notification/entities/notification.type';
+import { ISendNotificationQueue, Queues } from 'src/types';
 import { Follower } from './entities/follower.entity';
 import { FollowerService } from './follower.service';
 
 @Resolver((_of) => Follower)
 export class FollowerResolver {
-  constructor(private readonly followersService: FollowerService) {}
+  constructor(
+    private readonly followersService: FollowerService,
+    @InjectQueue(Queues.Notification)
+    private readonly notification: Queue<ISendNotificationQueue>,
+  ) {}
 
   @Query((_returns) => Boolean)
   async userFollowsActor(
@@ -55,6 +62,19 @@ export class FollowerResolver {
     const followed = await this.followersService.followUser(user, actorId);
 
     if (followed) {
+      this.notification.add(
+        Queues.SendNotification,
+        {
+          fromUser: user,
+          toUser: actorId,
+          notificationType: NotificationType.Follow,
+        },
+        {
+          delay: 1800000,
+          priority: 0.3,
+          lifo: true,
+        },
+      );
       return true;
     }
 

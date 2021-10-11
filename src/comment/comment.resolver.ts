@@ -9,6 +9,7 @@ import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
 import { PaginationParams } from 'src/inputypes/pagination.input';
 import { NotificationType } from 'src/notification/entities/notification.type';
 import { PUB_SUB } from 'src/pubsub/pubsub.module';
+import { Queues } from 'src/types';
 import { CommentService } from './comment.service';
 import { CreteNewCommentDto } from './dtos/CreateNewComment.dto';
 import { Comment } from './entities/comment.entity';
@@ -19,7 +20,7 @@ export class CommentResolver {
   constructor(
     private readonly commentsService: CommentService,
     @Inject(PUB_SUB) private pubSub: PubSub,
-    @InjectQueue('sendNotification') private readonly notification: Queue,
+    @InjectQueue(Queues.Notification) private readonly notification: Queue,
   ) {}
 
   @Query((returns) => [Comment])
@@ -55,7 +56,7 @@ export class CommentResolver {
       user,
     );
 
-    await this.notification.add('notification', {
+    await this.notification.add(Queues.SendNotification, {
       fromUser: user,
       toUser: commentEntity.post.user.id,
       notificationType: NotificationType.CommentedToPost,
