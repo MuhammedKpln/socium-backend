@@ -1,6 +1,9 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { NestFastifyApplication } from '@nestjs/platform-fastify';
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from '@nestjs/platform-fastify';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { readFile } from 'fs/promises';
@@ -10,7 +13,7 @@ import { AppModule } from './app.module';
 
 export const redisUrl =
   process.env.NODE_ENV !== 'production'
-    ? 'redis://:@localhost:6379'
+    ? 'redis://localhost:6379'
     : process.env.REDIS_URL;
 
 export const redisClient = createClient({
@@ -65,7 +68,10 @@ async function bootstrap() {
     redisClient.set(badWord, badWord);
   });
 
-  const app = await NestFactory.create<NestFastifyApplication>(AppModule);
+  const app = await NestFactory.create<NestFastifyApplication>(
+    AppModule,
+    new FastifyAdapter(),
+  );
   app.useGlobalPipes(new ValidationPipe());
   app.useWebSocketAdapter(new SocketAdapter(app));
 
