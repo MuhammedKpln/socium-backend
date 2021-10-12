@@ -104,16 +104,6 @@ type LoginUserGoogleResponse {
   user: User!
 }
 
-type Notification {
-  id: Float!
-  created_at: DateTime!
-  updated_at: DateTime!
-  user: User!
-  actor: User!
-  notificationType: Float!
-  readed: Boolean!
-}
-
 type MessageRequest {
   id: Float!
   created_at: DateTime!
@@ -153,6 +143,16 @@ type CustomMessagesEntity {
   seen: String!
 }
 
+type Notification {
+  id: Float!
+  created_at: DateTime!
+  updated_at: DateTime!
+  user: User!
+  actor: User!
+  notificationType: Float!
+  readed: Boolean!
+}
+
 type Query {
   checkIfUserIsRegistered(email: String!): Boolean!
   getUser(username: String!): CustomUserResponse!
@@ -163,8 +163,8 @@ type Query {
   userFollowsActor(actorId: Float!, userId: Float!): Boolean!
   getUserFollowers(pagination: PaginationParams!, userId: Float!): [Follower!]!
   getUserFollowings(pagination: PaginationParams!, userId: Float!): [Follower!]!
-  getPostComments(pagination: PaginationParams!, postId: Float!): [Comment!]!
   getNotifications: [Notification!]!
+  getPostComments(pagination: PaginationParams!, postId: Float!): [Comment!]!
   messageRequests(pagination: PaginationParams!): [MessageRequest!]!
   messageRequestsSended(pagination: PaginationParams!): [MessageRequest!]!
   checkForRequests(toUserId: Float!): MessageRequest!
@@ -190,9 +190,9 @@ type Mutation {
   createPost(post: CreatePostDto!): PostEntity!
   followUser(actorId: Float!): Boolean!
   unfollowUser(actorId: Float!): Boolean!
-  newComment(data: CreteNewCommentDto!, postId: Float!): Comment!
   markNotificationAsRead(id: Float!): Boolean!
   saveUserFcmToken(fcmToken: String!): Boolean!
+  newComment(data: CreteNewCommentDto!, postId: Float!): Comment!
   likeEntry(data: CreateUserLikeDto!): UserLike!
   unlikeEntry(data: CreateUserLikeDto!): Boolean!
   newMessageRequest(toUserId: Float!): Boolean!
