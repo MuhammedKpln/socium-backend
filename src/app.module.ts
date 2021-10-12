@@ -51,8 +51,8 @@ if (process.env.NODE_ENV === 'production') {
       transport: {
         host: process.env.MAILGUN_SMTP_SERVER,
         port: parseInt(process.env.MAILGUN_SMTP_PORT),
-        ignoreTLS: process.env.NODE_ENV !== 'production' ? true : false,
-        secure: process.env.NODE_ENV !== 'production' ? false : true,
+        ignoreTLS: true,
+        secure: false,
         auth: {
           user: process.env.MAILGUN_SMTP_LOGIN,
           pass: process.env.MAILGUN_SMTP_PASSWORD,
