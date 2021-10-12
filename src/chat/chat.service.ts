@@ -10,6 +10,7 @@ import { PUB_SUB } from 'src/pubsub/pubsub.module';
 import { Repository } from 'typeorm';
 import { Star } from '../star/entities/star.entity';
 import { ICheckForRoomProps, ISaveMessageProps } from './chat.types';
+import { Block } from './entities/block-list.entity';
 import { MessageRequest } from './entities/messageRequest.entity';
 import { Messages } from './entities/messages.entity';
 import { Room } from './entities/room.entity';
@@ -22,6 +23,8 @@ export class ChatService {
     @InjectRepository(Messages) private messageRepo: Repository<Messages>,
     @InjectRepository(MessageRequest)
     private messageRequestRepo: Repository<MessageRequest>,
+    @InjectRepository(Block)
+    private blockRepo: Repository<Block>,
     @InjectRepository(Star)
     private starRepo: Repository<Star>,
     @InjectQueue('deleteOutdatedMessages') private queue: Queue,
@@ -287,5 +290,49 @@ export class ChatService {
         delay: 86400000,
       },
     );
+  }
+
+  async alreadyBlocked(userId: number, actorId: number): Promise<boolean> {
+    const user = new User();
+    user.id = userId;
+
+    const actor = new User();
+    actor.id = actorId;
+
+    const blocked = await this.blockRepo.findOne({
+      user,
+      actor,
+    });
+
+    if (blocked) {
+      return true;
+    }
+
+    return false;
+  }
+
+  async blockUser(userId: number, actorId: number): Promise<boolean> {
+    const alreadyBlocked = await this.alreadyBlocked(userId, actorId);
+    const user = new User();
+    user.id = userId;
+
+    const actor = new User();
+    actor.id = actorId;
+
+    if (!alreadyBlocked) {
+      const model = await this.blockRepo.create({
+        user,
+        actor,
+      });
+
+      const blocked = await this.blockRepo.save(model);
+
+      if (blocked) {
+        return true;
+      }
+      return false;
+    }
+
+    return false;
   }
 }

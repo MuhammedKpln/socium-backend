@@ -8,6 +8,7 @@ import { ERROR_CODES } from 'src/error_code';
 import { StarService } from 'src/star/star.service';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
+import { jwtConstants } from './constans';
 import { CreateUserDto } from './dtos/createUser.dto';
 import { CreateUserGoogleDto } from './dtos/createUserGoogle.dto';
 import { LoginUserDto } from './dtos/loginUser.dto';
@@ -164,5 +165,21 @@ export class AuthService {
     );
 
     return true;
+  }
+
+  async validateJwt(token: string): Promise<boolean> {
+    try {
+      const data = await this.jwtService.verifyAsync(token, {
+        secret: jwtConstants.SECRET_KEY,
+      });
+
+      if (data?.email) {
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      return false;
+    }
   }
 }

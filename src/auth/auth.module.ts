@@ -8,7 +8,7 @@ import { StarModule } from 'src/star/star.module';
 import { StarService } from 'src/star/star.service';
 import { UserModule } from 'src/user/user.module';
 import { UserService } from 'src/user/user.service';
-import { AuthUserInterceptor } from './auth-user.interceptor';
+import { AuthUserInterceptor } from './intercepters/auth-user.interceptor';
 import { AuthResolver } from './auth.resolver';
 import { AuthService } from './auth.service';
 import { jwtConstants } from './constans';
@@ -43,6 +43,13 @@ import { JwtStrategy } from './providers/jwt.strategy';
     UserModule,
     StarModule,
   ],
-  exports: [TypeOrmModule, JwtModule, UserService, StarService, BullModule],
+  exports: [
+    TypeOrmModule,
+    JwtModule,
+    UserService,
+    StarService,
+    BullModule,
+    AuthService,
+  ],
 })
 export class AuthModule {}

@@ -7,6 +7,7 @@ export enum Role {
 
 export interface IData {
   role: Role;
+  userId: number;
 }
 export interface ICallOffer {
   offer: string;
@@ -19,7 +20,6 @@ export interface ICallAnswer {
 
 export interface ITypingData {
   typing: boolean;
-  username: string;
 }
 
 export interface IRoomMessage {

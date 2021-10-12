@@ -7,6 +7,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { AuthService } from 'src/auth/auth.service';
 import { User } from 'src/auth/entities/user.entity';
 import { redisClient } from 'src/main';
 import { rangeNumber, removeItem, shuffleArray } from '../helpers';
@@ -25,7 +26,10 @@ import {
   namespace: 'PairingScreen',
 })
 export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
-  constructor(private chatService: ChatService) {}
+  constructor(
+    private chatService: ChatService,
+    private authService: AuthService,
+  ) {}
 
   private activeSockets: {
     room: string;
@@ -170,7 +174,6 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
   handleTyping(client: Socket, data: ITypingData) {
     return client.broadcast.emit('user is done with typing', {
       typing: data.typing,
-      username: data.username,
     });
   }
 
@@ -232,8 +235,13 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
     return false;
   }
 
-  handleConnection(client: Socket) {
+  async handleConnection(client: Socket) {
     this.logger.log('user connected');
+    const verified = await this.authService.validateJwt(
+      client.handshake.headers.authorization,
+    );
+
+    !verified && client.disconnect();
   }
 
   handleDisconnect(client: Socket) {
