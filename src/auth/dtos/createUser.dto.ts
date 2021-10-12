@@ -11,7 +11,7 @@ import {
 export class CreateUserDto {
   @IsNotEmpty()
   @MinLength(5)
-  @MaxLength(10)
+  @MaxLength(20)
   @Field()
   username: string;
 
