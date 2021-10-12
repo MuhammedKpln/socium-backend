@@ -21,8 +21,7 @@ export const redisClient = createClient({
 });
 
 export const redisSocketClient = createClient({
-  url: redisUrl,
-  db: 1,
+  url: redisUrl
 });
 
 const subClient = redisSocketClient.duplicate();
@@ -69,8 +68,7 @@ async function bootstrap() {
   });
 
   const app = await NestFactory.create<NestFastifyApplication>(
-    AppModule,
-    new FastifyAdapter(),
+    AppModule
   );
   app.useGlobalPipes(new ValidationPipe());
   app.useWebSocketAdapter(new SocketAdapter(app));
