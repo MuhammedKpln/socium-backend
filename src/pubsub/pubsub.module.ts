@@ -10,7 +10,7 @@ export const PUB_SUB = 'PUB_SUB';
       useFactory: () => {
         return new RedisPubSub({
           connection: {
-            host: process.env.REDIS_HOST || '127.0.01',
+            host: process.env.REDIS_HOST || '127.0.0.1',
             port: parseInt(process.env.REDIS_PORT) || 6379,
             password: process.env.REDIS_PASSWORD || undefined,
             db: 2,
