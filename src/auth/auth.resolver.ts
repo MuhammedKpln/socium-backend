@@ -107,7 +107,6 @@ export class AuthResolver {
   }
 
   @Mutation((returns) => Boolean)
-  @UseGuards(NotVerifiedGraphqlGuard)
   @UseGuards(JwtAuthGuard)
   async resendConfirmMail(@UserDecorator() user: User) {
     const verified = await this.authService.resendConfirmMail(user.email);

@@ -151,6 +151,14 @@ export class AuthService {
 
   async resendConfirmMail(email: string): Promise<boolean> {
     const randomNumber = Math.floor(Math.random() * 1000000);
+    await this.usersService.update(
+      {
+        email,
+      },
+      {
+        emailConfirmationCode: randomNumber,
+      },
+    );
 
     await this.mailQueue.add(
       'confirmation',

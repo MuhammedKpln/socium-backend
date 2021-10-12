@@ -48,11 +48,18 @@ if (process.env.NODE_ENV === 'production') {
   imports: [
     TypeOrmModule.forRoot(DATABASE_OPTIONS),
     MailerModule.forRoot({
-      transport:
-        process.env.SMTP_ADRESS ||
-        'smtp://0432c7d1ef71e7:1f0621b32bc577@smtp.mailtrap.io',
+      transport: {
+        host: process.env.MAILGUN_SMTP_SERVER,
+        port: parseInt(process.env.MAILGUN_SMTP_PORT),
+        ignoreTLS: process.env.NODE_ENV !== 'production' ? true : false,
+        secure: process.env.NODE_ENV !== 'production' ? false : true,
+        auth: {
+          user: process.env.MAILGUN_SMTP_LOGIN,
+          pass: process.env.MAILGUN_SMTP_PASSWORD,
+        },
+      },
       defaults: {
-        from: '"Derdevan" <noreply@derdevan.com>',
+        from: '"Derdevam" <noreply@derdevam.com>',
         port: 25,
       },
     }),

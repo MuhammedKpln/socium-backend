@@ -1,6 +1,7 @@
 import { MailerService } from '@nestjs-modules/mailer';
 import { Process, Processor } from '@nestjs/bull';
-import { Job } from 'bull';
+import { DoneCallback, Job } from 'bull';
+import { verificationTemplate } from './verificationTemplate';
 
 interface IJobData {
   to: string;
@@ -12,16 +13,21 @@ export class EmailVerificationConsumer {
   constructor(private mailerService: MailerService) {}
 
   @Process('confirmation')
-  async sendVerificationMail(job: Job<IJobData>, cb) {
-    console.log(job);
-    await this.mailerService.sendMail({
-      to: job.data.to,
-      subject: 'Email Dogrulama',
-      text: `Email dogrulama kodunuz: ${job.data.verificationCode}`,
-    });
+  async sendVerificationMail(job: Job<IJobData>, cb: DoneCallback) {
+    try {
+      const emailTemplateFile = verificationTemplate(job.data.verificationCode);
+      await this.mailerService
+        .sendMail({
+          to: job.data.to,
+          subject: 'Derdevam E-Posta Doğrulama Kodunuz',
+          html: emailTemplateFile,
+        })
+        .catch((err) => console.log('werrr', err));
 
-    if (cb) {
-      console.log('tamamdir');
+      return cb(null, true);
+    } catch (error) {
+      console.log(error);
+      return cb(error, null);
     }
   }
 }
