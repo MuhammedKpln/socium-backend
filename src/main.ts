@@ -21,8 +21,7 @@ export const redisClient = createClient({
 });
 
 export const redisSocketClient = createClient({
-  url: redisUrl,
-  db: 1,
+  url: redisUrl
 });
 
 const subClient = redisSocketClient.duplicate();
