@@ -222,10 +222,11 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
     for (let i = 0; i < messages.length; i++) {
       const message = messages[i];
 
-      const found = await redisClient.GET(message.toLowerCase());
-      if (found) {
-        abuseDetectedMessages.push(found);
-      }
+      redisClient.get(message.toLowerCase(), (err, key) => {
+        if (key && !err) {
+          abuseDetectedMessages.push(key);
+        }
+      });
     }
 
     if (abuseDetectedMessages.length > 0) {

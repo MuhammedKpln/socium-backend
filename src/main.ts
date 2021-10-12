@@ -2,16 +2,30 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { IoAdapter } from '@nestjs/platform-socket.io';
+import { createAdapter } from '@socket.io/redis-adapter';
 import { readFile } from 'fs/promises';
-import * as redis from 'redis';
+import { createClient } from 'redis';
 import { ServerOptions } from 'socket.io';
 import { AppModule } from './app.module';
 
 export const redisUrl =
-  process.env.NODE_ENV !== 'production' ? null : process.env.REDIS_URL;
+  process.env.NODE_ENV !== 'production'
+    ? 'redis://:@localhost:6379'
+    : process.env.REDIS_URL;
 
-export const redisClient = redis.createClient({
+export const redisClient = createClient({
   url: redisUrl,
+});
+
+export const redisSocketClient = createClient({
+  url: redisUrl,
+  db: 1,
+});
+
+const subClient = redisSocketClient.duplicate();
+
+redisSocketClient.on('error', function (error) {
+  console.error(error);
 });
 
 export class SocketAdapter extends IoAdapter {
@@ -33,12 +47,15 @@ export class SocketAdapter extends IoAdapter {
       transports: ['websocket', 'polling'],
     });
 
+    const redisAdapter = createAdapter(redisSocketClient, subClient);
+
+    server.adapter(redisAdapter);
+
     return server;
   }
 }
 
 async function bootstrap() {
-  await redisClient.connect();
   redisClient.on('error', (err) => console.log('Redis Client Error', err));
 
   const badWordsJson = await readFile(__dirname + '/data/badWords.json');
