@@ -31,8 +31,6 @@ export class NotificationConsumer {
     @InjectRepository(FcmNotificationUser)
     private readonly fcmRepo: Repository<FcmNotificationUser>,
   ) {
-    console.log(process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'));
-    console.log(process.env.FIREBASE_PRIVATE_KEY);
     const adminConfig: firebase.ServiceAccount = {
       projectId: process.env.FIREBASE_PROJECT_ID,
       privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
