@@ -13,6 +13,7 @@ import * as firebase from 'firebase-admin';
 import { User } from 'src/auth/entities/user.entity';
 import { Repository } from 'typeorm';
 import { FcmNotificationUser } from '../entities/fcmNotifications.entity';
+import { Notification } from '../entities/notification.entity';
 import {
   NotificationTitle,
   NotificationType,
@@ -30,6 +31,9 @@ export class NotificationConsumer {
   constructor(
     @InjectRepository(FcmNotificationUser)
     private readonly fcmRepo: Repository<FcmNotificationUser>,
+
+    @InjectRepository(Notification)
+    private readonly notificationRepo: Repository<Notification>,
   ) {
     const adminConfig: firebase.ServiceAccount = {
       projectId: process.env.FIREBASE_PROJECT_ID,
@@ -52,6 +56,12 @@ export class NotificationConsumer {
     });
 
     if (fcmUser) {
+      await this.saveNotificationToDatabase(
+        job.data.toUser,
+        job.data.fromUser,
+        job.data.notificationType,
+      );
+
       const notificationTitle = NotificationTitle[
         job.data.notificationType
       ].replace('{0}', job.data.fromUser.username);
@@ -72,6 +82,24 @@ export class NotificationConsumer {
 
     await job.moveToFailed(new Error('User not found'));
     return cb(new Error('Could not find user'));
+  }
+
+  async saveNotificationToDatabase(
+    toUser: number,
+    fromUser: User,
+    type: NotificationType,
+  ) {
+    const toUserModel = new User();
+    toUserModel.id = toUser;
+
+    const model = this.notificationRepo.create({
+      actor: toUserModel,
+      user: fromUser,
+      notificationType: type,
+      readed: false,
+    });
+
+    await this.notificationRepo.save(model);
   }
 
   @OnQueueStalled()

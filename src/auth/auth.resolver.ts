@@ -6,6 +6,7 @@ import { AuthService } from './auth.service';
 import { User as UserDecorator } from './decorators/user.decorator';
 import { CreateUserDto, VerifyEmailDto } from './dtos/createUser.dto';
 import { CreateUserGoogleDto } from './dtos/createUserGoogle.dto';
+import { ForgotPasswordDto } from './dtos/forgotPassword.dto';
 import { LoginResponse, LoginUserDto } from './dtos/loginUser.dto';
 import {
   LoginUserGoogleDto,
@@ -13,6 +14,7 @@ import {
 } from './dtos/loginUserGoogle.dto';
 import { User } from './entities/user.entity';
 import { JwtAuthGuard } from './guards/auth.guard';
+import { ForgotPasswordGuard } from './guards/forgot-password.guard';
 import { NotVerifiedGraphqlGuard } from './guards/not-verified-gql.guard';
 
 @Resolver((of) => User)
@@ -110,6 +112,32 @@ export class AuthResolver {
   @UseGuards(JwtAuthGuard)
   async resendConfirmMail(@UserDecorator() user: User) {
     const verified = await this.authService.resendConfirmMail(user.email);
+
+    if (verified) {
+      return true;
+    }
+
+    return false;
+  }
+
+  @Mutation((returns) => Boolean)
+  async sendForgotPasswordCode(@Args('email') email: string) {
+    const verified = await this.authService.sendForgotPasswordCode(email);
+
+    if (verified) {
+      return true;
+    }
+
+    return false;
+  }
+
+  @Mutation((returns) => Boolean)
+  @UseGuards(ForgotPasswordGuard)
+  async changePassword(
+    @Args('data') data: ForgotPasswordDto,
+    @UserDecorator() user: User,
+  ) {
+    const verified = await this.authService.changePassword(data);
 
     if (verified) {
       return true;

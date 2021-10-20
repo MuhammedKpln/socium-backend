@@ -159,6 +159,7 @@ type Query {
   getUserStars: Star!
   posts(page: Float): [PostEntity!]!
   post(slug: String!): PostEntity!
+  getLikedPosts: [PostEntity!]!
   userPosts(username: String!): [PostEntity!]!
   userFollowsActor(actorId: Float!, userId: Float!): Boolean!
   getUserFollowers(pagination: PaginationParams!, userId: Float!): [Follower!]!
@@ -184,6 +185,8 @@ type Mutation {
   registerWithGoogle(data: CreateUserGoogleDto!): LoginResponse!
   confirmEmail(data: VerifyEmailDto!): Boolean!
   resendConfirmMail: Boolean!
+  sendForgotPasswordCode(email: String!): Boolean!
+  changePassword(data: ForgotPasswordDto!): Boolean!
   addNewStar: Star!
   deleteStar: Boolean!
   editProfile(profile: EditProfileDto!): User!
@@ -227,6 +230,12 @@ input CreateUserGoogleDto {
 input VerifyEmailDto {
   email: String!
   verificationCode: Float!
+}
+
+input ForgotPasswordDto {
+  password: String!
+  email: String!
+  forgotPasswordCode: Float!
 }
 
 input EditProfileDto {

@@ -39,6 +39,16 @@ export class PostsResolver {
     return recipe;
   }
 
+  @Query((_returns) => [PostEntity])
+  @UseGuards(JwtAuthGuard)
+  async getLikedPosts(@UserDecorator() user: User) {
+    const stars = await this.postService.getUserLikedPosts(user.id);
+
+    if (stars) {
+      return stars;
+    }
+  }
+
   @Query((returns) => [PostEntity])
   async userPosts(
     @Args('username', { nullable: false, type: () => String }) username: string,

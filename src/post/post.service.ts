@@ -39,6 +39,17 @@ export class PostService {
     return await queryBuilder.getMany();
   }
 
+  async getUserLikedPosts(userId: number) {
+    const queryBuilder = this.postsService.createQueryBuilder('post');
+    queryBuilder.where('post.userId = :userId', { userId });
+    queryBuilder.leftJoinAndSelect('post.userLike', 'userLike');
+    queryBuilder.leftJoinAndSelect('post.postLike', 'postLike');
+    queryBuilder.leftJoinAndSelect('post.user', 'user');
+    queryBuilder.loadRelationCountAndMap('post.commentsCount', 'post.comments');
+
+    return await queryBuilder.getMany();
+  }
+
   private async getOneBySlug(slug: string) {
     const post = await this.postsService.findOne({
       slug,

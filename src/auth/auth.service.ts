@@ -2,15 +2,18 @@ import { InjectQueue } from '@nestjs/bull';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ApolloError } from 'apollo-server-fastify';
 import { Queue } from 'bull';
 import { compareHash } from 'src/cryptHelper';
 import { ERROR_CODES } from 'src/error_code';
 import { StarService } from 'src/star/star.service';
+import { QueueEvents, Queues } from 'src/types';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { jwtConstants } from './constans';
 import { CreateUserDto } from './dtos/createUser.dto';
 import { CreateUserGoogleDto } from './dtos/createUserGoogle.dto';
+import { ForgotPasswordDto } from './dtos/forgotPassword.dto';
 import { LoginUserDto } from './dtos/loginUser.dto';
 import { LoginUserGoogleDto } from './dtos/loginUserGoogle.dto';
 import { User } from './entities/user.entity';
@@ -23,6 +26,7 @@ export class AuthService {
     @InjectRepository(User) private usersService: Repository<User>,
     private starRepo: StarService,
     @InjectQueue('sendVerificationMail') private mailQueue: Queue,
+    @InjectQueue(Queues.ForgotPassword) private forgotMailQueue: Queue,
   ) {}
 
   async findOne(username: string) {
@@ -173,6 +177,55 @@ export class AuthService {
     );
 
     return true;
+  }
+
+  async sendForgotPasswordCode(email: string): Promise<boolean> {
+    const user = await this.findOneWithEmail(email);
+
+    if (!user) {
+      throw new ApolloError('Email does not exists', 'EMAIL_DOES_NOT_EXISTS', {
+        error_code: ERROR_CODES.EMAIL_DOES_NOT_EXISTS,
+      });
+    }
+
+    const randomNumber = Math.floor(Math.random() * 1000000);
+    await this.usersService.update(
+      {
+        email,
+      },
+      {
+        forgotPasswordCode: randomNumber,
+      },
+    );
+
+    await this.forgotMailQueue.add(
+      QueueEvents.SendForgotPasswordCode,
+      {
+        toEmail: email,
+        verificationCode: randomNumber,
+      },
+      {
+        attempts: 3,
+        removeOnComplete: true,
+      },
+    );
+
+    return true;
+  }
+
+  async changePassword(data: ForgotPasswordDto): Promise<boolean> {
+    const { email, password } = data;
+    const user = await this.findOneWithEmail(email);
+
+    if (user) {
+      await this.usersService.save(
+        Object.assign(user, { password, forgotPasswordCode: null }),
+      );
+
+      return true;
+    } else {
+      return false;
+    }
   }
 
   async validateJwt(token: string): Promise<boolean> {

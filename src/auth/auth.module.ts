@@ -15,6 +15,8 @@ import { jwtConstants } from './constans';
 import { User } from './entities/user.entity';
 import { EmailVerificationConsumer } from './providers/EmailVerification.consumer';
 import { JwtStrategy } from './providers/jwt.strategy';
+import { Queues } from 'src/types';
+import { ForgotPasswordConsumer } from './providers/ForgotPassword.consumer';
 
 @Module({
   providers: [
@@ -29,6 +31,7 @@ import { JwtStrategy } from './providers/jwt.strategy';
     UserService,
     StarService,
     AuthResolver,
+    ForgotPasswordConsumer,
   ],
   imports: [
     TypeOrmModule.forFeature([User]),
@@ -37,9 +40,14 @@ import { JwtStrategy } from './providers/jwt.strategy';
       secret: jwtConstants.SECRET_KEY,
       signOptions: { expiresIn: '7 days' },
     }),
-    BullModule.registerQueue({
-      name: 'sendVerificationMail',
-    }),
+    BullModule.registerQueue(
+      {
+        name: 'sendVerificationMail',
+      },
+      {
+        name: Queues.ForgotPassword,
+      },
+    ),
     UserModule,
     StarModule,
   ],

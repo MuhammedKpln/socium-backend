@@ -1,4 +1,8 @@
-export const verificationTemplate = (verificationCode: number) => `<style>
+export const verificationTemplate = (
+  verificationCode: number,
+  title: string = 'Derdevam doğrulama kodunuz',
+  body: string = 'Doğrulama kodunuzu uygulama içerisinde giriş yaptıktan sonra giriniz.',
+) => `<style>
 @import url("https://fonts.googleapis.com/css?family=Open+Sans");
 * {
   box-sizing: border-box;
@@ -88,11 +92,11 @@ body {
 </style>
 <div class="c-email">
   <div class="c-email__header">
-    <h1 class="c-email__header__title">Derdevam doğrulama kodunuz</h1>
+    <h1 class="c-email__header__title">${title}</h1>
   </div>
   <div class="c-email__content">
     <p class="c-email__content__text text-title">
-      Doğrulama kodunuzu uygulama içerisinde giriş yaptıktan sonra giriniz.
+      ${body}
     </p>
     <div class="c-email__code">
       <span class="c-email__code__text">${verificationCode}</span>

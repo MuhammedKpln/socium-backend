@@ -1,7 +1,7 @@
 import { MailerService } from '@nestjs-modules/mailer';
 import { Process, Processor } from '@nestjs/bull';
 import { DoneCallback, Job } from 'bull';
-import { verificationTemplate } from './verificationTemplate';
+import { verificationTemplate } from './codeTemplate';
 
 interface IJobData {
   to: string;

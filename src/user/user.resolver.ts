@@ -13,6 +13,7 @@ import { PubSub } from 'graphql-subscriptions';
 import { User as UserDecorator } from 'src/auth/decorators/user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
+import { PostEntity } from 'src/post/entities/post.entity';
 import { PUB_SUB } from 'src/pubsub/pubsub.module';
 import { Star } from 'src/star/entities/star.entity';
 import { PROFILE_UPDATED_EVENT } from '../profile/events.pubsub';

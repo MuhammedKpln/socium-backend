@@ -4,6 +4,10 @@ import { NotificationType } from './notification/entities/notification.type';
 export const enum Queues {
   Notification = 'notification',
   SendNotification = 'sendNotification',
+  ForgotPassword = 'forgotPassword',
+}
+export const enum QueueEvents {
+  SendForgotPasswordCode = 'sendForgotPasswordCode',
 }
 
 export interface ISendNotificationQueue {

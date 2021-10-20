@@ -10,14 +10,13 @@ import {
 @InputType()
 export class CreateUserDto {
   @IsNotEmpty()
-  @MinLength(5)
+  @MinLength(3)
   @MaxLength(20)
   @Field()
   username: string;
 
   @IsNotEmpty()
   @MinLength(5)
-  @MaxLength(15)
   @Field()
   password: string;
 

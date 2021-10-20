@@ -7,6 +7,7 @@ import { EmojiPack } from 'src/profile/dtos/edit-profile.dto';
 import {
   AfterLoad,
   BeforeInsert,
+  BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
@@ -61,6 +62,10 @@ export class User {
   @Exclude({ toPlainOnly: true })
   public emailConfirmationCode: number;
 
+  @Column({ nullable: true })
+  @Exclude({ toPlainOnly: true })
+  forgotPasswordCode: number;
+
   @CreateDateColumn()
   @Field()
   created_at: Date;
@@ -90,6 +95,7 @@ export class User {
   following?: Follower[];
 
   @BeforeInsert()
+  @BeforeUpdate()
   async cryptPassword() {
     const plainPassword = this.password;
     const hashedPassword = await hashText(plainPassword);
@@ -106,7 +112,7 @@ export class User {
   @AfterLoad()
   parseEmoji() {
     if (this.emoji) {
-      this.emoji = `emoji/` + this.emoji;
+      this.emoji = this.emoji;
 
       return this.emoji;
     }
@@ -115,6 +121,6 @@ export class User {
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    this.emoji = `emoji/` + EmojiPack[randomInteger(0, 9)];
+    this.emoji = EmojiPack[randomInteger(0, 9)];
   }
 }

@@ -238,11 +238,11 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
 
   async handleConnection(client: Socket) {
     this.logger.log('user connected');
-    const verified = await this.authService.validateJwt(
-      client.handshake.headers.authorization,
-    );
+    // const verified = await this.authService.validateJwt(
+    //   client.handshake.headers.authorization,
+    // );
 
-    !verified && client.disconnect();
+    // !verified && client.disconnect();
   }
 
   handleDisconnect(client: Socket) {
@@ -256,8 +256,6 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
     );
 
     this.users = this.users.filter((user) => user.clientId !== client.id);
-
-    console.log(this.users);
 
     this.logger.log('user disconnected');
   }
