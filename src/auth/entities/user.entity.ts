@@ -97,6 +97,8 @@ export class User {
   @BeforeInsert()
   @BeforeUpdate()
   async cryptPassword() {
+    if (!this.password) return;
+
     const plainPassword = this.password;
     const hashedPassword = await hashText(plainPassword);
 

@@ -132,9 +132,12 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
       const abuseDetected = await this.abuseDetector(splittedMessage);
 
       if (!abuseDetected) {
-        this.server.volatile.to(data.roomName).emit('message', {
+        const date = new Date();
+
+        this.server.to(data.roomName).emit('message', {
           message: message,
           clientId: client.id,
+          date
         });
 
         const seen = false;
