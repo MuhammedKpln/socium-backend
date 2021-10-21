@@ -190,6 +190,7 @@ type Mutation {
   addNewStar: Star!
   deleteStar: Boolean!
   editProfile(profile: EditProfileDto!): User!
+  removePost(postId: Float!): Boolean!
   createPost(post: CreatePostDto!): PostEntity!
   followUser(actorId: Float!): Boolean!
   unfollowUser(actorId: Float!): Boolean!

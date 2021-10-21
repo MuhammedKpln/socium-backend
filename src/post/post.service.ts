@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/auth/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -86,5 +86,21 @@ export class PostService {
     const model = await this.postsService.create(postModel);
     const save = await this.postsService.save(model);
     return await this.getOneBySlug(save.slug);
+  }
+
+  async removePost(postId: number, user: User) {
+    const post = await this.postsService.findOne({ id: postId });
+
+    if (post) {
+      if (post.user.id !== user.id) {
+        throw new Error('This post does not belongs to you');
+      }
+
+      await this.postsService.delete({ id: postId });
+
+      return true;
+    } else {
+      throw new NotFoundException();
+    }
   }
 }

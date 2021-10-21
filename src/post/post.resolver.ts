@@ -49,6 +49,21 @@ export class PostsResolver {
     }
   }
 
+  @Mutation((_returns) => Boolean)
+  @UseGuards(JwtAuthGuard)
+  async removePost(
+    @Args('postId') postId: number,
+    @UserDecorator() user: User,
+  ) {
+    const remove = await this.postService.removePost(postId, user);
+
+    if (remove) {
+      return true;
+    }
+
+    return false;
+  }
+
   @Query((returns) => [PostEntity])
   async userPosts(
     @Args('username', { nullable: false, type: () => String }) username: string,
