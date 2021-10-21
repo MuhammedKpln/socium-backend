@@ -10,6 +10,7 @@ import { readFile } from 'fs/promises';
 import { createClient } from 'redis';
 import { ServerOptions } from 'socket.io';
 import { AppModule } from './app.module';
+import { fastifyHelmet } from 'fastify-helmet';
 
 export const redisUrl =
   process.env.NODE_ENV !== 'production'
@@ -71,6 +72,23 @@ async function bootstrap() {
     AppModule,
     new FastifyAdapter(),
   );
+  await app.register(fastifyHelmet, {
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: [`'self'`],
+        styleSrc: [
+          `'self'`,
+          `'unsafe-inline'`,
+          'cdn.jsdelivr.net',
+          'fonts.googleapis.com',
+        ],
+        fontSrc: [`'self'`, 'fonts.gstatic.com'],
+        imgSrc: [`'self'`, 'data:', 'cdn.jsdelivr.net'],
+        scriptSrc: [`'self'`, `https: 'unsafe-inline'`, `cdn.jsdelivr.net`],
+      },
+    },
+  });
+
   app.useGlobalPipes(new ValidationPipe());
   app.useWebSocketAdapter(new SocketAdapter(app));
 

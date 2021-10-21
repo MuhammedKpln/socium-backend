@@ -1,10 +1,8 @@
-import * as bcrypt from 'bcrypt';
 import * as md5 from 'md5';
+import * as argon2 from "argon2";
 
 export async function hashText(password: string): Promise<string> {
-  const saltRounds = 10;
-
-  const hash = await bcrypt.hash(password, saltRounds);
+  const hash = await argon2.hash(password);
 
   if (hash) {
     return hash;
@@ -31,7 +29,7 @@ export async function compareHash(
   plainPassword: string,
   hashedPassword: string,
 ): Promise<boolean> {
-  const compare = await bcrypt.compare(plainPassword, hashedPassword);
+  const compare = await argon2.verify(hashedPassword, plainPassword);
 
   if (compare) {
     return true;
