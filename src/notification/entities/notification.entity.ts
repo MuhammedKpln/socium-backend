@@ -7,11 +7,11 @@ import { NotificationType } from './notification.type';
 @Entity()
 @ObjectType()
 export class Notification extends BaseStruct {
-  @ManyToOne(() => User, (user) => user.id, { eager: true })
+  @ManyToOne(() => User, (user) => user.id, { eager: true, onDelete: "CASCADE" })
   @Field((_returns) => User)
   user: User;
 
-  @ManyToOne(() => User, (user) => user.id, { eager: true })
+  @ManyToOne(() => User, (user) => user.id, { eager: true, onDelete: "CASCADE" })
   @Field((_returns) => User)
   actor: User;
 

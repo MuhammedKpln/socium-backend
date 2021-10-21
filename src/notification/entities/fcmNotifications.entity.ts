@@ -6,7 +6,7 @@ import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 @Entity()
 @ObjectType()
 export class FcmNotificationUser extends BaseStruct {
-  @OneToOne(() => User)
+  @OneToOne(() => User, { onDelete: "CASCADE" })
   @JoinColumn()
   @Field((_returns) => User)
   user: User;

@@ -13,15 +13,15 @@ export class Comment extends BaseStruct {
   @Field()
   content: string;
 
-  @ManyToOne(() => User, { eager: true })
+  @ManyToOne(() => User, { eager: true, onDelete: "CASCADE" })
   @Field((_returns) => User)
   user: User;
 
-  @ManyToOne(() => PostEntity)
+  @ManyToOne(() => PostEntity, { onDelete: "CASCADE"})
   @Field((_returns) => PostEntity)
   post: PostEntity;
 
-  @ManyToOne(() => User, { eager: true })
+  @ManyToOne(() => User, { eager: true, onDelete: "CASCADE" })
   @Field((_returns) => User)
   parentUser: User;
 

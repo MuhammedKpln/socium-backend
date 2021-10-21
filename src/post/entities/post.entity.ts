@@ -37,7 +37,7 @@ export class PostEntity {
   content: string;
 
   @Field((returns) => User)
-  @ManyToOne(() => User, (user) => user.id, { eager: true })
+  @ManyToOne(() => User, (user) => user.id, { eager: true, onDelete: "CASCADE" })
   @JoinColumn()
   user: User;
 
