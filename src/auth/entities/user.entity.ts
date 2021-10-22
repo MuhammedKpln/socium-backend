@@ -17,10 +17,10 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-enum GENDER {
-  'male' = 1,
-  'female' = 2,
-  'custom' = 3,
+enum Gender {
+  Male = 0,
+  Female = 1,
+  Other = 2,
 }
 
 @Entity()
@@ -40,7 +40,7 @@ export class User {
 
   @Column({ nullable: true })
   @Field({ nullable: true })
-  gender: GENDER;
+  gender: Gender;
 
   @Column({ nullable: true })
   @Field({ nullable: true })
@@ -69,6 +69,13 @@ export class User {
   @CreateDateColumn()
   @Field()
   created_at: Date;
+
+  @Column({
+    type: 'date',
+    nullable: true,
+  })
+  @Field()
+  birthday: Date;
 
   //TODO: onupdate change date auto
   @UpdateDateColumn()
