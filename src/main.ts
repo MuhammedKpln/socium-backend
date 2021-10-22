@@ -93,10 +93,6 @@ async function bootstrap() {
   app.useWebSocketAdapter(new SocketAdapter(app));
 
   // app.useGlobalFilters(new AllExceptionsFilter());
-  app.enableCors({
-    origin: true,
-    credentials: true,
-  });
 
   await app.listen(process.env.PORT || 3000, '0.0.0.0');
 }
