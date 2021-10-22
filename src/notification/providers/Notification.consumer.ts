@@ -71,7 +71,7 @@ export class NotificationConsumer {
         .sendToDevice(fcmUser.fcmToken, {
           notification: {
             title: notificationTitle,
-            body: job.data?.body || undefined,
+            body: job.data?.body || "",
           },
         });
 
