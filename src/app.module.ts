@@ -4,7 +4,7 @@ import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { verify } from 'jsonwebtoken';
-import { join } from 'path';
+import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { jwtConstants } from './auth/constans';
@@ -117,5 +117,6 @@ if (process.env.NODE_ENV === 'production') {
     PubsubModule,
   ],
   providers: [AppService, PostService],
+  controllers: [AppController],
 })
 export class AppModule {}
