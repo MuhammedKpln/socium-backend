@@ -27,9 +27,6 @@ if (process.env.NODE_ENV === 'production') {
   DATABASE_OPTIONS = {
     type: 'postgres',
     url: process.env.DATABASE_URL,
-    ssl: {
-      rejectUnauthorized: false,
-    },
     autoLoadEntities: true,
     synchronize: true,
   };
@@ -67,7 +64,7 @@ if (process.env.NODE_ENV === 'production') {
       playground: true,
       installSubscriptionHandlers: true,
       debug: true,
-      autoSchemaFile: 'schema.gql',
+      autoSchemaFile: true,
       subscriptions: {
         'graphql-ws': {
           path: '/graphql',
@@ -90,14 +87,6 @@ if (process.env.NODE_ENV === 'production') {
             }
           },
         },
-      },
-    }),
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'static'),
-      serveStaticOptions: {
-        cacheControl: true,
-        maxAge: 604 * 100000,
-        index: false,
       },
     }),
     BullModule.forRoot({
