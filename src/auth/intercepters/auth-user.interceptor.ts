@@ -16,6 +16,12 @@ export class AuthUserInterceptor implements NestInterceptor {
   ) {}
 
   async intercept(context: ExecutionContext, next: CallHandler): Promise<any> {
+    const type = context.getType();
+
+    if (type === 'http') {
+      return next.handle();
+    }
+
     const ctx = GqlExecutionContext.create(context);
     const request = ctx.getContext().req;
 
