@@ -1,14 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ApolloError } from 'apollo-server-errors';
 import { User } from 'src/auth/entities/user.entity';
+import { UserLike } from 'src/likes/entities/UserLike.entity';
 import { Star } from 'src/star/entities/star.entity';
 import { Repository } from 'typeorm';
+import { UpdateUserAgeAndGenderDto } from './dtos/UpdateUserAgeAndGender.dto';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly usersService: Repository<User>,
     @InjectRepository(Star) private readonly starService: Repository<Star>,
+    @InjectRepository(UserLike)
+    private readonly userLikeService: Repository<UserLike>,
   ) {}
 
   async getUserByUsername(username: string) {
@@ -81,5 +86,30 @@ export class UserService {
     }
 
     return false;
+  }
+
+  async updateUserAgeAndGender(data: UpdateUserAgeAndGenderDto, user: User) {
+    const update = await this.usersService.save({
+      ...user,
+      gender: data.gender,
+      birthday: data.birthday,
+    });
+
+    if (update) {
+      return await this.getUserByEmail(user.email);
+    }
+
+    throw new ApolloError('Could not update');
+  }
+
+  async userLikedPosts(user: User) {
+    const posts = await this.userLikeService.find({
+      where: {
+        user,
+      },
+      relations: ['post'],
+    });
+
+    return posts;
   }
 }

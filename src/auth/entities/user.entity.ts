@@ -2,6 +2,7 @@ import { Field, ObjectType } from '@nestjs/graphql';
 import { Exclude } from 'class-transformer';
 import { hashText } from 'src/cryptHelper';
 import { Follower } from 'src/follower/entities/follower.entity';
+import { UserLike } from 'src/likes/entities/UserLike.entity';
 import { PostEntity } from 'src/post/entities/post.entity';
 import { EmojiPack } from 'src/profile/dtos/edit-profile.dto';
 import {
@@ -17,7 +18,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-enum Gender {
+export enum Gender {
   Male = 0,
   Female = 1,
   Other = 2,
@@ -74,7 +75,7 @@ export class User {
     type: 'date',
     nullable: true,
   })
-  @Field()
+  @Field((_returns) => String, { nullable: true })
   birthday: Date;
 
   //TODO: onupdate change date auto
@@ -100,6 +101,9 @@ export class User {
     referencedColumnName: 'user',
   })
   following?: Follower[];
+
+  @OneToMany(() => UserLike, (follower) => follower.user)
+  likedPosts?: UserLike[];
 
   @BeforeInsert()
   @BeforeUpdate()

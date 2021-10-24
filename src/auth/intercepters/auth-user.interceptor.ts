@@ -38,6 +38,7 @@ export class AuthUserInterceptor implements NestInterceptor {
 
     const decoded = await this.jwtService.verifyAsync(token[1]);
     const user = await this.authService.findOneWithEmail(decoded['email']);
+    console.log('uuu', user);
     request.user = user;
 
     return next.handle();

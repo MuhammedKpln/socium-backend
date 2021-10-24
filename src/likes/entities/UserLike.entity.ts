@@ -19,11 +19,13 @@ export class UserLike extends BaseStruct {
     onDelete: 'CASCADE',
   })
   @JoinColumn()
+  @Field((_returns) => PostEntity, { nullable: true })
   post?: PostEntity;
 
   @IsOptional({ always: true })
   @OneToOne(() => Comment, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn()
+  @Field((_returns) => Comment, { nullable: true })
   comment?: Comment;
 
   @OneToOne(() => PostLike, {
@@ -31,6 +33,7 @@ export class UserLike extends BaseStruct {
     eager: true,
   })
   @JoinColumn()
+  @Field((_returns) => PostLike, { nullable: true })
   postLike: PostLike;
 
   @Column({ type: 'boolean' })
