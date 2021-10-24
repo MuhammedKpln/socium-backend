@@ -81,7 +81,7 @@ export class AuthService {
     return this.usersService
       .save(create)
       .then(async (resp) => {
-        const randomNumber = Math.floor(Math.random() * 1000000);
+        const randomNumber = resp.emailConfirmationCode;
 
         await this.mailQueue.add(
           'confirmation',
