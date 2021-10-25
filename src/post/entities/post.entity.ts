@@ -23,6 +23,7 @@ export enum PostType {
   Instagram = 1,
   Twitter = 2,
   Youtube = 3,
+  Blog = 4,
 }
 
 @Entity('posts')
@@ -32,12 +33,19 @@ export class PostEntity {
   @Field()
   id?: number;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  title: string;
+
   @Column()
   @Field()
   content: string;
 
   @Field((returns) => User)
-  @ManyToOne(() => User, (user) => user.id, { eager: true, onDelete: "CASCADE" })
+  @ManyToOne(() => User, (user) => user.id, {
+    eager: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   user: User;
 

@@ -1,10 +1,14 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsNotEmpty, Validate } from 'class-validator';
+import { IsNotEmpty, IsOptional, Validate } from 'class-validator';
 import { OneOf } from 'src/validators/oneof.validator';
 import { PostType } from '../entities/post.entity';
 
 @InputType()
 export class CreatePostDto {
+  @IsOptional()
+  @Field({ nullable: true })
+  title: string;
+
   @IsNotEmpty()
   @Field()
   content: string;
@@ -15,11 +19,13 @@ export class CreatePostDto {
     PostType.Instagram,
     PostType.Twitter,
     PostType.Youtube,
+    PostType.Blog,
   ])
   @Field()
   type:
     | PostType.Content
     | PostType.Instagram
     | PostType.Twitter
-    | PostType.Youtube;
+    | PostType.Youtube
+    | PostType.Blog;
 }

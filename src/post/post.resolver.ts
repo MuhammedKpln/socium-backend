@@ -85,8 +85,6 @@ export class PostsResolver {
     const postContent: string = post?.content;
     let videoId: string;
 
-    console.log(postContent);
-
     if (postContent.includes('youtu.be')) {
       videoId = postContent.split('https://youtu.be/')[1];
     }
