@@ -44,7 +44,7 @@ export class ChatResolver {
     );
   }
 
-  @Query((_returns) => MessageRequest)
+  @Query((_returns) => Boolean)
   @UseGuards(JwtAuthGuard)
   async checkForRequests(
     @Args('toUserId') toUserId: number,
@@ -56,12 +56,10 @@ export class ChatResolver {
     );
 
     if (availableRequest) {
-      return availableRequest;
+      return true;
     }
 
-    throw new ApolloError('Request not found', 'NOT_FOUND', {
-      error_code: ERROR_CODES.REQUEST_NOT_FOUND,
-    });
+    return false;
   }
 
   @Subscription((_returns) => MessageRequest, {
