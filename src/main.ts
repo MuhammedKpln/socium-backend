@@ -39,7 +39,7 @@ export class SocketAdapter extends IoAdapter {
       server?: any;
     },
   ) {
-    const server = super.createIOServer(port, {
+    const server = super.createIOServer(3001, {
       ...options,
       cors: {
         origin: process.env.CORS_ORIGIN,
