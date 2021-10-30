@@ -14,7 +14,7 @@ export class MessageRequest extends BaseStruct {
   @Field((returns) => User)
   requestTo: User;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: 'boolean', default: true })
   @Field()
   request: boolean;
 }

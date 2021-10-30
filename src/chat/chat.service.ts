@@ -7,6 +7,7 @@ import { User } from 'src/auth/entities/user.entity';
 import { getRandomString } from 'src/helpers/randomString';
 import { PaginationParams } from 'src/inputypes/pagination.input';
 import { PUB_SUB } from 'src/pubsub/pubsub.module';
+import { PBool } from 'src/types';
 import { Repository } from 'typeorm';
 import { Star } from '../star/entities/star.entity';
 import { ICheckForRoomProps, ISaveMessageProps } from './chat.types';
@@ -139,17 +140,22 @@ export class ChatService {
     return await this.messageRequestRepo.save(model);
   }
 
-  async checkForRequest(fromUserId: number, toUserId: number) {
+  async checkForRequest(
+    fromUserId: number,
+    toUserId: number,
+  ): Promise<MessageRequest | false> {
     const fromUser = new User();
     fromUser.id = fromUserId;
 
     const toUser = new User();
     toUser.id = toUserId;
 
-    return await this.messageRequestRepo.findOne({
+    const messageRequest = await this.messageRequestRepo.findOne({
       requestFrom: fromUser,
       requestTo: toUser,
     });
+
+    return messageRequest;
   }
 
   async currentUserSendedRequests(userId: number, options: PaginationParams) {
@@ -238,21 +244,14 @@ export class ChatService {
       .createQueryBuilder('message')
       .where('message.receiver = :userId', { userId })
       .orWhere('message.sender = :userId', { userId })
+      .distinctOn(['message.room'])
       .leftJoinAndSelect('message.room', 'room')
       .leftJoinAndSelect('message.sender', 'sender')
       .leftJoinAndSelect('message.receiver', 'receiver')
-      .groupBy('room.id')
-      .select('MIN(message)', 'message')
-      .addSelect('MAX(room.id)', 'room')
-      .addSelect('MIN(sender.id)', 'senderId')
-      .addSelect('MIN(sender.username)', 'sender')
-      .addSelect('MAX(receiver.id)', 'receiverId')
-      .addSelect('MAX(receiver.username)', 'receiver')
-      .addSelect('bool_or(message.seen)', 'seen')
       .offset(options.offset)
       .limit(options.limit);
 
-    return await messages.getRawMany();
+    return await messages.getMany();
   }
 
   async removeMessage(roomId: number) {
@@ -331,6 +330,37 @@ export class ChatService {
         return true;
       }
       return false;
+    }
+
+    return false;
+  }
+
+  async markAllMessagesRead(roomId: number): PBool {
+    const unseenMessages = await this.messageRepo.update(
+      {
+        room: {
+          id: roomId,
+        },
+      },
+      {
+        seen: true,
+      },
+    );
+
+    if (unseenMessages.affected > 0) {
+      return true;
+    }
+
+    return false;
+  }
+
+  async retrieveMessageRequest(requestId: number): PBool {
+    const deleteRequest = await this.messageRequestRepo.delete({
+      id: requestId,
+    });
+
+    if (deleteRequest.affected > 0) {
+      return true;
     }
 
     return false;

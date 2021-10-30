@@ -16,3 +16,5 @@ export interface ISendNotificationQueue {
   notificationType: NotificationType;
   body?: string;
 }
+
+export type PBool = Promise<boolean>;

@@ -44,7 +44,9 @@ export class ChatResolver {
     );
   }
 
-  @Query((_returns) => Boolean)
+  @Query((_returns) => MessageRequest, {
+    nullable: true,
+  })
   @UseGuards(JwtAuthGuard)
   async checkForRequests(
     @Args('toUserId') toUserId: number,
@@ -55,11 +57,7 @@ export class ChatResolver {
       toUserId,
     );
 
-    if (availableRequest) {
-      return true;
-    }
-
-    return false;
+    return availableRequest;
   }
 
   @Subscription((_returns) => MessageRequest, {
@@ -88,7 +86,7 @@ export class ChatResolver {
     @UserDecorator() user: User,
   ) {
     const checkForStars = await this.chatService.checkIfUserHasStars(user.id);
-    console.log(checkForStars);
+
     if (!checkForStars) {
       throw new ApolloError('Not enough stars', 'NOT_ENOUGH_STARS', {
         error_code: ERROR_CODES.NOT_ENOUGH_STARS,
@@ -150,5 +148,17 @@ export class ChatResolver {
     }
 
     throw new NotFoundException();
+  }
+
+  @Mutation((_returns) => Boolean)
+  @UseGuards(JwtAuthGuard)
+  async markAllMessagesRead(@Args('roomId') roomId: number) {
+    return await this.chatService.markAllMessagesRead(roomId);
+  }
+
+  @Mutation((_returns) => Boolean)
+  @UseGuards(JwtAuthGuard)
+  async retrieveMessageRequest(@Args('requestId') requestId: number) {
+    return await this.chatService.retrieveMessageRequest(requestId);
   }
 }

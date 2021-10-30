@@ -37,7 +37,7 @@ export class CustomMessagesEntity {
 export class MessagesResolver {
   constructor(private chatService: ChatService) {}
 
-  @Query((_returns) => [CustomMessagesEntity])
+  @Query((_returns) => [Messages])
   async messages(
     @UserDecorator() user: User,
     @Args('pagination') pagination: PaginationParams,
