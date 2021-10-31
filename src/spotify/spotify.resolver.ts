@@ -58,4 +58,10 @@ export class SpotifyResolver {
 
     return false;
   }
+
+  @Mutation((_returns) => Boolean)
+  @UseGuards(JwtAuthGuard)
+  async removeCurrentTrack(@UserDecorator() user: User) {
+    return await this.spotifyService.removeCurrentTrack(user.id);
+  }
 }
