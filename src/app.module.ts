@@ -19,6 +19,7 @@ import { ProfileModule } from './profile/profile.module';
 import { PubsubModule } from './pubsub/pubsub.module';
 import { StarModule } from './star/star.module';
 import { UserModule } from './user/user.module';
+import { SpotifyModule } from './spotify/spotify.module';
 
 let DATABASE_OPTIONS: TypeOrmModuleOptions;
 
@@ -115,6 +116,7 @@ if (process.env.NODE_ENV === 'production') {
     ChatModule,
     StarModule,
     PubsubModule,
+    SpotifyModule,
   ],
   providers: [AppService, PostService],
   controllers: [AppController],
