@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ApolloError } from 'apollo-server-errors';
 import { User } from 'src/auth/entities/user.entity';
 import { PaginationParams } from 'src/inputypes/pagination.input';
-import { STATUS_CODE } from 'src/status_code';
 import { Repository } from 'typeorm';
 import { Follower } from './entities/follower.entity';
 
@@ -50,7 +48,7 @@ export class FollowerService {
     });
   }
 
-  async followUser(user: User, actorId: number): Promise<boolean> {
+  async followUser(user: User, actorId: number): Promise<Follower | false> {
     const actor = await this.usersService.findOne({ id: actorId });
     const alreadyFollowing = await this.checkIfUserFollowsActor(user, actorId);
 
@@ -68,13 +66,9 @@ export class FollowerService {
         actor,
       });
 
-      await this.followersService.save(model);
-
-      return true;
+      return await this.followersService.save(model);
     } else {
-      throw new ApolloError('ALREADY_FOLLOWING', 'ALREADY_FOLLOWING', {
-        error_code: STATUS_CODE.ALREADY_FOLLOWING_USER,
-      });
+      return false;
     }
   }
   async unFollowUser(user: User, actorId: number): Promise<boolean> {

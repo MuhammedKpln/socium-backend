@@ -6,8 +6,10 @@ import { User as UserDecorator } from 'src/auth/decorators/user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
 import { PaginationParams } from 'src/inputypes/pagination.input';
+import { INotificationEntity } from 'src/notification/entities/notification.entity';
 import { NotificationType } from 'src/notification/entities/notification.type';
-import { ISendNotificationQueue, Queues } from 'src/types';
+import { INotificationJobData } from 'src/notification/providers/Notification.consumer';
+import { Queues } from 'src/types';
 import { Follower } from './entities/follower.entity';
 import { FollowerService } from './follower.service';
 
@@ -16,7 +18,7 @@ export class FollowerResolver {
   constructor(
     private readonly followersService: FollowerService,
     @InjectQueue(Queues.Notification)
-    private readonly notification: Queue<ISendNotificationQueue>,
+    private readonly notification: Queue<INotificationJobData>,
   ) {}
 
   @Query((_returns) => Boolean)
@@ -68,6 +70,8 @@ export class FollowerResolver {
           fromUser: user,
           toUser: actorId,
           notificationType: NotificationType.Follow,
+          entityId: followed.id,
+          entityType: INotificationEntity.Follow,
         },
         {
           delay: 1800000,

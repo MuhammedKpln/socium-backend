@@ -13,17 +13,22 @@ import * as firebase from 'firebase-admin';
 import { User } from 'src/auth/entities/user.entity';
 import { Repository } from 'typeorm';
 import { FcmNotificationUser } from '../entities/fcmNotifications.entity';
-import { Notification } from '../entities/notification.entity';
+import {
+  INotificationEntityTypes,
+  Notification,
+} from '../entities/notification.entity';
 import {
   NotificationTitle,
   NotificationType,
 } from '../entities/notification.type';
 
-interface IJobData {
+export interface INotificationJobData {
   fromUser: User;
   toUser: number;
   notificationType: NotificationType;
-  body: string;
+  body?: any;
+  entityId: number;
+  entityType: INotificationEntityTypes;
 }
 
 @Processor('notification')
@@ -47,7 +52,7 @@ export class NotificationConsumer {
   }
 
   @Process('sendNotification')
-  async sendVerificationMail(job: Job<IJobData>, cb: DoneCallback) {
+  async sendVerificationMail(job: Job<INotificationJobData>, cb: DoneCallback) {
     const user = new User();
     user.id = job.data.toUser;
 
@@ -56,11 +61,7 @@ export class NotificationConsumer {
     });
 
     if (fcmUser) {
-      await this.saveNotificationToDatabase(
-        job.data.toUser,
-        job.data.fromUser,
-        job.data.notificationType,
-      );
+      await this.saveNotificationToDatabase(job.data);
 
       const notificationTitle = NotificationTitle[
         job.data.notificationType
@@ -71,7 +72,7 @@ export class NotificationConsumer {
         .sendToDevice(fcmUser.fcmToken, {
           notification: {
             title: notificationTitle,
-            body: job.data?.body || "",
+            body: job.data?.body || '',
           },
         });
 
@@ -80,51 +81,49 @@ export class NotificationConsumer {
       }
     }
 
-    await job.moveToFailed(new Error('User not found'));
-    return cb(new Error('Could not find user'));
+    return cb(new Error('Could not find user'), null);
   }
 
-  async saveNotificationToDatabase(
-    toUser: number,
-    fromUser: User,
-    type: NotificationType,
-  ) {
+  async saveNotificationToDatabase(data: INotificationJobData) {
+    const { toUser, fromUser, notificationType, entityId, entityType } = data;
+
     const toUserModel = new User();
     toUserModel.id = toUser;
 
     const model = this.notificationRepo.create({
       actor: toUserModel,
       user: fromUser,
-      notificationType: type,
+      notificationType,
       readed: false,
+      entityId,
+      entityType,
     });
 
     await this.notificationRepo.save(model);
   }
 
   @OnQueueStalled()
-  async onStalled(job: Job<IJobData>) {
-    await job.moveToFailed(new Error('User not found'));
+  async onStalled(job: Job<INotificationJobData>) {
     if (job.isFailed()) {
       console.log(job.failedReason);
     }
   }
   @OnQueueActive()
-  onActive(job: Job<IJobData>) {
+  onActive(job: Job<INotificationJobData>) {
     console.log('Active job: ', job.id);
   }
 
   @OnQueueCompleted()
-  async onCompleted(job: Job<IJobData>, result) {
+  async onCompleted(job: Job<INotificationJobData>, result) {
     console.log('Completed ', job.id, result);
   }
   @OnQueueError()
-  async onError(job: Job<IJobData>, error: Error) {
+  async onError(job: Job<INotificationJobData>, error: Error) {
     console.log('Error ', job.id, error.message);
   }
 
   @OnQueueFailed()
-  onFailed(job: Job<IJobData>, error: Error) {
+  onFailed(job: Job<INotificationJobData>, error: Error) {
     console.log('Failed ' + job.id, error);
   }
 }

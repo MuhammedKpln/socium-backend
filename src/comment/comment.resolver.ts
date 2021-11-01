@@ -7,7 +7,9 @@ import { User as UserDecorator } from 'src/auth/decorators/user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
 import { PaginationParams } from 'src/inputypes/pagination.input';
+import { INotificationEntity } from 'src/notification/entities/notification.entity';
 import { NotificationType } from 'src/notification/entities/notification.type';
+import { INotificationJobData } from 'src/notification/providers/Notification.consumer';
 import { PUB_SUB } from 'src/pubsub/pubsub.module';
 import { Queues } from 'src/types';
 import { CommentService } from './comment.service';
@@ -20,7 +22,8 @@ export class CommentResolver {
   constructor(
     private readonly commentsService: CommentService,
     @Inject(PUB_SUB) private pubSub: PubSub,
-    @InjectQueue(Queues.Notification) private readonly notification: Queue,
+    @InjectQueue(Queues.Notification)
+    private readonly notification: Queue<INotificationJobData>,
   ) {}
 
   @Query((returns) => [Comment])
@@ -60,6 +63,8 @@ export class CommentResolver {
       fromUser: user,
       toUser: commentEntity.post.user.id,
       notificationType: NotificationType.CommentedToPost,
+      entityId: postId,
+      entityType: INotificationEntity.Post,
       body: comment.content,
     });
 
