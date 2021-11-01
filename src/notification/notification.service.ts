@@ -28,6 +28,20 @@ export class NotificationService {
 
     return notifications;
   }
+  async getUserReadedNotifications(userId: number) {
+    const actor = new User();
+    actor.id = userId;
+
+    const notifications = await this.repo.find({
+      where: {
+        actor,
+        readed: true,
+      },
+      loadEagerRelations: true,
+    });
+
+    return notifications;
+  }
 
   async markNotificationAsRead(id: number) {
     const notification = await this.repo.findOne(id);

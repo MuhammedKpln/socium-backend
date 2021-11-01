@@ -15,7 +15,10 @@ export class NotificationResolver {
   async getNotifications(@UserDecorator() user: User) {
     return await this.notificationService.getUserNotifications(user.id);
   }
-
+  @Query((_returns) => [Notification])
+  async getReadedNotifications(@UserDecorator() user: User) {
+    return await this.notificationService.getUserReadedNotifications(user.id);
+  }
   @Mutation((_returns) => Boolean)
   async markNotificationAsRead(@Args('id') id: number) {
     return await this.notificationService.markNotificationAsRead(id);
