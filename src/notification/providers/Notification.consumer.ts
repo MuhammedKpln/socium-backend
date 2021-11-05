@@ -70,6 +70,11 @@ export class NotificationConsumer {
       const message = await firebase
         .messaging()
         .sendToDevice(fcmUser.fcmToken, {
+          data: {
+            entityType: job.data.entityType,
+            entityId: String(job.data.entityId),
+            link: 'com.derdevam://post/' + job.data.entityId,
+          },
           notification: {
             title: notificationTitle,
             body: job.data?.body || '',

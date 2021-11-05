@@ -9,13 +9,11 @@ import { NotificationType } from './notification.type';
 
 export type INotificationEntityTypes =
   | INotificationEntity.Post
-  | INotificationEntity.Comment
-  | INotificationEntity.Follow;
+  | INotificationEntity.User;
 
 export enum INotificationEntity {
   Post = 'post',
-  Comment = 'comment',
-  Follow = 'follower',
+  User = 'user',
 }
 
 const gqlEntityType = createUnionType({
@@ -72,7 +70,7 @@ export class Notification extends BaseStruct {
         this.entity = post;
         break;
 
-      case INotificationEntity.Follow:
+      case INotificationEntity.User:
         const followerRepo = getRepository(Follower);
         const followerEntity = await followerRepo.findOne(
           {

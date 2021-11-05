@@ -67,8 +67,25 @@ export class PostService {
     }
   }
 
-  async getPost(slug: string) {
-    const post = await this.getOneBySlug(slug);
+  private async getOneById(id: number) {
+    const post = await this.postsService.findOne({
+      id,
+    });
+    if (post) {
+      const queryBuilder = this.postsService
+        .createQueryBuilder('post')
+        .where('post.id = :id', { id })
+        .leftJoinAndSelect('post.userLike', 'userLike')
+        .leftJoinAndSelect('post.postLike', 'postLike')
+        .leftJoinAndSelect('post.user', 'user')
+        .loadRelationCountAndMap('post.commentsCount', 'post.comments');
+
+      return await queryBuilder.getOne();
+    }
+  }
+
+  async getPostById(id: number) {
+    const post = await this.getOneById(id);
 
     if (post) {
       return post;

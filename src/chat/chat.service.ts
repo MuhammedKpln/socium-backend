@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
 import { PubSub } from 'graphql-subscriptions';
+import { of, skip } from 'rxjs';
 import { User } from 'src/auth/entities/user.entity';
 import { getRandomString } from 'src/helpers/randomString';
 import { PaginationParams } from 'src/inputypes/pagination.input';
@@ -266,18 +267,23 @@ export class ChatService {
     return false;
   }
 
-  async getMessages(userId: number, roomId: number) {
+  async getMessages(roomId: number, pagination: PaginationParams) {
+    const { offset, limit } = pagination;
+    console.log(offset, limit);
+
     const messages = this.messageRepo
       .createQueryBuilder('message')
-      .where('message.senderId = :userId', { userId })
-      .orWhere('message.receiver = :userId', { userId })
       .where('message.roomId = :roomId', { roomId })
       .leftJoinAndSelect('message.room', 'room')
       .leftJoinAndSelect('message.sender', 'sender')
       .leftJoinAndSelect('message.receiver', 'receiver')
-      .orderBy('message.created_at', 'ASC');
+      .offset(offset)
+      .addOrderBy('message.created_at', 'DESC')
+      .limit(limit);
 
-    return await messages.getMany();
+    const response = await messages.getMany();
+
+    return response.reverse();
   }
 
   private async addQueue(roomId: number) {

@@ -20,6 +20,7 @@ export interface ICallAnswer {
 
 export interface ITypingData {
   typing: boolean;
+  roomAdress: string;
 }
 
 export interface IRoomMessage {
@@ -35,6 +36,7 @@ export interface ISendMessage {
   user: User;
   receiverId: number;
   userId: number;
+  receiver: User;
 }
 
 export interface ISaveMessageProps {

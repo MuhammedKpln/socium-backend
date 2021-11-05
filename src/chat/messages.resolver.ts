@@ -53,9 +53,9 @@ export class MessagesResolver {
   @Query((_returns) => [Messages])
   async messagesFromRoom(
     @Args('roomId') roomId: number,
-    @UserDecorator() user: User,
+    @Args('pagination') pagination: PaginationParams,
   ) {
-    const roomsService = await this.chatService.getMessages(user.id, roomId);
+    const roomsService = await this.chatService.getMessages(roomId, pagination);
 
     return roomsService;
   }

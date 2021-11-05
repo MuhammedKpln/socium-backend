@@ -23,6 +23,9 @@ export class NotificationService {
         actor,
         readed: false,
       },
+      order: {
+        created_at: 'ASC',
+      },
       loadEagerRelations: true,
     });
 

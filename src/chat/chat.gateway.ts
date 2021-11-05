@@ -125,8 +125,9 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
 
   @SubscribeMessage('send message')
   async handleNewMessage(client: Socket, data: ISendMessage) {
-    const { message, roomName, user, receiverId, userId } = data;
+    const { message, roomName, user, receiver, receiverId, userId } = data;
 
+    console.log(user, receiver);
     if (message) {
       const splittedMessage = message.split(' ');
       const abuseDetected = await this.abuseDetector(splittedMessage);
@@ -134,18 +135,21 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
       if (!abuseDetected) {
         const date = new Date();
 
-        this.server.to(data.roomName).emit('message', {
+        client.broadcast.to(data.roomName).emit('message', {
           message: message,
           clientId: client.id,
-          date
+          date,
+          user,
+          receiver,
+          roomName,
         });
 
         const seen = false;
 
         await this.chatService.saveMessage({
           message,
-          receiverId,
-          userId,
+          receiverId: receiver.id,
+          userId: user.id,
           roomAdress: roomName,
           seen,
         });
@@ -177,6 +181,7 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
   handleTyping(client: Socket, data: ITypingData) {
     return client.broadcast.emit('user is done with typing', {
       typing: data.typing,
+      roomAdress: data.roomAdress,
     });
   }
 

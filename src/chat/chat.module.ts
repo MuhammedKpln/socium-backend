@@ -6,7 +6,6 @@ import { AuthModule } from 'src/auth/auth.module';
 import { AuthService } from 'src/auth/auth.service';
 import { PubsubModule } from 'src/pubsub/pubsub.module';
 import { Star } from '../star/entities/star.entity';
-import { ChatController } from './chat.controller';
 import { ChatGateway } from './chat.gateway';
 import { ChatResolver } from './chat.resolver';
 import { ChatService } from './chat.service';
@@ -17,7 +16,6 @@ import { Room } from './entities/room.entity';
 import { MessagesResolver } from './messages.resolver';
 
 @Module({
-  controllers: [ChatController],
   imports: [
     TypeOrmModule.forFeature([Messages, Room, Star, MessageRequest, Block]),
     BullModule.registerQueue({

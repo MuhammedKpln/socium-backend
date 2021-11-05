@@ -70,8 +70,8 @@ export class FollowerResolver {
           fromUser: user,
           toUser: actorId,
           notificationType: NotificationType.Follow,
-          entityId: followed.id,
-          entityType: INotificationEntity.Follow,
+          entityId: actorId,
+          entityType: INotificationEntity.User,
         },
         {
           delay: 1800000,

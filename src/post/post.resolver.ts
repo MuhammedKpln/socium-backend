@@ -29,12 +29,10 @@ export class PostsResolver {
     return posts;
   }
   @Query((returns) => PostEntity)
-  async post(
-    @Args('slug', { nullable: false, type: () => String }) slug: string,
-  ): Promise<PostEntity> {
-    const recipe = await this.postService.getPost(slug);
+  async post(@Args('id') id: number): Promise<PostEntity> {
+    const recipe = await this.postService.getPostById(id);
     if (!recipe) {
-      throw new NotFoundException(slug);
+      throw new NotFoundException(id);
     }
     return recipe;
   }
