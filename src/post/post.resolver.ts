@@ -23,10 +23,15 @@ export class PostsResolver {
   @Query((returns) => [PostEntity])
   async posts(
     @Args('page', { nullable: true, type: () => Number }) page: number,
+    @UserDecorator() user: User,
   ): Promise<PostEntity[] | PostEntity> {
-    const posts = await this.postService.getAllPosts();
-
-    return posts;
+    if (!user) {
+      const posts = await this.postService.getAllPosts();
+      return posts;
+    } else {
+      const posts = await this.postService.getAllPosts(user);
+      return posts;
+    }
   }
   @Query((returns) => PostEntity)
   async post(@Args('id') id: number): Promise<PostEntity> {

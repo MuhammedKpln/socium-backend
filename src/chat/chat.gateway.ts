@@ -7,6 +7,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { Client } from 'socket.io/dist/client';
 import { AuthService } from 'src/auth/auth.service';
 import { User } from 'src/auth/entities/user.entity';
 import { redisClient } from 'src/main';
@@ -16,6 +17,7 @@ import {
   ICallAnswer,
   ICallOffer,
   IData,
+  IRemoveMessageRequest,
   IRoomMessage,
   ISendMessage,
   ITypingData,
@@ -125,33 +127,32 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
 
   @SubscribeMessage('send message')
   async handleNewMessage(client: Socket, data: ISendMessage) {
-    const { message, roomName, user, receiver, receiverId, userId } = data;
+    const { message, roomName, user, receiver } = data;
 
-    console.log(user, receiver);
     if (message) {
       const splittedMessage = message.split(' ');
       const abuseDetected = await this.abuseDetector(splittedMessage);
 
       if (!abuseDetected) {
         const date = new Date();
+        const seen = false;
 
-        client.broadcast.to(data.roomName).emit('message', {
+        const m = await this.chatService.saveMessage({
+          message,
+          receiverId: receiver.id,
+          userId: user.id,
+          roomAdress: roomName,
+          seen,
+        });
+
+        this.server.to(data.roomName).emit('message', {
           message: message,
           clientId: client.id,
           date,
           user,
           receiver,
           roomName,
-        });
-
-        const seen = false;
-
-        await this.chatService.saveMessage({
-          message,
-          receiverId: receiver.id,
-          userId: user.id,
-          roomAdress: roomName,
-          seen,
+          id: m.id,
         });
       } else {
         this.server.to(client.id).emit('abuse is detected');
@@ -242,6 +243,18 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
     }
 
     return false;
+  }
+
+  @SubscribeMessage('remove single message request')
+  async handleRemoveMessage(
+    client: Socket,
+    { messageId }: IRemoveMessageRequest,
+  ) {
+    const [, roomAdress] = client.rooms;
+
+    this.server.to(roomAdress).emit('remove message requested', { messageId });
+
+    await this.chatService.removeMessage(messageId);
   }
 
   async handleConnection(client: Socket) {

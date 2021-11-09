@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as shuffleArray from 'lodash.shuffle';
+import * as uniqBy from 'lodash.uniqby';
 import { User } from 'src/auth/entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreatePostDto } from './dtos/createPost';
@@ -13,15 +15,53 @@ export class PostService {
     @InjectRepository(User) private readonly usersService: Repository<User>,
   ) {}
 
-  async getAllPosts(): Promise<PostEntity[]> {
-    const queryBuilder = this.postsService.createQueryBuilder('post');
-    queryBuilder.leftJoinAndSelect('post.userLike', 'userLike');
-    queryBuilder.leftJoinAndSelect('post.postLike', 'postLike');
-    queryBuilder.leftJoinAndSelect('post.user', 'user');
-    queryBuilder.loadRelationCountAndMap('post.commentsCount', 'post.comments');
-    queryBuilder.limit(10);
+  async getAllPosts(user?: User): Promise<PostEntity[]> {
+    const queryBuilder = this.postsService
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.userLike', 'userLike')
+      .leftJoinAndSelect('post.postLike', 'postLike')
+      .leftJoinAndSelect('post.user', 'user')
+      .loadRelationCountAndMap('post.commentsCount', 'post.comments')
+      .limit(10)
+      .orderBy('RANDOM()');
 
-    return await queryBuilder.getMany();
+    const randomPosts = await queryBuilder.getMany();
+
+    if (!user) {
+      return randomPosts;
+    }
+
+    const qb = this.postsService
+      .createQueryBuilder('post')
+      .innerJoin(
+        'follower',
+        'follower',
+        'post.userId = follower.actorId AND follower.userId = :userId',
+        { userId: user.id },
+      )
+      .leftJoinAndSelect('post.userLike', 'userLike')
+      .leftJoinAndSelect('post.postLike', 'postLike')
+      .leftJoinAndSelect('post.user', 'user')
+      .loadRelationCountAndMap('post.commentsCount', 'post.comments');
+
+    const postsFromUsersFollowing = await qb.getMany();
+
+    if (postsFromUsersFollowing.length < 1) {
+      return randomPosts;
+    }
+
+    postsFromUsersFollowing.forEach((post) => (post.postFromFollowers = true));
+
+    const uniquePosts = uniqBy(
+      [...postsFromUsersFollowing, ...randomPosts],
+      (e) => {
+        return e.slug;
+      },
+    );
+
+    const shuffle = shuffleArray(uniquePosts);
+
+    return shuffle;
   }
 
   async getAllPostsFromUser(username: string) {

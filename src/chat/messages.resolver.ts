@@ -14,24 +14,6 @@ import { PaginationParams } from 'src/inputypes/pagination.input';
 import { ChatService } from './chat.service';
 import { Messages } from './entities/messages.entity';
 
-@ObjectType()
-export class CustomMessagesEntity {
-  @Field()
-  room: number;
-  @Field()
-  message: string;
-  @Field()
-  senderId: number;
-  @Field()
-  receiverId: number;
-  @Field()
-  sender: string;
-  @Field()
-  receiver: string;
-  @Field()
-  seen: string;
-}
-
 @Resolver((_of) => Messages)
 @UseGuards(JwtAuthGuard)
 export class MessagesResolver {
@@ -62,7 +44,7 @@ export class MessagesResolver {
 
   @Mutation((_returns) => Boolean)
   async deleteRoom(@Args('roomId') roomId: number) {
-    const roomsService = await this.chatService.removeMessage(roomId);
+    const roomsService = await this.chatService.removeRoom(roomId);
 
     return roomsService;
   }

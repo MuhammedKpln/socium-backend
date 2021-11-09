@@ -255,7 +255,7 @@ export class ChatService {
     return await messages.getMany();
   }
 
-  async removeMessage(roomId: number) {
+  async removeRoom(roomId: number) {
     const deleted = await this.roomRepo.delete({
       id: roomId,
     });
@@ -363,6 +363,18 @@ export class ChatService {
   async retrieveMessageRequest(requestId: number): PBool {
     const deleteRequest = await this.messageRequestRepo.delete({
       id: requestId,
+    });
+
+    if (deleteRequest.affected > 0) {
+      return true;
+    }
+
+    return false;
+  }
+
+  async removeMessage(messageId: number): PBool {
+    const deleteRequest = await this.messageRepo.delete({
+      id: messageId,
     });
 
     if (deleteRequest.affected > 0) {

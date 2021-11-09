@@ -84,6 +84,9 @@ export class PostEntity {
   @Field()
   commentsCount?: number;
 
+  @Field({ nullable: true })
+  postFromFollowers?: boolean;
+
   @BeforeInsert()
   slugify?() {
     this.slug = slugify(getRandomString(100));

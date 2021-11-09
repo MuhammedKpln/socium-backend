@@ -34,8 +34,6 @@ export interface ISendMessage {
   roomName: string;
   message?: string;
   user: User;
-  receiverId: number;
-  userId: number;
   receiver: User;
 }
 
@@ -48,4 +46,8 @@ export interface ISaveMessageProps {
 }
 export interface ICheckForRoomProps {
   roomAdress: string;
+}
+
+export interface IRemoveMessageRequest {
+  messageId: number;
 }
