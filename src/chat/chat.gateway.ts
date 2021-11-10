@@ -257,8 +257,18 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
     await this.chatService.removeMessage(messageId);
   }
 
+  @SubscribeMessage('get online users count')
+  async onlineUsers(client: Socket) {
+    const sockets = await this.server.fetchSockets();
+
+    this.server.emit('online users', {
+      count: sockets.length,
+    });
+  }
+
   async handleConnection(client: Socket) {
     this.logger.log('user connected');
+    this.onlineUsers(client);
     // const verified = await this.authService.validateJwt(
     //   client.handshake.headers.authorization,
     // );
@@ -266,7 +276,9 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
     // !verified && client.disconnect();
   }
 
-  handleDisconnect(client: Socket) {
+  async handleDisconnect(client: Socket) {
+    const sockets = await this.server.fetchSockets();
+
     this.tellersPool = this.tellersPool.filter(
       (teller) => teller === client.id,
     );
@@ -277,7 +289,9 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
     );
 
     this.users = this.users.filter((user) => user.clientId !== client.id);
-
+    this.server.emit('online users', {
+      count: sockets.length,
+    });
     this.logger.log('user disconnected');
   }
 }
