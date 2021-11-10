@@ -153,6 +153,7 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
           receiver,
           roomName,
           id: m.id,
+          roomId: m.room.id,
         });
       } else {
         this.server.to(client.id).emit('abuse is detected');
