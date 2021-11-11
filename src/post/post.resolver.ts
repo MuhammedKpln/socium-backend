@@ -1,9 +1,11 @@
 import {
+  Inject,
   NotAcceptableException,
   NotFoundException,
   UseGuards,
 } from '@nestjs/common';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
+import { RedisPubSub } from 'graphql-redis-subscriptions';
 import { User as UserDecorator } from 'src/auth/decorators/user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
@@ -12,13 +14,18 @@ import {
   fetchTwitterMetaData,
   fetchYoutubeMetaData,
 } from 'src/likes/utils/fetchMetaData';
+import { PUB_SUB } from 'src/pubsub/pubsub.module';
 import { CreatePostDto } from './dtos/createPost';
 import { PostEntity, PostType } from './entities/post.entity';
 import { PostService } from './post.service';
+import { CREATED_POST } from './pubsub.events';
 
 @Resolver((of) => PostEntity)
 export class PostsResolver {
-  constructor(private readonly postService: PostService) {}
+  constructor(
+    private readonly postService: PostService,
+    @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
+  ) {}
 
   @Query((returns) => [PostEntity])
   async posts(
@@ -33,6 +40,33 @@ export class PostsResolver {
       return posts;
     }
   }
+  @Query((returns) => [PostEntity])
+  async postsWithoutBlog(
+    @Args('page', { nullable: true, type: () => Number }) page: number,
+    @UserDecorator() user: User,
+  ): Promise<PostEntity[] | PostEntity> {
+    if (!user) {
+      const posts = await this.postService.getAllPosts(null, false);
+      return posts;
+    } else {
+      const posts = await this.postService.getAllPosts(user, false);
+      return posts;
+    }
+  }
+  @Query((returns) => [PostEntity])
+  async postsOnlyBlog(
+    @Args('page', { nullable: true, type: () => Number }) page: number,
+    @UserDecorator() user: User,
+  ): Promise<PostEntity[] | PostEntity> {
+    if (!user) {
+      const posts = await this.postService.getAllPosts(null, true);
+      return posts;
+    } else {
+      const posts = await this.postService.getAllPosts(user, true);
+      return posts;
+    }
+  }
+
   @Query((returns) => PostEntity)
   async post(@Args('id') id: number): Promise<PostEntity> {
     const recipe = await this.postService.getPostById(id);
@@ -107,9 +141,24 @@ export class PostsResolver {
       post.content = `twitter##${postContent}##${text}`;
     }
 
-    return await this.postService.createPost(post, user).catch((err) => {
-      console.log(err);
-      throw new NotAcceptableException();
-    });
+    const postModel = await this.postService
+      .createPost(post, user)
+      .catch((err) => {
+        console.log(err);
+        throw new NotAcceptableException();
+      });
+
+    if (postModel.type !== PostType.Blog) {
+      this.pubSub.publish(CREATED_POST, {
+        createdNewPost: postModel,
+      });
+    }
+
+    return postModel;
+  }
+
+  @Subscription((_returns) => PostEntity)
+  createdNewPost() {
+    return this.pubSub.asyncIterator(CREATED_POST);
   }
 }

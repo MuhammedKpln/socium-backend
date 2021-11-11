@@ -15,7 +15,7 @@ export class PostService {
     @InjectRepository(User) private readonly usersService: Repository<User>,
   ) {}
 
-  async getAllPosts(user?: User): Promise<PostEntity[]> {
+  async getAllPosts(user?: User, blogPosts?: boolean): Promise<PostEntity[]> {
     const queryBuilder = this.postsService
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.userLike', 'userLike')
@@ -25,9 +25,16 @@ export class PostService {
       .limit(10)
       .orderBy('RANDOM()');
 
+    if (blogPosts !== undefined && blogPosts === false) {
+      queryBuilder.where('post.type != 4');
+    } else if (blogPosts !== undefined && blogPosts === true) {
+      console.log('SA');
+      queryBuilder.where('post.type = 4');
+    }
+
     const randomPosts = await queryBuilder.getMany();
 
-    if (!user) {
+    if (!user || blogPosts === true) {
       return randomPosts;
     }
 
