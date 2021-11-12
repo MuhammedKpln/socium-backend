@@ -9,7 +9,7 @@ import { getRandomString } from 'src/helpers/randomString';
 import { PaginationParams } from 'src/inputypes/pagination.input';
 import { PUB_SUB } from 'src/pubsub/pubsub.module';
 import { PBool } from 'src/types';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { Star } from '../star/entities/star.entity';
 import { ICheckForRoomProps, ISaveMessageProps } from './chat.types';
 import { Block } from './entities/block-list.entity';
@@ -159,18 +159,23 @@ export class ChatService {
     return messageRequest;
   }
 
-  async currentUserSendedRequests(userId: number, options: PaginationParams) {
-    const qb = this.messageRequestRepo
-      .createQueryBuilder('messageRequest')
-      .where('messageRequest.requestFrom = :userId', { userId })
-      .andWhere('NOT messageRequest.requestTo = :userId', { userId })
-      .andWhere('messageRequest.request = :request', { request: false })
-      .leftJoinAndSelect('messageRequest.requestFrom', 'requestFrom')
-      .leftJoinAndSelect('messageRequest.requestTo', 'requestTo')
-      .offset(options.offset)
-      .limit(options.limit);
+  async currentUserSendedRequests(user: User, options: PaginationParams) {
+    const messageRequests = await this.messageRequestRepo.find({
+      where: {
+        requestFrom: {
+          id: user.id,
+        },
+        requestTo: {
+          id: Not(user.id),
+        },
+        request: true,
+      },
+      relations: ['requestFrom', 'requestTo'],
+      take: options.limit,
+      skip: options.offset,
+    });
 
-    return await qb.getMany();
+    return messageRequests;
   }
 
   async currentUserRequests(

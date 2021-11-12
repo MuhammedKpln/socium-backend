@@ -38,10 +38,7 @@ export class ChatResolver {
     @Args('pagination') pagination: PaginationParams,
     @UserDecorator() user: User,
   ) {
-    return await this.chatService.currentUserSendedRequests(
-      user.id,
-      pagination,
-    );
+    return await this.chatService.currentUserSendedRequests(user, pagination);
   }
 
   @Query((_returns) => MessageRequest, {

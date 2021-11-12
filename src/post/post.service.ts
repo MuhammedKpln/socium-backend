@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as shuffleArray from 'lodash.shuffle';
 import * as uniqBy from 'lodash.uniqby';
 import { User } from 'src/auth/entities/user.entity';
+import { PaginationParams } from 'src/inputypes/pagination.input';
 import { Repository } from 'typeorm';
 import { CreatePostDto } from './dtos/createPost';
 import { PostEntity } from './entities/post.entity';
@@ -15,14 +16,19 @@ export class PostService {
     @InjectRepository(User) private readonly usersService: Repository<User>,
   ) {}
 
-  async getAllPosts(user?: User, blogPosts?: boolean): Promise<PostEntity[]> {
+  async getAllPosts(
+    pagination: PaginationParams,
+    user?: User,
+    blogPosts?: boolean,
+  ): Promise<PostEntity[]> {
     const queryBuilder = this.postsService
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.userLike', 'userLike')
       .leftJoinAndSelect('post.postLike', 'postLike')
       .leftJoinAndSelect('post.user', 'user')
       .loadRelationCountAndMap('post.commentsCount', 'post.comments')
-      .limit(10)
+      .limit(pagination.limit)
+      .offset(pagination.offset)
       .orderBy('RANDOM()');
 
     if (blogPosts !== undefined && blogPosts === false) {

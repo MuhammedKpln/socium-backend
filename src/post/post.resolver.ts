@@ -10,6 +10,7 @@ import { User as UserDecorator } from 'src/auth/decorators/user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
 import { stripHtml } from 'src/helpers';
+import { PaginationParams } from 'src/inputypes/pagination.input';
 import {
   fetchTwitterMetaData,
   fetchYoutubeMetaData,
@@ -29,40 +30,40 @@ export class PostsResolver {
 
   @Query((returns) => [PostEntity])
   async posts(
-    @Args('page', { nullable: true, type: () => Number }) page: number,
+    @Args('pagination') pagination: PaginationParams,
     @UserDecorator() user: User,
   ): Promise<PostEntity[] | PostEntity> {
     if (!user) {
-      const posts = await this.postService.getAllPosts();
+      const posts = await this.postService.getAllPosts(pagination);
       return posts;
     } else {
-      const posts = await this.postService.getAllPosts(user);
+      const posts = await this.postService.getAllPosts(pagination, user);
       return posts;
     }
   }
   @Query((returns) => [PostEntity])
   async postsWithoutBlog(
-    @Args('page', { nullable: true, type: () => Number }) page: number,
+    @Args('pagination') pagination: PaginationParams,
     @UserDecorator() user: User,
   ): Promise<PostEntity[] | PostEntity> {
     if (!user) {
-      const posts = await this.postService.getAllPosts(null, false);
+      const posts = await this.postService.getAllPosts(pagination, null, false);
       return posts;
     } else {
-      const posts = await this.postService.getAllPosts(user, false);
+      const posts = await this.postService.getAllPosts(pagination, user, false);
       return posts;
     }
   }
   @Query((returns) => [PostEntity])
   async postsOnlyBlog(
-    @Args('page', { nullable: true, type: () => Number }) page: number,
+    @Args('pagination') pagination: PaginationParams,
     @UserDecorator() user: User,
   ): Promise<PostEntity[] | PostEntity> {
     if (!user) {
-      const posts = await this.postService.getAllPosts(null, true);
+      const posts = await this.postService.getAllPosts(pagination, null, true);
       return posts;
     } else {
-      const posts = await this.postService.getAllPosts(user, true);
+      const posts = await this.postService.getAllPosts(pagination, user, true);
       return posts;
     }
   }
