@@ -111,7 +111,7 @@ export class AuthService {
       });
   }
   async registerGoogle(user: CreateUserGoogleDto) {
-    const create = await this.usersService.create({
+    const create = this.usersService.create({
       username: user.username,
       email: user.email,
       password: user.idToken,
@@ -122,7 +122,7 @@ export class AuthService {
     await this.starRepo.create(model.id);
     return {
       access_token: await this.jwtService.signAsync({
-        username: user.username,
+        email: user.email,
       }),
       user: model,
     };
