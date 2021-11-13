@@ -5,7 +5,6 @@ import { PubSub } from 'graphql-subscriptions';
 import { User } from 'src/auth/decorators/user.decorator';
 import { User as UserEntity } from 'src/auth/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
-import { PROFILE_UPDATED_EVENT } from 'src/profile/events.pubsub';
 import { PUB_SUB } from 'src/pubsub/pubsub.module';
 import { UserService } from 'src/user/user.service';
 import { EditProfileDto } from './dtos/edit-profile.dto';

@@ -16,7 +16,6 @@ import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
 import { UserLike } from 'src/likes/entities/UserLike.entity';
 import { PUB_SUB } from 'src/pubsub/pubsub.module';
 import { Star } from 'src/star/entities/star.entity';
-import { PROFILE_UPDATED_EVENT } from '../profile/events.pubsub';
 import { UpdateUserAgeAndGenderDto } from './dtos/UpdateUserAgeAndGender.dto';
 import { UserService } from './user.service';
 
@@ -36,14 +35,6 @@ export class UserResolver {
     private readonly usersService: UserService,
     @Inject(PUB_SUB) private pubSub: PubSub,
   ) {}
-
-  @Subscription((_) => CustomUserResponse, {
-    filter: (payload, variables) =>
-      payload.profileUpdated.username === variables.username,
-  })
-  profileUpdated(@Args('username') username: string) {
-    return this.pubSub.asyncIterator(PROFILE_UPDATED_EVENT);
-  }
 
   @Query((_returns) => CustomUserResponse)
   async getUser(@Args('username') username: string) {
