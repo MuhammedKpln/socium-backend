@@ -17,7 +17,6 @@ export class ProfileResolver {
   constructor(
     private profileService: ProfileService,
     private userService: UserService,
-    @Inject(PUB_SUB) private pubSub: PubSub,
   ) {}
 
   @Mutation((_returns) => UserEntity)
@@ -32,10 +31,7 @@ export class ProfileResolver {
 
     if (updateProfile) {
       const userEntity = await this.userService.getUserByEmail(user.email);
-      this.pubSub.publish(PROFILE_UPDATED_EVENT, {
-        profileUpdated: userEntity,
-      });
-      return await userEntity;
+      return userEntity;
     }
 
     throw new UserInputError('Could not update profile');

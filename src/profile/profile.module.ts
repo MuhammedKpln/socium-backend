@@ -8,7 +8,7 @@ import { ProfileService } from './profile.service';
 
 @Module({
   controllers: [ProfileController],
-  imports: [AuthModule, PubsubModule],
+  imports: [AuthModule],
   providers: [ProfileService, AuthService, ProfileResolver],
 })
 export class ProfileModule {}
