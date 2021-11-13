@@ -197,9 +197,9 @@ export class ChatService {
 
   async answerRequest(id: number, userId: number, receiverId: number) {
     const update = await this.messageRequestRepo.update(
-      { id, request: false },
+      { id, request: true },
       {
-        request: true,
+        request: false,
       },
     );
 
