@@ -39,6 +39,10 @@ export class User {
   @Field()
   email: string;
 
+  @Column({ nullable: true, default: false })
+  @Field({ nullable: true, defaultValue: false })
+  blockIncomingCalls: boolean;
+
   @Column({ nullable: true })
   @Field({ nullable: true })
   gender: Gender;

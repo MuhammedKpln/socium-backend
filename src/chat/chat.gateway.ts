@@ -105,7 +105,6 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
   async joinRoom(client: Socket, data: IRoomMessage) {
     client.join(data.roomName);
 
-    console.log(client.id, data.pairedClientId);
     if (data.pairedClientId) {
       this.server.to(data.pairedClientId).emit('user', data.user);
     } else {

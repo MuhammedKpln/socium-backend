@@ -28,4 +28,8 @@ export class EditProfileDto {
   @IsOptional()
   @Field({ nullable: true })
   username: string;
+
+  @IsOptional()
+  @Field({ nullable: true })
+  blockIncomingCalls: boolean;
 }
