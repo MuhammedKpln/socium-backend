@@ -186,7 +186,7 @@ export class ChatService {
       .createQueryBuilder('messageRequest')
       .where('messageRequest.requestTo = :userId', { userId })
       .andWhere('NOT messageRequest.requestFrom = :userId', { userId })
-      .andWhere('messageRequest.request = :request', { request: false })
+      .andWhere('messageRequest.request = :request', { request: true })
       .leftJoinAndSelect('messageRequest.requestFrom', 'requestFrom')
       .leftJoinAndSelect('messageRequest.requestTo', 'requestTo')
       .offset(options.offset)
