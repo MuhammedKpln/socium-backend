@@ -124,6 +124,20 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
     client.leave(data.roomName);
   }
 
+  @SubscribeMessage('seen status')
+  async handleSeenStatus1(
+    client: Socket,
+    data: { seen: boolean; roomAdress: string; roomId: number },
+  ) {
+    if (data.seen) {
+      client.broadcast.to(data.roomAdress).emit('seen status updated', {
+        seen: true,
+      });
+
+      await this.chatService.markAllMessagesRead(data.roomId);
+    }
+  }
+
   @SubscribeMessage('send message')
   async handleNewMessage(client: Socket, data: ISendMessage) {
     const { message, roomName, user, receiver } = data;
