@@ -57,6 +57,7 @@
     "redis": "^3.1.2",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
+    "sharp": "^0.29.3",
     "slugify": "^1.6.0",
     "socket.io-client": "4.2.0",
     "typeorm": "^0.2.37"
@@ -73,6 +74,7 @@
     "@types/nodemailer": "^6.4.4",
     "@types/passport-jwt": "^3.0.6",
     "@types/redis": "^2.8.32",
+    "@types/sharp": "^0.29.4",
     "@types/supertest": "^2.0.11",
     "@typescript-eslint/eslint-plugin": "^4.28.2",
     "@typescript-eslint/parser": "^4.28.2",

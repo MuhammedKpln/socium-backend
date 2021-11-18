@@ -21,8 +21,6 @@ export class ProfileService {
 
     const update = await this.usersService.save(model);
 
-    update.emoji = `emoji/` + update.emoji;
-
     if (update) {
       return update;
     }

@@ -4,9 +4,9 @@ import { hashText } from 'src/cryptHelper';
 import { Follower } from 'src/follower/entities/follower.entity';
 import { UserLike } from 'src/likes/entities/UserLike.entity';
 import { PostEntity } from 'src/post/entities/post.entity';
-import { EmojiPack } from 'src/profile/dtos/edit-profile.dto';
 import {
   AfterLoad,
+  AfterUpdate,
   BeforeInsert,
   BeforeUpdate,
   Column,
@@ -39,6 +39,10 @@ export class User {
   @Field()
   email: string;
 
+  @Column({ nullable: true })
+  @Field({ nullable: true })
+  avatar: string;
+
   @Column({ nullable: true, default: false })
   @Field({ nullable: true, defaultValue: false })
   blockIncomingCalls: boolean;
@@ -46,10 +50,6 @@ export class User {
   @Column({ nullable: true })
   @Field({ nullable: true })
   gender: Gender;
-
-  @Column({ nullable: true })
-  @Field({ nullable: true })
-  emoji: string;
 
   @Column({ nullable: true })
   @Field({ nullable: true })
@@ -127,17 +127,14 @@ export class User {
   }
 
   @AfterLoad()
-  parseEmoji() {
-    if (this.emoji) {
-      this.emoji = this.emoji;
-
-      return this.emoji;
+  parseAvatar() {
+    if (this.avatar) {
+      this.avatar = 'avatars/' + this.avatar + '.webp';
     }
+  }
 
-    function randomInteger(min, max) {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
-    this.emoji = EmojiPack[randomInteger(0, 9)];
+  @AfterUpdate()
+  parseAvatarAfterInsert() {
+    return this.parseAvatar();
   }
 }

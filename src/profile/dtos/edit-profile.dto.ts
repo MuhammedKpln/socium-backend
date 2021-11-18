@@ -1,25 +1,12 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsOptional } from 'class-validator';
-
-export enum EmojiPack {
-  'Neutralface' = 0,
-  'Palmsuptogether' = 1,
-  'Partyingface' = 2,
-  'Pensiveface' = 3,
-  'Poutingface' = 4,
-  'Scrunchedface' = 5,
-  'Tiredface' = 5,
-  'Shushingface' = 6,
-  'Smilingfacewithhearts' = 7,
-  'Smilingfacewithsunglasses' = 8,
-  'Smilingface' = 9,
-}
+import { IsBase64, IsMimeType, IsOptional } from 'class-validator';
 
 @InputType()
 export class EditProfileDto {
   @IsOptional()
+  @IsBase64()
   @Field({ nullable: true })
-  emoji: string;
+  avatar: string;
 
   @IsOptional()
   @Field({ nullable: true })
