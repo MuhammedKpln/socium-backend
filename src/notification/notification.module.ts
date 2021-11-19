@@ -15,6 +15,13 @@ import { NotificationConsumer } from './providers/Notification.consumer';
     PubsubModule,
     BullModule.registerQueueAsync({
       name: Queues.Notification,
+      useFactory: () => {
+        return {
+          defaultJobOptions: {
+            attempts: 1,
+          },
+        };
+      },
     }),
   ],
   providers: [NotificationService, NotificationResolver, NotificationConsumer],

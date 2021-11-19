@@ -53,16 +53,16 @@ export class NotificationConsumer {
 
   @Process('sendNotification')
   async sendVerificationMail(job: Job<INotificationJobData>, cb: DoneCallback) {
+    console.log('SAQ');
     const user = new User();
     user.id = job.data.toUser;
 
     const fcmUser = await this.fcmRepo.findOne({
       user,
     });
+    await this.saveNotificationToDatabase(job.data);
 
     if (fcmUser) {
-      await this.saveNotificationToDatabase(job.data);
-
       const notificationTitle = NotificationTitle[
         job.data.notificationType
       ].replace('{0}', job.data.fromUser.username);
@@ -91,7 +91,7 @@ export class NotificationConsumer {
 
   async saveNotificationToDatabase(data: INotificationJobData) {
     const { toUser, fromUser, notificationType, entityId, entityType } = data;
-
+    console.log('WSSS');
     const toUserModel = new User();
     toUserModel.id = toUser;
 
