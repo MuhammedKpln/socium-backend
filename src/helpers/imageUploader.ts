@@ -40,28 +40,12 @@ export class ImageUploader {
     return this;
   }
 
-  async minifyImage(imagePath: PathLike) {
-    const image = sharp(imagePath.toString());
-    const splitFolders = imagePath.toString().split('/');
-    splitFolders.pop();
-    splitFolders[0] = '/';
-
-    const fileName = path.basename(imagePath.toString(), '.svg');
-    const imageName = path.join(...splitFolders, fileName);
-
-    await image
-      .webp({
-        lossless: true,
-      })
-      .toFile(imageName + '.webp');
-  }
-
   async createFile(): Promise<ICreateImageResolve> {
     const staticFolder = path.resolve('static', 'avatars');
     const randomFileName = getRandomString(6);
-    const file = path.resolve(staticFolder, randomFileName + '.svg');
+    const file = path.resolve(staticFolder, randomFileName + '.webp');
 
-    await fs.writeFile(file, this.imageBuffer);
+    await sharp(this.imageBuffer).webp().toFile(file);
 
     return { randomFileName, file };
   }
