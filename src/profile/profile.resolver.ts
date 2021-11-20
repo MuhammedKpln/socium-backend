@@ -26,9 +26,7 @@ export class ProfileResolver {
       const imageHelper = new ImageUploader(profile.avatar);
       //Remove previous avatar
       await imageHelper.removeFile(user.avatar);
-      const { file, randomFileName } = await imageHelper
-        .decodeImage()
-        .createFile();
+      const { randomFileName } = await imageHelper.decodeImage().createFile();
 
       profile.avatar = randomFileName;
     }
