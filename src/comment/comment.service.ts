@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/auth/entities/user.entity';
 import { PaginationParams } from 'src/inputypes/pagination.input';
 import { PostEntity } from 'src/post/entities/post.entity';
+import { PBool } from 'src/types';
 import { Repository } from 'typeorm';
 import { CreteNewCommentDto } from './dtos/CreateNewComment.dto';
 import { Comment } from './entities/comment.entity';
@@ -38,5 +39,17 @@ export class CommentService {
     });
 
     return await this.commentsService.save(model);
+  }
+
+  async removeComment(commentId: number): PBool {
+    const deleted = await this.commentsService.delete({
+      id: commentId,
+    });
+
+    if (deleted.affected > 0) {
+      return true;
+    }
+
+    return false;
   }
 }

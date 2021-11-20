@@ -74,4 +74,10 @@ export class CommentResolver {
 
     return commentEntity;
   }
+
+  @Mutation((returns) => Boolean)
+  @UseGuards(JwtAuthGuard)
+  async removeComment(@Args('commentId') commentId: number) {
+    return await this.commentsService.removeComment(commentId);
+  }
 }
