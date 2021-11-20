@@ -22,6 +22,10 @@ import {
   ISendMessage,
   ITypingData,
 } from './chat.types';
+import * as firebase from 'firebase-admin';
+import { InjectRepository } from '@nestjs/typeorm';
+import { FcmNotificationUser } from 'src/notification/entities/fcmNotifications.entity';
+import { Repository } from 'typeorm';
 
 @WebSocketGateway({
   cors: true,
@@ -31,6 +35,8 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
   constructor(
     private chatService: ChatService,
     private authService: AuthService,
+    @InjectRepository(FcmNotificationUser)
+    private readonly fcmRepo: Repository<FcmNotificationUser>,
   ) {}
 
   private activeSockets: {
@@ -157,6 +163,24 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
           roomAdress: roomName,
           seen,
         });
+
+        const fcmUser = await this.fcmRepo.findOne({
+          user: receiver,
+        });
+
+        if (fcmUser) {
+          await firebase.messaging().sendToDevice(fcmUser.fcmToken, {
+            data: {
+              entityType: 'message',
+              entityId: String(m.room.id),
+              link: 'com.derdevam://message-room/' + m.room.id,
+            },
+            notification: {
+              title: user.username + ' kullanicisindan yeni bir mesajiniz var',
+              body: message,
+            },
+          });
+        }
 
         this.server.to(data.roomName).emit('message', {
           message: message,
