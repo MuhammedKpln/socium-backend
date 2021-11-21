@@ -309,7 +309,7 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
     this.redis.scan('0', 'MATCH', `rooms:*${client.id}*`, (err, reply) => {
       if (err) console.log(err);
 
-      if (reply[0].length < 1) return;
+      if (!reply[0][1]) return;
 
       const roomName = reply[0][1][0];
 
