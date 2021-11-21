@@ -1,4 +1,5 @@
 import { Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -6,12 +7,14 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
+import * as firebase from 'firebase-admin';
+import { RedisClient } from 'redis';
 import { Server, Socket } from 'socket.io';
-import { Client } from 'socket.io/dist/client';
 import { AuthService } from 'src/auth/auth.service';
-import { User } from 'src/auth/entities/user.entity';
-import { redisClient } from 'src/main';
-import { rangeNumber, removeItem, shuffleArray } from '../helpers';
+import { redisClient, redisUrl } from 'src/main';
+import { FcmNotificationUser } from 'src/notification/entities/fcmNotifications.entity';
+import { Repository } from 'typeorm';
+import { rangeNumber, shuffleArray } from '../helpers';
 import { ChatService } from './chat.service';
 import {
   ICallAnswer,
@@ -22,35 +25,24 @@ import {
   ISendMessage,
   ITypingData,
 } from './chat.types';
-import * as firebase from 'firebase-admin';
-import { InjectRepository } from '@nestjs/typeorm';
-import { FcmNotificationUser } from 'src/notification/entities/fcmNotifications.entity';
-import { Repository } from 'typeorm';
 
 @WebSocketGateway({
   cors: true,
   namespace: 'PairingScreen',
 })
 export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
+  private redis: RedisClient;
   constructor(
     private chatService: ChatService,
     private authService: AuthService,
     @InjectRepository(FcmNotificationUser)
     private readonly fcmRepo: Repository<FcmNotificationUser>,
-  ) {}
-
-  private activeSockets: {
-    room: string;
-    users: string[];
-  }[] = [];
-
-  private users: {
-    clientId: string;
-    user: User;
-  }[] = [];
-
-  private pool: string[] = [];
-  private tellersPool: string[] = [];
+  ) {
+    this.redis = new RedisClient({
+      url: redisUrl,
+      db: 3,
+    });
+  }
 
   private logger: Logger = new Logger();
 
@@ -59,51 +51,43 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
 
   @SubscribeMessage('joinQueue')
   async joinQueue(client: Socket, data: IData) {
-    // if (data.role === 1) {
-    //   // Talker
-    //   this.tellersPool.push(client.id);
-    //   this.pool.push(client.id);
+    this.redis.llen('pool', (err, reply) => {
+      this.redis.lrange('pool', 0, reply, (err, reply) => {
+        const shuffledTellers = shuffleArray(reply);
+        const randomNumber = rangeNumber(0, reply.length - 1);
+        const pairedClient = shuffledTellers[randomNumber];
+        const randomRoomName =
+          Math.floor(Math.random() * 1000) + pairedClient + client.id;
 
-    //   client.emit('joinedQueue', this.tellersPool);
-    // } else {
-    // Listener
-    this.tellersPool.push(client.id);
-    this.pool.push(client.id);
+        if (!pairedClient) {
+          this.redis.lpush('pool', client.id);
+          return false;
+        }
 
-    const shuffledTellers = shuffleArray(this.pool).filter(
-      (id) => id !== client.id,
-    );
-    const randomNumber = rangeNumber(0, this.pool.length - 1);
-    const pairedClient = shuffledTellers[randomNumber];
-    const randomRoomName =
-      Math.floor(Math.random() * 1000) + pairedClient + client.id;
+        const redisRoomName = `rooms:${randomRoomName}`;
 
-    if (pairedClient === client.id) {
-      this.pool = removeItem(client.id, this.pool);
+        this.redis.set(
+          redisRoomName,
+          JSON.stringify({
+            room: randomRoomName,
+            users: [pairedClient, client.id],
+          }),
+        );
+        this.redis.expire(redisRoomName, 3600);
 
-      return false;
-    }
+        client.emit('clientPaired', {
+          clientId: pairedClient,
+          roomName: randomRoomName,
+        });
 
-    if (!pairedClient) {
-      return false;
-    }
+        this.server.to(pairedClient).emit('clientPaired', {
+          clientId: client.id,
+          roomName: randomRoomName,
+        });
 
-    this.activeSockets.push({
-      room: randomRoomName,
-      users: [pairedClient, client.id],
+        this.redis.lrem('pool', 0, pairedClient);
+      });
     });
-
-    client.emit('clientPaired', {
-      clientId: pairedClient,
-      roomName: randomRoomName,
-    });
-
-    this.server.to(pairedClient).emit('clientPaired', {
-      clientId: client.id,
-      roomName: randomRoomName,
-    });
-
-    this.tellersPool = removeItem(pairedClient, this.pool);
   }
   // }
 
@@ -120,13 +104,13 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
 
   @SubscribeMessage('leave queue')
   async leaveQueue(client: Socket) {
-    this.pool = this.pool.filter((id) => id !== client.id);
+    this.redis.lrem('pool', 0, client.id);
   }
 
   @SubscribeMessage('leave room')
   async leaveRoom(client: Socket, data: IRoomMessage) {
     this.server.to(data.roomName).emit('client disconnected');
-
+    this.redis.del(`rooms:${data.roomName}`);
     client.leave(data.roomName);
   }
 
@@ -241,25 +225,28 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
   userConnected(client: Socket, data) {
     console.log('userConnected', data, client.id);
 
-    this.users.push({
-      clientId: client.id,
-      user: data.user,
-    });
+    this.redis.set(client.id + ':' + data.user.id, JSON.stringify(data.user));
+    this.redis.expire(client.id + ':' + data.user.id, 3600);
   }
   @SubscribeMessage('user is already connected')
   userIsAlreadyConnected(client: Socket, data) {
-    const isAvailable = this.users.filter(
-      (user) => user.user.id === data.userId,
-    );
+    this.redis.scan('0', 'MATCH', '*:' + data.userId, (err, reply) => {
+      if (err) return;
 
-    if (isAvailable.length > 0) {
-      return client.emit('user is online', {
-        status: true,
-      });
-    }
+      if (reply.length > 0) {
+        const clientId = reply[1][0];
 
-    return client.emit('user is online', {
-      status: false,
+        if (clientId) {
+          return client.emit('user is online', {
+            status: true,
+          });
+        } else {
+          return client.emit('user is online', {
+            status: false,
+          });
+        }
+      }
+      console.log(reply);
     });
   }
 
@@ -306,7 +293,8 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
 
   async handleConnection(client: Socket) {
     this.logger.log('user connected');
-    this.onlineUsers(client);
+    // this.onlineUsers(client);
+
     // const verified = await this.authService.validateJwt(
     //   client.handshake.headers.authorization,
     // );
@@ -317,19 +305,36 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
   async handleDisconnect(client: Socket) {
     const sockets = await this.server.fetchSockets();
 
-    this.tellersPool = this.tellersPool.filter(
-      (teller) => teller === client.id,
-    );
-    this.pool = this.pool.filter((teller) => teller === client.id);
+    // If user has/joined a room, delete it.
+    this.redis.scan('0', 'MATCH', `rooms:*${client.id}*`, (err, reply) => {
+      if (err) console.log(err);
 
-    this.activeSockets = this.activeSockets.filter((socket) =>
-      socket.room.includes(client.id),
-    );
+      const roomName = reply[0][1][0];
 
-    this.users = this.users.filter((user) => user.clientId !== client.id);
+      this.redis.del(roomName);
+    });
+
+    // If user is in pool, remove it.
+    this.redis.lrem('pool', 0, client.id);
+
+    // Update online users count
     this.server.emit('online users', {
       count: sockets.length,
     });
+
+    // On disconnect delete user key.
+    this.redis.scan('0', 'MATCH', client.id + ':*', (err, reply) => {
+      if (err) return;
+
+      if (reply.length > 0) {
+        const clientId = reply[1][0];
+
+        if (clientId) {
+          this.redis.del(clientId);
+        }
+      }
+    });
+
     this.logger.log('user disconnected');
   }
 }
