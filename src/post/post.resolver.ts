@@ -121,16 +121,23 @@ export class PostsResolver {
     @UserDecorator() user: User,
   ) {
     const postContent: string = post?.content;
-    let videoId: string;
 
-    if (postContent.includes('youtu.be')) {
-      videoId = postContent.split('https://youtu.be/')[1];
-    }
-    if (postContent.includes('watch?v=')) {
-      videoId = postContent.split('watch?v=')[1];
+    if (postContent.includes('http') || post?.title?.includes('http')) {
+      if (post.type === PostType.Content || post.type === PostType.Blog) {
+        throw new NotAcceptableException();
+      }
     }
 
     if (post.type === PostType.Youtube) {
+      let videoId: string;
+
+      if (postContent.includes('youtu.be')) {
+        videoId = postContent.split('https://youtu.be/')[1];
+      }
+      if (postContent.includes('watch?v=')) {
+        videoId = postContent.split('watch?v=')[1];
+      }
+
       const youtubeMetaData = await fetchYoutubeMetaData(videoId);
       post.content = `youtube##${postContent}##${youtubeMetaData.title}`;
     }

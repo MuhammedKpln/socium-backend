@@ -22,10 +22,9 @@ export class CreatePostDto {
     PostType.Blog,
   ])
   @Field()
-  type:
-    | PostType.Content
-    | PostType.Instagram
-    | PostType.Twitter
-    | PostType.Youtube
-    | PostType.Blog;
+  type: PostType.Content &
+    PostType.Instagram &
+    PostType.Twitter &
+    PostType.Youtube &
+    PostType.Blog;
 }
