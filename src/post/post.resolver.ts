@@ -11,10 +11,7 @@ import { User } from 'src/auth/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
 import { stripHtml } from 'src/helpers';
 import { PaginationParams } from 'src/inputypes/pagination.input';
-import {
-  fetchTwitterMetaData,
-  fetchYoutubeMetaData,
-} from 'src/likes/utils/fetchMetaData';
+import { fetchYoutubeMetaData } from 'src/likes/utils/fetchMetaData';
 import { PUB_SUB } from 'src/pubsub/pubsub.module';
 import { CreatePostDto } from './dtos/createPost';
 import { PostEntity, PostType } from './entities/post.entity';
@@ -143,10 +140,7 @@ export class PostsResolver {
     }
 
     if (post.type === PostType.Twitter) {
-      const twitterMetaData = await fetchTwitterMetaData(postContent);
-      const text = stripHtml(twitterMetaData.html);
-
-      post.content = `twitter##${postContent}##${text}`;
+      post.content = `twitter##${postContent}`;
     }
 
     const postModel = await this.postService

@@ -12,12 +12,3 @@ export const fetchYoutubeMetaData = async (
 
   return response;
 };
-export const fetchTwitterMetaData = async (
-  tweetUrl: string,
-): Promise<ITwitterMeta> => {
-  const response = await got
-    .get(`https://publish.twitter.com/oembed?url=${tweetUrl}`)
-    .json<ITwitterMeta>();
-
-  return response;
-};
