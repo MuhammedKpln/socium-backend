@@ -144,8 +144,13 @@ export class PostsResolver {
 
     if (post.type === PostType.Twitter) {
       const twitterMetaData = await fetchTwitterMetaData(postContent);
-      const text = stripHtml(twitterMetaData.html);
-      const title = text.split('pic.twitter.com')[0];
+      const text: string = stripHtml(twitterMetaData.html);
+      let title: string;
+      if (text.includes('pic.twitter.com')) {
+        title = text.split('pic.twitter.com')[0];
+      } else {
+        title = text.split('—')[0];
+      }
 
       post.content = `twitter##${postContent}##${title}`;
     }
