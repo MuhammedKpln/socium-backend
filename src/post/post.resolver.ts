@@ -12,6 +12,7 @@ import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
 import { stripHtml } from 'src/helpers';
 import { PaginationParams } from 'src/inputypes/pagination.input';
 import {
+  fetchInstagramMetaData,
   fetchTwitterMetaData,
   fetchYoutubeMetaData,
 } from 'src/likes/utils/fetchMetaData';
@@ -153,6 +154,13 @@ export class PostsResolver {
       }
 
       post.content = `twitter##${postContent}##${title}`;
+    }
+
+    if (post.type === PostType.Instagram) {
+      const instagramMetaData = await fetchInstagramMetaData(postContent);
+      const thumbnailUrl: string = instagramMetaData.thumbnail_url;
+
+      post.content = `instagram##${postContent}##${thumbnailUrl}`;
     }
 
     const postModel = await this.postService

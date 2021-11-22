@@ -1,5 +1,9 @@
 import got from 'got';
-import { ITwitterMeta, IYoutubeMeta } from './fetchMetaData.types';
+import {
+  IInstagramMeta,
+  ITwitterMeta,
+  IYoutubeMeta,
+} from './fetchMetaData.types';
 
 export const fetchYoutubeMetaData = async (
   videoId: string,
@@ -18,6 +22,16 @@ export const fetchTwitterMetaData = async (
   const response = await got
     .get(`https://publish.twitter.com/oembed?url=${tweetUrl}`)
     .json<ITwitterMeta>();
+
+  return response;
+};
+
+export const fetchInstagramMetaData = async (
+  instagramUrl: string,
+): Promise<IInstagramMeta> => {
+  const response = await got
+    .get(`https://api.instagram.com/oembed/?url=${instagramUrl}`)
+    .json<IInstagramMeta>();
 
   return response;
 };
