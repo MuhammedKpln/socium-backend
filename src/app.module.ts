@@ -20,6 +20,7 @@ import { PubsubModule } from './pubsub/pubsub.module';
 import { StarModule } from './star/star.module';
 import { UserModule } from './user/user.module';
 import { SpotifyModule } from './spotify/spotify.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 let DATABASE_OPTIONS: TypeOrmModuleOptions;
 
@@ -117,6 +118,7 @@ if (process.env.NODE_ENV === 'production') {
     StarModule,
     PubsubModule,
     SpotifyModule,
+    PrismaModule,
   ],
   providers: [AppService, PostService],
   controllers: [AppController],

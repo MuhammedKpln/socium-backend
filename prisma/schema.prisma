@@ -1,0 +1,200 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Block {
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+}
+
+model Comment {
+  id           Int       @id @default(autoincrement())
+  created_at   DateTime  @default(now()) @db.Timestamp(6)
+  updated_at   DateTime  @default(now()) @db.Timestamp(6)
+  content      String    @db.VarChar
+  userId       Int?
+  postId       Int?
+  parentUserId Int?
+  postLikeId   Int?      @unique
+  parentUser   User?     @relation("parentUser", fields: [parentUserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  posts        Posts?    @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  post_like    PostLike? @relation(fields: [postLikeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user         User?     @relation("comments", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user_like    UserLike?
+}
+
+model FcmNotificationTokens {
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+  fcmToken   String   @db.VarChar
+  userId     Int?     @unique
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model Follower {
+  id             Int      @id @default(autoincrement())
+  created_at     DateTime @default(now()) @db.Timestamp(6)
+  updated_at     DateTime @default(now()) @db.Timestamp(6)
+  userId         Int?
+  actorId        Int?
+  userFollowers  User?    @relation("userFollowers", fields: [actorId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  userFollowings User?    @relation("userFollowings", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model message_request {
+  id                                       Int      @id @default(autoincrement())
+  created_at                               DateTime @default(now()) @db.Timestamp(6)
+  updated_at                               DateTime @default(now()) @db.Timestamp(6)
+  request                                  Boolean  @default(true)
+  requestFromId                            Int?
+  requestToId                              Int?
+  user_message_request_requestFromIdTouser User?    @relation("message_request_requestFromIdTouser", fields: [requestFromId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user_message_request_requestToIdTouser   User?    @relation("message_request_requestToIdTouser", fields: [requestToId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model Messages {
+  id               Int      @id @default(autoincrement())
+  created_at       DateTime @default(now()) @db.Timestamp(6)
+  updated_at       DateTime @default(now()) @db.Timestamp(6)
+  message          String   @db.VarChar
+  seen             Boolean  @default(false)
+  roomId           Int?
+  senderId         Int?
+  receiverId       Int?
+  receivedMessages User?    @relation("receivedMessages", fields: [receiverId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  room             Room?    @relation(fields: [roomId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  sendedMessages   User?    @relation("sendedMessages", fields: [senderId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user             User?    @relation("Messages", fields: [userId], references: [id])
+  userId           Int?
+}
+
+model Notification {
+  id                 Int      @id @default(autoincrement())
+  created_at         DateTime @default(now()) @db.Timestamp(6)
+  updated_at         DateTime @default(now()) @db.Timestamp(6)
+  notificationType   Int
+  readed             Boolean  @default(false)
+  userId             Int?
+  actorId            Int?
+  entityId           Int
+  entityType         String   @db.VarChar
+  notifications      User?    @relation("notifications", fields: [actorId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  ownedNotifications User?    @relation("ownedNotifications", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model PostLike {
+  id         Int       @id @default(autoincrement())
+  created_at DateTime  @default(now()) @db.Timestamp(6)
+  updated_at DateTime  @default(now()) @db.Timestamp(6)
+  likeCount  Int       @default(0) @db.SmallInt
+  comment    Comment?
+  posts      Posts?
+  user_like  UserLike?
+}
+
+model Posts {
+  id         Int       @id @default(autoincrement())
+  content    String    @db.VarChar
+  type       Int
+  slug       String?   @db.VarChar
+  created_at DateTime  @default(now()) @db.Timestamp(6)
+  updated_at DateTime  @default(now()) @db.Timestamp(6)
+  userId     Int?
+  postLikeId Int?      @unique
+  title      String?   @db.VarChar
+  post_like  PostLike? @relation(fields: [postLikeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  comment    Comment[]
+  user_like  UserLike?
+}
+
+model Room {
+  id         Int        @id @default(autoincrement())
+  created_at DateTime   @default(now()) @db.Timestamp(6)
+  updated_at DateTime   @default(now()) @db.Timestamp(6)
+  roomAdress String     @db.VarChar
+  expireDate DateTime   @default(now()) @db.Timestamp(6)
+  Messages   Messages[]
+}
+
+model SpotifyCurrentlyListening {
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+  songName   String   @db.VarChar
+  artistName String   @db.VarChar
+  userId     Int?     @unique
+  image      String   @db.VarChar
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model Star {
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+  starCount  Int      @default(0) @db.SmallInt
+  userId     Int?     @unique
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model User {
+  id                     Int                        @id @default(autoincrement())
+  username               String                     @unique @db.VarChar
+  email                  String                     @unique @db.VarChar
+  gender                 Int?
+  bio                    String?                    @db.VarChar
+  password               String                     @db.VarChar
+  isEmailConfirmed       Boolean                    @default(false)
+  emailConfirmationCode  Int?
+  created_at             DateTime                   @default(now()) @db.Timestamp(6)
+  updated_at             DateTime                   @default(now()) @db.Timestamp(6)
+  forgotPasswordCode     Int?
+  birthday               DateTime?                  @db.Date
+  blockIncomingCalls     Boolean?                   @default(false)
+  avatar                 String?                    @db.VarChar
+  userParentComments     Comment[]                  @relation("parentUser")
+  comments               Comment[]                  @relation("comments")
+  FcmNotificationTokens  FcmNotificationTokens?
+  followers              Follower[]                 @relation("userFollowers")
+  followings             Follower[]                 @relation("userFollowings")
+  sendedMessageRequests  message_request[]          @relation("message_request_requestFromIdTouser")
+  messageRequests        message_request[]          @relation("message_request_requestToIdTouser")
+  messages               Messages[]                 @relation("receivedMessages")
+  sendedMessages         Messages[]                 @relation("sendedMessages")
+  notifications          Notification[]             @relation("notifications")
+  ownedNotifications     Notification[]             @relation("ownedNotifications")
+  posts                  Posts[]
+  currentlyListeningSong SpotifyCurrentlyListening?
+  star                   Star?
+  user_like              UserLike[]
+  Messages               Messages[]                 @relation("Messages")
+}
+
+model UserAvatarMeta {
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+  avatar     Json
+}
+
+model UserLike {
+  id         Int       @id @default(autoincrement())
+  created_at DateTime  @default(now()) @db.Timestamp(6)
+  updated_at DateTime  @default(now()) @db.Timestamp(6)
+  liked      Boolean
+  userId     Int?
+  postId     Int?      @unique
+  commentId  Int?      @unique
+  postLikeId Int?      @unique
+  comment    Comment?  @relation(fields: [commentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  posts      Posts?    @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  post_like  PostLike? @relation(fields: [postLikeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
