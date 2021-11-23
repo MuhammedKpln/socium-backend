@@ -21,6 +21,8 @@ import { CreatePostDto } from './dtos/createPost';
 import { PostEntity, PostType } from './entities/post.entity';
 import { PostService } from './post.service';
 import { CREATED_POST } from './pubsub.events';
+import type { Posts } from '@prisma/client';
+import { P } from 'src/types';
 
 @Resolver((of) => PostEntity)
 export class PostsResolver {
@@ -70,7 +72,7 @@ export class PostsResolver {
   }
 
   @Query((returns) => PostEntity)
-  async post(@Args('id') id: number): Promise<PostEntity> {
+  async post(@Args('id') id: number): P<Posts> {
     const recipe = await this.postService.getPostById(id);
     if (!recipe) {
       throw new NotFoundException(id);
@@ -106,7 +108,7 @@ export class PostsResolver {
   @Query((returns) => [PostEntity])
   async userPosts(
     @Args('username', { nullable: false, type: () => String }) username: string,
-  ): Promise<PostEntity[]> {
+  ): Promise<Posts[]> {
     const recipe = await this.postService.getAllPostsFromUser(username);
     if (!recipe) {
       throw new NotFoundException(username);

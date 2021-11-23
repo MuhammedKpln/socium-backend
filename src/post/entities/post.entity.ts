@@ -26,6 +26,12 @@ export enum PostType {
   Blog = 4,
 }
 
+@ObjectType()
+class ICount {
+  @Field()
+  comment: number;
+}
+
 @Entity('posts')
 @ObjectType()
 export class PostEntity {
@@ -83,6 +89,9 @@ export class PostEntity {
 
   @Field()
   commentsCount?: number;
+
+  @Field((_) => ICount)
+  _count?: ICount;
 
   @Field({ nullable: true })
   postFromFollowers?: boolean;

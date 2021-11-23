@@ -8,3 +8,4 @@ export const enum QueueEvents {
 }
 
 export type PBool = Promise<boolean>;
+export type P<T> = Promise<T>;

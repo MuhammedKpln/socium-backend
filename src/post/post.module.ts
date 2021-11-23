@@ -5,6 +5,7 @@ import { AuthService } from 'src/auth/auth.service';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { PostLike } from 'src/likes/entities/PostLike.entity';
 import { UserLike } from 'src/likes/entities/UserLike.entity';
+import { PrismaModule } from 'src/prisma/prisma.module';
 import { PubsubModule } from 'src/pubsub/pubsub.module';
 import { PostEntity } from './entities/post.entity';
 import { PostsResolver } from './post.resolver';
@@ -16,6 +17,7 @@ import { PostSubscriber } from './subscribers/post.subscriber';
     TypeOrmModule.forFeature([PostEntity, Comment, UserLike, PostLike]),
     AuthModule,
     PubsubModule,
+    PrismaModule,
   ],
   providers: [PostService, AuthService, PostSubscriber, PostsResolver],
   exports: [TypeOrmModule],

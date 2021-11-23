@@ -1,172 +1,149 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Posts } from '@prisma/client';
 import * as shuffleArray from 'lodash.shuffle';
-import * as uniqBy from 'lodash.uniqby';
 import { User } from 'src/auth/entities/user.entity';
 import { PaginationParams } from 'src/inputypes/pagination.input';
-import { Repository } from 'typeorm';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { P } from 'src/types';
 import { CreatePostDto } from './dtos/createPost';
 import { PostEntity } from './entities/post.entity';
+
+const essentialDatabaseOptions = {
+  include: {
+    user_like: true,
+    post_like: true,
+    user: true,
+    _count: {
+      select: {
+        comment: true,
+      },
+    },
+  },
+};
 
 @Injectable()
 export class PostService {
   constructor(
     @InjectRepository(PostEntity)
-    private readonly postsService: Repository<PostEntity>,
-    @InjectRepository(User) private readonly usersService: Repository<User>,
+    private readonly prisma: PrismaService,
   ) {}
 
   async getAllPosts(
     pagination: PaginationParams,
-    user?: User,
     blogPosts?: boolean,
-  ): Promise<PostEntity[]> {
-    const queryBuilder = this.postsService
-      .createQueryBuilder('post')
-      .leftJoinAndSelect('post.userLike', 'userLike')
-      .leftJoinAndSelect('post.postLike', 'postLike')
-      .leftJoinAndSelect('post.user', 'user')
-      .loadRelationCountAndMap('post.commentsCount', 'post.comments')
-      .limit(pagination.limit)
-      .offset(pagination.offset)
-      .orderBy('RANDOM()');
-
-    if (blogPosts !== undefined && blogPosts === false) {
-      queryBuilder.where('post.type != 4');
-    } else if (blogPosts !== undefined && blogPosts === true) {
-      console.log('SA');
-      queryBuilder.where('post.type = 4');
-    }
-
-    const randomPosts = await queryBuilder.getMany();
-
-    if (!user || blogPosts === true) {
-      return randomPosts;
-    }
-
-    const qb = this.postsService
-      .createQueryBuilder('post')
-      .innerJoin(
-        'follower',
-        'follower',
-        'post.userId = follower.actorId AND follower.userId = :userId',
-        { userId: user.id },
-      )
-      .leftJoinAndSelect('post.userLike', 'userLike')
-      .leftJoinAndSelect('post.postLike', 'postLike')
-      .leftJoinAndSelect('post.user', 'user')
-      .loadRelationCountAndMap('post.commentsCount', 'post.comments');
-
-    const postsFromUsersFollowing = await qb.getMany();
-
-    if (postsFromUsersFollowing.length < 1) {
-      return randomPosts;
-    }
-
-    postsFromUsersFollowing.forEach((post) => (post.postFromFollowers = true));
-
-    const uniquePosts = uniqBy(
-      [...postsFromUsersFollowing, ...randomPosts],
-      (e) => {
-        return e.slug;
+  ): Promise<Posts[]> {
+    const randomPosts = await this.prisma.posts.findMany({
+      ...essentialDatabaseOptions,
+      take: pagination.limit,
+      skip: pagination.offset,
+      where: {
+        type: blogPosts ? { equals: 4 } : { not: 4 },
       },
-    );
-
-    const shuffle = shuffleArray(uniquePosts);
-
-    return shuffle;
-  }
-
-  async getAllPostsFromUser(username: string) {
-    const user = await this.usersService.findOne({
-      username,
     });
 
-    const queryBuilder = this.postsService.createQueryBuilder('post');
-    queryBuilder.where('post.userId = :userId', { userId: user.id });
-    queryBuilder.leftJoinAndSelect('post.userLike', 'userLike');
-    queryBuilder.leftJoinAndSelect('post.postLike', 'postLike');
-    queryBuilder.leftJoinAndSelect('post.user', 'user');
-    queryBuilder.loadRelationCountAndMap('post.commentsCount', 'post.comments');
-
-    return await queryBuilder.getMany();
+    return shuffleArray(randomPosts);
   }
 
-  async getUserLikedPosts(userId: number) {
-    const queryBuilder = this.postsService.createQueryBuilder('post');
-    queryBuilder.where('post.userId = :userId', { userId });
-    queryBuilder.leftJoinAndSelect('post.userLike', 'userLike');
-    queryBuilder.leftJoinAndSelect('post.postLike', 'postLike');
-    queryBuilder.leftJoinAndSelect('post.user', 'user');
-    queryBuilder.loadRelationCountAndMap('post.commentsCount', 'post.comments');
-
-    return await queryBuilder.getMany();
-  }
-
-  private async getOneBySlug(slug: string) {
-    const post = await this.postsService.findOne({
-      slug,
+  async getAllPostsFromUser(username: string): P<Posts[]> {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        username,
+      },
     });
-    if (post) {
-      const queryBuilder = this.postsService
-        .createQueryBuilder('post')
-        .where('post.slug = :slug', { slug })
-        .leftJoinAndSelect('post.userLike', 'userLike')
-        .leftJoinAndSelect('post.postLike', 'postLike')
-        .leftJoinAndSelect('post.user', 'user')
-        .loadRelationCountAndMap('post.commentsCount', 'post.comments');
 
-      return await queryBuilder.getOne();
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
-  }
 
-  private async getOneById(id: number) {
-    const post = await this.postsService.findOne({
-      id,
+    const posts = await this.prisma.posts.findMany({
+      where: {
+        userId: user.id,
+      },
+      ...essentialDatabaseOptions,
     });
-    if (post) {
-      const queryBuilder = this.postsService
-        .createQueryBuilder('post')
-        .where('post.id = :id', { id })
-        .leftJoinAndSelect('post.userLike', 'userLike')
-        .leftJoinAndSelect('post.postLike', 'postLike')
-        .leftJoinAndSelect('post.user', 'user')
-        .loadRelationCountAndMap('post.commentsCount', 'post.comments');
 
-      return await queryBuilder.getOne();
-    }
+    return posts;
   }
 
-  async getPostById(id: number) {
-    const post = await this.getOneById(id);
+  async getUserLikedPosts(userId: number): P<Posts[]> {
+    return await this.prisma.posts.findMany({
+      where: {
+        userId,
+      },
+      ...essentialDatabaseOptions,
+    });
+  }
+
+  private async getOneBySlug(slug: string): P<Posts> {
+    const post = await this.prisma.posts.findUnique({
+      where: {
+        slug,
+      },
+      ...essentialDatabaseOptions,
+    });
 
     if (post) {
       return post;
     }
 
-    return false;
+    throw new NotFoundException('Post not found');
+  }
+
+  private async getOneById(id: number): P<Posts> {
+    const post = await this.prisma.posts.findUnique({
+      where: {
+        id,
+      },
+      ...essentialDatabaseOptions,
+    });
+
+    if (post) {
+      return post;
+    }
+
+    throw new NotFoundException('Post not found');
+  }
+
+  async getPostById(id: number): P<Posts> {
+    const post = await this.getOneById(id);
+
+    return post;
   }
 
   async createPost(post: CreatePostDto, user: User) {
-    const postModel: PostEntity = {
-      ...post,
-      user,
-    };
+    const save = await this.prisma.posts.create({
+      data: {
+        ...post,
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+      },
+      ...essentialDatabaseOptions,
+    });
 
-    const model = await this.postsService.create(postModel);
-    const save = await this.postsService.save(model);
-    return await this.getOneBySlug(save.slug);
+    if (save) {
+      return save;
+    }
+
+    throw new Error('Could not create post');
   }
 
   async removePost(postId: number, user: User) {
-    const post = await this.postsService.findOne({ id: postId });
+    const post = await this.getOneById(postId);
 
     if (post) {
-      if (post.user.id !== user.id) {
+      if (post.userId !== user.id) {
         throw new Error('This post does not belongs to you');
       }
 
-      await this.postsService.delete({ id: postId });
+      await this.prisma.posts.delete({
+        where: {
+          id: postId,
+        },
+      });
 
       return true;
     } else {
