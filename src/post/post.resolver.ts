@@ -35,40 +35,23 @@ export class PostsResolver {
   async posts(
     @Args('pagination') pagination: PaginationParams,
     @UserDecorator() user: User,
-  ): Promise<PostEntity[] | PostEntity> {
-    if (!user) {
-      const posts = await this.postService.getAllPosts(pagination);
-      return posts;
-    } else {
-      const posts = await this.postService.getAllPosts(pagination, user);
-      return posts;
-    }
+  ): Promise<Posts[]> {
+    return await this.postService.getAllPosts(pagination);
   }
+
   @Query((returns) => [PostEntity])
   async postsWithoutBlog(
     @Args('pagination') pagination: PaginationParams,
     @UserDecorator() user: User,
-  ): Promise<PostEntity[] | PostEntity> {
-    if (!user) {
-      const posts = await this.postService.getAllPosts(pagination, null, false);
-      return posts;
-    } else {
-      const posts = await this.postService.getAllPosts(pagination, user, false);
-      return posts;
-    }
+  ): Promise<Posts[]> {
+    return await this.postService.getAllPosts(pagination, false);
   }
   @Query((returns) => [PostEntity])
   async postsOnlyBlog(
     @Args('pagination') pagination: PaginationParams,
     @UserDecorator() user: User,
-  ): Promise<PostEntity[] | PostEntity> {
-    if (!user) {
-      const posts = await this.postService.getAllPosts(pagination, null, true);
-      return posts;
-    } else {
-      const posts = await this.postService.getAllPosts(pagination, user, true);
-      return posts;
-    }
+  ): Promise<Posts[]> {
+    return await this.postService.getAllPosts(pagination, true);
   }
 
   @Query((returns) => PostEntity)

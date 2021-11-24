@@ -11,8 +11,8 @@ import { PostEntity } from './entities/post.entity';
 
 const essentialDatabaseOptions = {
   include: {
-    user_like: true,
-    post_like: true,
+    userLike: true,
+    postLike: true,
     user: true,
     _count: {
       select: {
@@ -24,23 +24,41 @@ const essentialDatabaseOptions = {
 
 @Injectable()
 export class PostService {
-  constructor(
-    @InjectRepository(PostEntity)
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async getAllPosts(
     pagination: PaginationParams,
     blogPosts?: boolean,
   ): Promise<Posts[]> {
-    const randomPosts = await this.prisma.posts.findMany({
+    let query = {
       ...essentialDatabaseOptions,
       take: pagination.limit,
       skip: pagination.offset,
-      where: {
-        type: blogPosts ? { equals: 4 } : { not: 4 },
-      },
-    });
+    };
+
+    if (blogPosts !== undefined && blogPosts === false) {
+      const where = {
+        where: {
+          type: {
+            not: 4,
+          },
+        },
+      };
+
+      query = { ...query, ...where };
+    } else if (blogPosts !== undefined && blogPosts === true) {
+      const where = {
+        where: {
+          type: {
+            equals: 4,
+          },
+        },
+      };
+
+      query = { ...query, ...where };
+    }
+
+    const randomPosts = await this.prisma.posts.findMany(query);
 
     return shuffleArray(randomPosts);
   }
@@ -112,9 +130,16 @@ export class PostService {
   }
 
   async createPost(post: CreatePostDto, user: User) {
+    const postLike = await this.prisma.postLike.create({
+      data: {},
+    });
+
     const save = await this.prisma.posts.create({
       data: {
         ...post,
+        postLike: {
+          connect: postLike,
+        },
         user: {
           connect: {
             id: user.id,
