@@ -1,52 +1,64 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { Comment } from '@prisma/client';
 import { User } from 'src/auth/entities/user.entity';
 import { PaginationParams } from 'src/inputypes/pagination.input';
-import { PostEntity } from 'src/post/entities/post.entity';
-import { PBool } from 'src/types';
-import { Repository } from 'typeorm';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { P, PBool } from 'src/types';
 import { CreteNewCommentDto } from './dtos/CreateNewComment.dto';
-import { Comment } from './entities/comment.entity';
 
 @Injectable()
 export class CommentService {
-  constructor(
-    @InjectRepository(Comment)
-    private readonly commentsService: Repository<Comment>,
-    @InjectRepository(PostEntity)
-    private readonly postService: Repository<PostEntity>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async _getPostComments(postId: number, option: PaginationParams) {
-    const post = await this.postService.findOne(postId);
-
-    return await this.commentsService.find({
+  async _getPostComments(
+    postId: number,
+    option: PaginationParams,
+  ): P<Comment[]> {
+    return await this.prisma.comment.findMany({
+      where: {
+        postId,
+      },
       skip: option.offset,
       take: option.limit,
-      where: {
-        post,
+      include: {
+        post: true,
+        postLike: true,
+        userLike: true,
       },
     });
   }
 
   async createEntity(postId: number, entity: CreteNewCommentDto, user: User) {
-    const post = await this.postService.findOne(postId);
-
-    const model = await this.commentsService.create({
-      ...entity,
-      post,
-      user,
+    const model = await this.prisma.comment.create({
+      data: {
+        ...entity,
+        postId,
+        userId: user.id,
+      },
+      include: {
+        post: {
+          include: {
+            user: true,
+            postLike: true,
+            userLike: true,
+          },
+        },
+        postLike: true,
+        userLike: true,
+      },
     });
 
-    return await this.commentsService.save(model);
+    return model;
   }
 
   async removeComment(commentId: number): PBool {
-    const deleted = await this.commentsService.delete({
-      id: commentId,
+    const deleted = await this.prisma.comment.delete({
+      where: {
+        id: commentId,
+      },
     });
 
-    if (deleted.affected > 0) {
+    if (deleted) {
       return true;
     }
 
