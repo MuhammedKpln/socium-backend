@@ -3,88 +3,85 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/auth/entities/user.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { PostEntity } from 'src/post/entities/post.entity';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { PBool } from 'src/types';
 import { Repository } from 'typeorm';
 import { UserLike } from './entities/UserLike.entity';
 
 @Injectable()
 export class LikesService {
-  constructor(
-    @InjectRepository(UserLike) private repo: Repository<UserLike>,
-    @InjectRepository(PostEntity) private postRepo: Repository<PostEntity>,
-    @InjectRepository(Comment) private commentRepo: Repository<Comment>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async likePost(user: User, postId: number) {
-    const post = await this.postRepo.findOne({ id: postId });
-
-    const like = await this.repo.create({
-      post,
-      liked: true,
-      user,
+    return await this.prisma.userLike.create({
+      data: {
+        postId,
+        userId: user.id,
+        liked: true,
+      },
     });
-
-    try {
-      return await this.repo.save(like);
-    } catch (error) {
-      console.log(error);
-      return false;
-    }
   }
 
-  async unlikePost(postId: number, user: User) {
-    const post = new PostEntity();
-    post.id = postId;
+  async unlikePost(postId: number, user: User): PBool {
+    const likeEntity = await this.prisma.userLike.findFirst({
+      where: {
+        postId,
+        userId: user.id,
+      },
+      include: {
+        post: true,
+      },
+    });
 
-    const userLike = await this.repo.findOne(
-      { post, user },
-      { relations: ['post'] },
-    );
+    if (likeEntity) {
+      const deleteEntity = await this.prisma.userLike.delete({
+        where: {
+          id: likeEntity.id,
+        },
+      });
 
-    if (!userLike) {
+      if (deleteEntity) {
+        return true;
+      }
+
       return false;
-    }
-
-    const deleted = await this.repo.remove(userLike);
-
-    if (deleted) {
-      return true;
     }
 
     return false;
   }
   async likeComment(user: User, commentId: number) {
-    const comment = await this.commentRepo.findOne({ id: commentId });
-
-    const like = await this.repo.create({
-      comment,
-      liked: true,
-      user,
+    return await this.prisma.userLike.create({
+      data: {
+        commentId,
+        userId: user.id,
+        liked: true,
+      },
     });
-
-    try {
-      return await this.repo.save(like);
-    } catch (error) {
-      return false;
-    }
   }
 
   async unlikeComment(commentId: number, user: User) {
-    const comment = new Comment();
-    comment.id = commentId;
+    const likeEntity = await this.prisma.userLike.findFirst({
+      where: {
+        commentId,
+        userId: user.id,
+      },
+      include: {
+        comment: true,
+      },
+    });
 
-    const userLike = await this.repo.findOne(
-      { comment, user },
-      { relations: ['comment'] },
-    );
+    if (likeEntity) {
+      const deleteEntity = await this.prisma.userLike.delete({
+        where: {
+          id: likeEntity.id,
+        },
+      });
 
-    if (!userLike) {
+      if (deleteEntity) {
+        return true;
+      }
+
       return false;
-    }
-
-    const deleted = await this.repo.remove(userLike);
-
-    if (deleted) {
-      return true;
     }
 
     return false;

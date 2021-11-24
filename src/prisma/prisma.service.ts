@@ -4,6 +4,8 @@ import { createPostLikeEntity } from './hooks/Comment/createPostLikeEntity';
 import { generateStarEntity } from './hooks/User/generateStarEntity';
 import { hashPasswordMiddleware } from './hooks/User/hashPassword';
 import { generateRandomEmailConfirmationCode } from './hooks/User/randomEmailCodeGen';
+import { decreasePostLike } from './hooks/UserLike/decreasePostLike';
+import { increasePostLike } from './hooks/UserLike/increasePostLike';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
@@ -25,6 +27,14 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
 
       if (params.action == 'create' && params.model === 'Comment') {
         p = await createPostLikeEntity(p, this);
+      }
+
+      if (params.action == 'create' && params.model === 'UserLike') {
+        p = await increasePostLike(p, this);
+      }
+
+      if (params.action == 'delete' && params.model === 'UserLike') {
+        p = await decreasePostLike(p, this);
       }
 
       return await next(p);

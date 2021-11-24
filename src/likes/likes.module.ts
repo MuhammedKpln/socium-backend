@@ -1,21 +1,13 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
-import { Comment } from 'src/comment/entities/comment.entity';
-import { PostEntity } from 'src/post/entities/post.entity';
-import { PostLike } from './entities/PostLike.entity';
-import { UserLike } from './entities/UserLike.entity';
+import { PrismaModule } from 'src/prisma/prisma.module';
 import { UserLikeSubscriber } from './entities/userlike.subscriber';
 import { LikesResolver } from './likes.resolver';
 import { LikesService } from './likes.service';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([UserLike, PostLike, PostEntity, Comment]),
-    AuthModule,
-  ],
-  controllers: [],
+  imports: [PrismaModule, AuthModule],
   providers: [LikesService, UserLikeSubscriber, LikesResolver],
-  exports: [TypeOrmModule, LikesService],
+  exports: [LikesService],
 })
 export class LikesModule {}
