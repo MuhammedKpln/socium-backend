@@ -1,105 +1,114 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Follower } from '@prisma/client';
 import { User } from 'src/auth/entities/user.entity';
 import { PaginationParams } from 'src/inputypes/pagination.input';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { P, PBool } from 'src/types';
 import { Repository } from 'typeorm';
-import { Follower } from './entities/follower.entity';
 
 @Injectable()
 export class FollowerService {
-  constructor(
-    @InjectRepository(Follower)
-    private readonly followersService: Repository<Follower>,
-    @InjectRepository(User)
-    private readonly usersService: Repository<User>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async getFollowersById(userId: number, options: PaginationParams) {
-    const qb = this.followersService
-      .createQueryBuilder('follower')
-      .where('follower.actorId = :id', { id: userId })
-      .leftJoinAndSelect('follower.user', 'user')
-      .leftJoinAndSelect('follower.actor', 'actor')
-      .offset(options.offset)
-      .limit(options.limit);
+  async getFollowersById(
+    userId: number,
+    options: PaginationParams,
+  ): P<Follower[]> {
+    const followers = await this.prisma.follower.findMany({
+      where: {
+        actorId: userId,
+      },
+      include: {
+        actor: true,
+        user: true,
+      },
+      take: options.limit,
+      skip: options.offset,
+    });
 
-    return qb.getMany();
+    return followers;
   }
   async getFollowingsById(userId: number, options: PaginationParams) {
-    const qb = this.followersService
-      .createQueryBuilder('follower')
-      .where('follower.userId = :id', { id: userId })
-      .leftJoinAndSelect('follower.user', 'user')
-      .leftJoinAndSelect('follower.actor', 'actor')
-      .offset(options.offset)
-      .limit(options.limit);
-
-    return qb.getMany();
-  }
-
-  async isUserFollowingActor(userId: number, actorId: number) {
-    const user = await this.usersService.findOne({ id: userId });
-
-    const actor = await this.usersService.findOne({ id: actorId });
-
-    return await this.followersService.findOne({
-      user,
-      actor,
+    const followers = await this.prisma.follower.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        actor: true,
+        user: true,
+      },
+      take: options.limit,
+      skip: options.offset,
     });
+
+    return followers;
   }
 
-  async followUser(user: User, actorId: number): Promise<Follower | false> {
-    const actor = await this.usersService.findOne({ id: actorId });
-    const alreadyFollowing = await this.checkIfUserFollowsActor(user, actorId);
+  async isUserFollowingActor(userId: number, actorId: number): PBool {
+    const model = await this.prisma.follower.findFirst({
+      where: {
+        userId,
+        actorId,
+      },
+    });
 
-    if (!actor) {
-      return false;
-    }
-
-    if (user.id === actor.id) {
-      return false;
-    }
-
-    if (!alreadyFollowing) {
-      const model = await this.followersService.create({
-        user,
-        actor,
-      });
-
-      return await this.followersService.save(model);
-    } else {
-      return false;
-    }
-  }
-  async unFollowUser(user: User, actorId: number): Promise<boolean> {
-    const actor = await this.usersService.findOne(actorId);
-    const alreadyFollowing = await this.checkIfUserFollowsActor(user, actorId);
-
-    if (alreadyFollowing) {
-      this.followersService.delete({
-        user,
-        actor,
-      });
+    if (model) {
       return true;
     }
 
     return false;
   }
 
-  private async checkIfUserFollowsActor(user: User, actorId: number) {
-    const actor = await this.usersService.findOne(actorId);
+  async followUser(user: User, actorId: number): Promise<Follower | false> {
+    const alreadyFollowing = await this.checkIfUserFollowsActor(user, actorId);
 
-    if (actor) {
-      const exists = await this.followersService.findOne({
-        user,
-        actor,
+    if (user.id === actorId) {
+      return false;
+    }
+
+    if (!alreadyFollowing) {
+      const model = await this.prisma.follower.create({
+        data: {
+          userId: user.id,
+          actorId,
+        },
       });
 
-      if (exists) {
-        return true;
-      }
-
+      return model;
+    } else {
       return false;
+    }
+  }
+  async unFollowUser(user: User, actorId: number): PBool {
+    const alreadyFollowing = await this.checkIfUserFollowsActor(user, actorId);
+
+    if (alreadyFollowing) {
+      await this.prisma.follower.delete({
+        where: {
+          id: alreadyFollowing.id,
+        },
+      });
+
+      return true;
+    }
+
+    return false;
+  }
+
+  private async checkIfUserFollowsActor(
+    user: User,
+    actorId: number,
+  ): P<Follower | false> {
+    const exists = await this.prisma.follower.findFirst({
+      where: {
+        userId: user.id,
+        actorId,
+      },
+    });
+
+    if (exists) {
+      return exists;
     }
 
     return false;
