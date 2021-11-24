@@ -24,9 +24,9 @@ model Comment {
   postLikeId   Int?      @unique
   parentUser   User?     @relation("parentUser", fields: [parentUserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   posts        Posts?    @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  post_like    PostLike? @relation(fields: [postLikeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  postLike     PostLike? @relation(fields: [postLikeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   user         User?     @relation("comments", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  user_like    UserLike?
+  userLike     UserLike?
 }
 
 model FcmNotificationTokens {
@@ -96,7 +96,7 @@ model PostLike {
   likeCount  Int       @default(0) @db.SmallInt
   comment    Comment?
   posts      Posts?
-  user_like  UserLike?
+  userLike   UserLike?
 }
 
 model Posts {
@@ -106,13 +106,13 @@ model Posts {
   slug       String?   @unique @db.VarChar
   created_at DateTime  @default(now()) @db.Timestamp(6)
   updated_at DateTime  @default(now()) @db.Timestamp(6)
-  userId     Int?
-  postLikeId Int?      @unique
+  userId     Int
+  postLikeId Int       @unique
   title      String?   @db.VarChar
-  post_like  PostLike? @relation(fields: [postLikeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  postLike   PostLike  @relation(fields: [postLikeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   comment    Comment[]
-  user_like  UserLike?
+  userLike   UserLike?
 }
 
 model Room {
@@ -173,7 +173,7 @@ model User {
   posts                  Posts[]
   currentlyListeningSong SpotifyCurrentlyListening?
   star                   Star?
-  user_like              UserLike[]
+  userLike               UserLike[]
   Messages               Messages[]                 @relation("Messages")
 }
 
@@ -195,6 +195,6 @@ model UserLike {
   postLikeId Int?      @unique
   comment    Comment?  @relation(fields: [commentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   posts      Posts?    @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  post_like  PostLike? @relation(fields: [postLikeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  postLike   PostLike? @relation(fields: [postLikeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
