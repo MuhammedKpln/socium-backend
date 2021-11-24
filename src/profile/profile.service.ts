@@ -1,25 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { User } from '@prisma/client';
 import { classToPlain } from 'class-transformer';
-import { User } from 'src/auth/entities/user.entity';
-import { Repository } from 'typeorm';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { EditProfileDto } from './dtos/edit-profile.dto';
 
 @Injectable()
 export class ProfileService {
-  constructor(@InjectRepository(User) private usersService: Repository<User>) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async editProfile(
     userId: number,
     updates: EditProfileDto,
   ): Promise<User | false> {
     const plainUpdates = classToPlain(updates);
-    const model = await this.usersService.create({
-      id: userId,
-      ...plainUpdates,
-    });
 
-    const update = await this.usersService.save(model);
+    const update = await this.prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: plainUpdates,
+    });
 
     if (update) {
       return update;

@@ -2,8 +2,6 @@ import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
-import { AuthModule } from 'src/auth/auth.module';
-import { AuthService } from 'src/auth/auth.service';
 import { FcmNotificationUser } from 'src/notification/entities/fcmNotifications.entity';
 import { PubsubModule } from 'src/pubsub/pubsub.module';
 import { Star } from '../star/entities/star.entity';
@@ -31,15 +29,8 @@ import { MessagesResolver } from './messages.resolver';
       processors: [join(__dirname, 'deleteOudatedMessages.queue.js')],
     }),
     PubsubModule,
-    AuthModule,
   ],
-  providers: [
-    ChatService,
-    ChatGateway,
-    ChatResolver,
-    MessagesResolver,
-    AuthService,
-  ],
+  providers: [ChatService, ChatGateway, ChatResolver, MessagesResolver],
   exports: [TypeOrmModule],
 })
 export class ChatModule {}

@@ -3,20 +3,15 @@ import { Module } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { StarModule } from 'src/star/star.module';
-import { StarService } from 'src/star/star.service';
-import { UserModule } from 'src/user/user.module';
-import { UserService } from 'src/user/user.service';
-import { AuthUserInterceptor } from './intercepters/auth-user.interceptor';
+import { PrismaModule } from 'src/prisma/prisma.module';
+import { Queues } from 'src/types';
 import { AuthResolver } from './auth.resolver';
 import { AuthService } from './auth.service';
 import { jwtConstants } from './constans';
-import { User } from './entities/user.entity';
+import { AuthUserInterceptor } from './intercepters/auth-user.interceptor';
 import { EmailVerificationConsumer } from './providers/EmailVerification.consumer';
-import { JwtStrategy } from './providers/jwt.strategy';
-import { Queues } from 'src/types';
 import { ForgotPasswordConsumer } from './providers/ForgotPassword.consumer';
+import { JwtStrategy } from './providers/jwt.strategy';
 
 @Module({
   providers: [
@@ -28,13 +23,11 @@ import { ForgotPasswordConsumer } from './providers/ForgotPassword.consumer';
       useClass: AuthUserInterceptor,
     },
     EmailVerificationConsumer,
-    UserService,
-    StarService,
     AuthResolver,
     ForgotPasswordConsumer,
   ],
   imports: [
-    TypeOrmModule.forFeature([User]),
+    PrismaModule,
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.SECRET_KEY,
@@ -48,16 +41,7 @@ import { ForgotPasswordConsumer } from './providers/ForgotPassword.consumer';
         name: Queues.ForgotPassword,
       },
     ),
-    UserModule,
-    StarModule,
   ],
-  exports: [
-    TypeOrmModule,
-    JwtModule,
-    UserService,
-    StarService,
-    BullModule,
-    AuthService,
-  ],
+  exports: [JwtModule, BullModule, AuthService],
 })
 export class AuthModule {}

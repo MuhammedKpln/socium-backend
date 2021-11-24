@@ -37,7 +37,7 @@ if (process.env.NODE_ENV === 'production') {
     host: 'localhost',
     database: 'postgres',
     username: 'postgres',
-    synchronize: process.env.NODE_ENV !== 'production',
+    synchronize: false,
     autoLoadEntities: true,
   };
 }

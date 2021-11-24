@@ -10,7 +10,6 @@ import {
 import * as firebase from 'firebase-admin';
 import { RedisClient } from 'redis';
 import { Server, Socket } from 'socket.io';
-import { AuthService } from 'src/auth/auth.service';
 import { redisClient, redisUrl } from 'src/main';
 import { FcmNotificationUser } from 'src/notification/entities/fcmNotifications.entity';
 import { Repository } from 'typeorm';
@@ -34,7 +33,6 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
   private redis: RedisClient;
   constructor(
     private chatService: ChatService,
-    private authService: AuthService,
     @InjectRepository(FcmNotificationUser)
     private readonly fcmRepo: Repository<FcmNotificationUser>,
   ) {

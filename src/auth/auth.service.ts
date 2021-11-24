@@ -1,49 +1,72 @@
 import { InjectQueue } from '@nestjs/bull';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
+import { Prisma, User } from '@prisma/client';
 import { ApolloError } from 'apollo-server-fastify';
 import { Queue } from 'bull';
 import { compareHash } from 'src/cryptHelper';
 import { ERROR_CODES } from 'src/error_code';
-import { StarService } from 'src/star/star.service';
-import { QueueEvents, Queues } from 'src/types';
-import { UserService } from 'src/user/user.service';
-import { Repository } from 'typeorm';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { P, QueueEvents, Queues } from 'src/types';
 import { jwtConstants } from './constans';
 import { CreateUserDto } from './dtos/createUser.dto';
 import { CreateUserGoogleDto } from './dtos/createUserGoogle.dto';
 import { ForgotPasswordDto } from './dtos/forgotPassword.dto';
 import { LoginUserDto } from './dtos/loginUser.dto';
 import { LoginUserGoogleDto } from './dtos/loginUserGoogle.dto';
-import { User } from './entities/user.entity';
+
+const userIncludesMeta: Prisma.UserInclude = {
+  _count: {
+    select: {
+      posts: true,
+      followers: true,
+      followings: true,
+    },
+  },
+};
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
-    private user: UserService,
-    @InjectRepository(User) private usersService: Repository<User>,
-    private starRepo: StarService,
     @InjectQueue('sendVerificationMail') private mailQueue: Queue,
     @InjectQueue(Queues.ForgotPassword) private forgotMailQueue: Queue,
+    private readonly prisma: PrismaService,
   ) {}
 
-  async findOne(username: string) {
-    return await this.usersService.findOneOrFail({
-      username,
+  async findOne(username: string): P<User> {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        username,
+      },
     });
+
+    if (user) {
+      return user;
+    }
+
+    throw new NotFoundException(
+      'Could not find user with username: ' + username,
+    );
   }
-  async findOneWithEmail(email: string) {
-    return await this.usersService.findOne({
-      email,
+  async findOneWithEmail(email: string, include?: Prisma.UserInclude): P<User> {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email,
+      },
+      include,
     });
+
+    return user;
   }
 
   async validateUser(email: string, password: string): Promise<boolean> {
-    const user = await this.usersService.findOne({
-      email,
-    });
+    const user = await this.findOneWithEmail(email);
 
     if (user) {
       const compare = await compareHash(password, user.password);
@@ -58,7 +81,7 @@ export class AuthService {
 
   async login(user: LoginUserDto) {
     const payload = { email: user.email };
-    const userDb = await this.user.getUserByEmail(user.email);
+    const userDb = await this.findOneWithEmail(user.email);
 
     return {
       access_token: await this.jwtService.signAsync(payload),
@@ -67,7 +90,7 @@ export class AuthService {
   }
 
   async loginGoogle(user: LoginUserGoogleDto) {
-    const userDb = await this.user.getUserByEmail(user.email);
+    const userDb = await this.findOneWithEmail(user.email, userIncludesMeta);
     const payload = { email: userDb.email };
 
     return {
@@ -77,71 +100,79 @@ export class AuthService {
   }
 
   async register(user: CreateUserDto): Promise<User> {
-    const create = this.usersService.create(user);
-    return this.usersService
-      .save(create)
-      .then(async (resp) => {
-        const randomNumber = resp.emailConfirmationCode;
+    const { email, password, username } = user;
 
-        await this.mailQueue.add(
-          'confirmation',
-          {
-            to: resp.email,
-            verificationCode: randomNumber,
-          },
-          {
-            attempts: 3,
-            removeOnComplete: true,
-          },
-        );
-
-        await this.starRepo.create(resp.id);
-
-        return resp;
-      })
-      .catch((err) => {
-        console.log(err);
-        throw new HttpException(
-          {
-            status: false,
-            error_code: ERROR_CODES.USER_IS_ALREADY_REGISTERED,
-          },
-          HttpStatus.NOT_ACCEPTABLE,
-        );
-      });
-  }
-  async registerGoogle(user: CreateUserGoogleDto) {
-    const create = this.usersService.create({
-      username: user.username,
-      email: user.email,
-      password: user.idToken,
-      isEmailConfirmed: true,
+    const createUser = await this.prisma.user.create({
+      data: {
+        username,
+        email,
+        password,
+      },
+      include: userIncludesMeta,
     });
 
-    const model = await this.usersService.save(create);
-    await this.starRepo.create(model.id);
-    return {
-      access_token: await this.jwtService.signAsync({
-        email: user.email,
-      }),
-      user: model,
-    };
+    if (createUser) {
+      const randomNumber = createUser.emailConfirmationCode;
+
+      await this.mailQueue.add(
+        'confirmation',
+        {
+          to: createUser.email,
+          verificationCode: randomNumber,
+        },
+        {
+          attempts: 3,
+          removeOnComplete: true,
+        },
+      );
+
+      return createUser;
+    } else {
+      throw new HttpException(
+        {
+          status: false,
+          error_code: ERROR_CODES.USER_IS_ALREADY_REGISTERED,
+        },
+        HttpStatus.NOT_ACCEPTABLE,
+      );
+    }
+  }
+  async registerGoogle(user: CreateUserGoogleDto) {
+    const createUser = await this.prisma.user.create({
+      data: {
+        ...user,
+        password: user.idToken,
+        isEmailConfirmed: true,
+      },
+    });
+
+    if (createUser) {
+      return {
+        access_token: await this.jwtService.signAsync({
+          email: user.email,
+        }),
+        user: createUser,
+      };
+    }
   }
 
   async verifyEmail(
     email: string,
     verificationCode: number,
   ): Promise<User | false> {
-    const user = await this.usersService.findOne({
-      email,
-    });
+    const user = await this.findOneWithEmail(email);
 
     if (user && user.emailConfirmationCode === verificationCode) {
       if (user) {
-        const update = await this.usersService.save({
-          ...user,
-          isEmailConfirmed: true,
-          emailConfirmationCode: null,
+        const update = await this.prisma.user.update({
+          where: {
+            email: email,
+          },
+          data: {
+            ...user,
+            isEmailConfirmed: true,
+            emailConfirmationCode: null,
+          },
         });
 
         if (update) {
@@ -155,28 +186,32 @@ export class AuthService {
 
   async resendConfirmMail(email: string): Promise<boolean> {
     const randomNumber = Math.floor(Math.random() * 1000000);
-    await this.usersService.update(
-      {
-        email,
+    const update = await this.prisma.user.update({
+      where: {
+        email: email,
       },
-      {
+      data: {
         emailConfirmationCode: randomNumber,
       },
-    );
+    });
 
-    await this.mailQueue.add(
-      'confirmation',
-      {
-        to: email,
-        verificationCode: randomNumber,
-      },
-      {
-        attempts: 3,
-        removeOnComplete: true,
-      },
-    );
+    if (update) {
+      await this.mailQueue.add(
+        'confirmation',
+        {
+          to: email,
+          verificationCode: randomNumber,
+        },
+        {
+          attempts: 3,
+          removeOnComplete: true,
+        },
+      );
 
-    return true;
+      return true;
+    }
+
+    return false;
   }
 
   async sendForgotPasswordCode(email: string): Promise<boolean> {
@@ -189,28 +224,33 @@ export class AuthService {
     }
 
     const randomNumber = Math.floor(Math.random() * 1000000);
-    await this.usersService.update(
-      {
-        email,
+
+    const update = await this.prisma.user.update({
+      where: {
+        email: email,
       },
-      {
+      data: {
         forgotPasswordCode: randomNumber,
       },
-    );
+    });
 
-    await this.forgotMailQueue.add(
-      QueueEvents.SendForgotPasswordCode,
-      {
-        toEmail: email,
-        verificationCode: randomNumber,
-      },
-      {
-        attempts: 3,
-        removeOnComplete: true,
-      },
-    );
+    if (update) {
+      await this.forgotMailQueue.add(
+        QueueEvents.SendForgotPasswordCode,
+        {
+          toEmail: email,
+          verificationCode: randomNumber,
+        },
+        {
+          attempts: 3,
+          removeOnComplete: true,
+        },
+      );
 
-    return true;
+      return true;
+    }
+
+    return false;
   }
 
   async changePassword(data: ForgotPasswordDto): Promise<boolean> {
@@ -218,9 +258,15 @@ export class AuthService {
     const user = await this.findOneWithEmail(email);
 
     if (user) {
-      await this.usersService.save(
-        Object.assign(user, { password, forgotPasswordCode: null }),
-      );
+      await this.prisma.user.update({
+        where: {
+          email,
+        },
+        data: {
+          password,
+          forgotPasswordCode: null,
+        },
+      });
 
       return true;
     } else {

@@ -1,8 +1,8 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { UserInputError } from 'apollo-server-errors';
-import { User } from 'src/auth/decorators/user.decorator';
-import { User as UserEntity } from 'src/auth/entities/user.entity';
+import { User as UserDecorator } from 'src/auth/decorators/user.decorator';
+import { User } from 'src/auth/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
 import { ImageUploader } from 'src/helpers/imageUploader';
 import { UserService } from 'src/user/user.service';
@@ -17,9 +17,9 @@ export class ProfileResolver {
     private userService: UserService,
   ) {}
 
-  @Mutation((_returns) => UserEntity)
+  @Mutation((_returns) => User)
   async editProfile(
-    @User() user: UserEntity,
+    @UserDecorator() user: User,
     @Args('profile') profile: EditProfileDto,
   ) {
     if (profile?.avatar) {

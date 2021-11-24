@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
-import { AuthService } from 'src/auth/auth.service';
 import { PostLike } from 'src/likes/entities/PostLike.entity';
 import { NotificationModule } from 'src/notification/notification.module';
 import { PostEntity } from 'src/post/entities/post.entity';
@@ -18,7 +17,7 @@ import { CommentSubscriber } from './entities/comment.subscriber';
     PubsubModule,
     NotificationModule,
   ],
-  providers: [CommentService, AuthService, CommentResolver, CommentSubscriber],
+  providers: [CommentService, CommentResolver, CommentSubscriber],
   exports: [TypeOrmModule],
 })
 export class CommentModule {}

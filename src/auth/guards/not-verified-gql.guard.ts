@@ -1,8 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from '../entities/user.entity';
+import { AuthService } from '../auth.service';
 
 interface IContextArgs {
   email: string;
@@ -11,15 +9,13 @@ interface IContextArgs {
 
 @Injectable()
 export class NotVerifiedGraphqlGuard implements CanActivate {
-  constructor(@InjectRepository(User) private userService: Repository<User>) {}
+  constructor(private readonly authService: AuthService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const ctx = GqlExecutionContext.create(context);
     const { data }: { data: IContextArgs } = ctx.getArgs();
     const { email } = data;
-    const user = await this.userService.findOne({
-      email,
-    });
+    const user = await this.authService.findOneWithEmail(email);
 
     if (user) {
       const { isEmailConfirmed } = user;

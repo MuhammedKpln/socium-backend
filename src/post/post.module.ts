@@ -19,7 +19,7 @@ import { PostSubscriber } from './subscribers/post.subscriber';
     PubsubModule,
     PrismaModule,
   ],
-  providers: [PostService, AuthService, PostSubscriber, PostsResolver],
+  providers: [PostService, PostSubscriber, PostsResolver],
   exports: [TypeOrmModule],
 })
 export class PostModule {}
