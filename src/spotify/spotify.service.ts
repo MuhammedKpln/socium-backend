@@ -1,27 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { Mutation } from '@nestjs/graphql';
 import { InjectRepository } from '@nestjs/typeorm';
+import { SpotifyCurrentlyListening } from '@prisma/client';
 import { User } from 'src/auth/entities/user.entity';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { PBool } from 'src/types';
 import { Repository } from 'typeorm';
 import { UpdateCurrentTrackDto } from './dtos/UpdateCurrentTrack.dto';
-import { SpotifyCurrentlyListening } from './entities/SpotifyListening.entity';
 
 @Injectable()
 export class SpotifyService {
-  constructor(
-    @InjectRepository(SpotifyCurrentlyListening)
-    private readonly spotifyRepo: Repository<SpotifyCurrentlyListening>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async getUserCurrentTrack(
     userId: number,
   ): Promise<SpotifyCurrentlyListening | false> {
-    const user = new User();
-    user.id = userId;
-
-    const entity = await this.spotifyRepo.findOne({
-      user,
+    const entity = await this.prisma.spotifyCurrentlyListening.findFirst({
+      where: {
+        userId,
+      },
     });
 
     if (entity) {
@@ -38,23 +35,26 @@ export class SpotifyService {
     const currentTrack = await this.getUserCurrentTrack(userId);
 
     if (currentTrack) {
-      const data = await this.spotifyRepo.save({
-        ...currentTrack,
-        songName: spotify.songName,
-        artistName: spotify.artistName,
-        image: spotify.imageUrl,
+      const data = await this.prisma.spotifyCurrentlyListening.update({
+        where: {
+          id: currentTrack.id,
+        },
+        data: {
+          songName: spotify.songName,
+          artistName: spotify.artistName,
+          image: spotify.imageUrl,
+        },
       });
 
       return data;
     } else {
-      const user = new User();
-      user.id = userId;
-
-      const data = await this.spotifyRepo.save({
-        songName: spotify.songName,
-        artistName: spotify.artistName,
-        image: spotify.imageUrl,
-        user,
+      const data = await this.prisma.spotifyCurrentlyListening.create({
+        data: {
+          songName: spotify.songName,
+          artistName: spotify.artistName,
+          image: spotify.imageUrl,
+          userId,
+        },
       });
 
       return data;
@@ -62,13 +62,13 @@ export class SpotifyService {
   }
 
   async removeCurrentTrack(userId: number): PBool {
-    const user = new User();
-    user.id = userId;
-    const deleted = await this.spotifyRepo.delete({
-      user,
+    const deleted = await this.prisma.spotifyCurrentlyListening.delete({
+      where: {
+        userId,
+      },
     });
 
-    if (deleted.affected > 0) {
+    if (deleted) {
       return true;
     }
 
