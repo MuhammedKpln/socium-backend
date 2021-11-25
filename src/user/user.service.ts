@@ -1,45 +1,57 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Star } from '@prisma/client';
 import { ApolloError } from 'apollo-server-errors';
 import { User } from 'src/auth/entities/user.entity';
 import { UserLike } from 'src/likes/entities/UserLike.entity';
-import { Star } from 'src/star/entities/star.entity';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { StarService } from 'src/star/star.service';
 import { Repository } from 'typeorm';
 import { UpdateUserAgeAndGenderDto } from './dtos/UpdateUserAgeAndGender.dto';
 
 @Injectable()
 export class UserService {
-  constructor(
-    @InjectRepository(User) private readonly usersService: Repository<User>,
-    @InjectRepository(Star) private readonly starService: Repository<Star>,
-    @InjectRepository(UserLike)
-    private readonly userLikeService: Repository<UserLike>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async getUserByUsername(username: string) {
-    const qb = this.usersService.createQueryBuilder('user');
-    qb.where('user.username = :username', { username });
-    qb.loadRelationCountAndMap('user.postsCount', 'user.posts');
-    qb.loadRelationCountAndMap('user.followersCount', 'user.followers');
-    qb.loadRelationCountAndMap('user.followingsCount', 'user.following');
-
-    return await qb.getOne();
+    return await this.prisma.user.findUnique({
+      where: {
+        username,
+      },
+      include: {
+        _count: {
+          select: {
+            posts: true,
+            followers: true,
+            followings: true,
+          },
+        },
+      },
+    });
   }
   async getUserByEmail(email: string) {
-    const qb = this.usersService.createQueryBuilder('user');
-    qb.where('user.email = :email', { email });
-    qb.loadRelationCountAndMap('user.postsCount', 'user.posts');
-    qb.loadRelationCountAndMap('user.followersCount', 'user.followers');
-    qb.loadRelationCountAndMap('user.followingsCount', 'user.following');
-
-    return await qb.getOne();
+    return await this.prisma.user.findUnique({
+      where: {
+        email,
+      },
+      include: {
+        _count: {
+          select: {
+            posts: true,
+            followers: true,
+            followings: true,
+          },
+        },
+      },
+    });
   }
 
   async getUserStars(userId: number): Promise<Star | false> {
-    const user = new User();
-    user.id = userId;
-
-    const model = await this.starService.findOne({ user });
+    const model = await this.prisma.star.findUnique({
+      where: {
+        userId,
+      },
+    });
 
     if (model) {
       return model;
@@ -52,17 +64,19 @@ export class UserService {
     const user = new User();
     user.id = userId;
 
-    const model = await this.starService.findOne({ user });
+    const model = await this.getUserStars(userId);
 
-    const update = await this.starService.update(
-      { user },
-      {
-        starCount: model.starCount + 1,
-      },
-    );
+    if (model) {
+      const update = await this.prisma.star.update({
+        where: { userId },
+        data: {
+          starCount: model.starCount + 1,
+        },
+      });
 
-    if (update.affected !== 0) {
-      return model;
+      if (update) {
+        return model;
+      }
     }
 
     return false;
@@ -72,44 +86,63 @@ export class UserService {
     const user = new User();
     user.id = userId;
 
-    const model = await this.starService.findOne({ user });
+    const model = await this.getUserStars(userId);
 
-    const update = await this.starService.update(
-      { user },
-      {
-        starCount: model.starCount - 1,
-      },
-    );
+    if (model) {
+      const update = await this.prisma.star.update({
+        where: { userId },
+        data: {
+          starCount: model.starCount - 1,
+        },
+      });
 
-    if (update.affected !== 0) {
-      return model;
+      if (update) {
+        return model;
+      }
     }
 
     return false;
   }
 
   async updateUserAgeAndGender(data: UpdateUserAgeAndGenderDto, user: User) {
-    const update = await this.usersService.save({
-      ...user,
-      gender: data.gender,
-      birthday: data.birthday,
+    const update = await this.prisma.user.update({
+      where: {
+        username: user.username,
+      },
+      data: {
+        gender: data.gender,
+        birthday: data.birthday,
+      },
     });
 
     if (update) {
-      return await this.getUserByEmail(user.email);
+      return update;
     }
 
     throw new ApolloError('Could not update');
   }
 
   async userLikedPosts(user: User) {
-    const posts = await this.userLikeService.find({
+    const userPosts = await this.prisma.user.findUnique({
       where: {
-        user,
+        username: user.username,
       },
-      relations: ['post'],
+      include: {
+        posts: {
+          include: {
+            postLike: true,
+            userLike: true,
+            user: true,
+            _count: {
+              select: {
+                comment: true,
+              },
+            },
+          },
+        },
+      },
     });
 
-    return posts;
+    return userPosts.posts;
   }
 }
