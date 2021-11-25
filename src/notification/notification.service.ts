@@ -1,46 +1,47 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/auth/entities/user.entity';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { Repository } from 'typeorm';
 import { FcmNotificationUser } from './entities/fcmNotifications.entity';
 import { Notification } from './entities/notification.entity';
 
 @Injectable()
 export class NotificationService {
-  constructor(
-    @InjectRepository(Notification)
-    private readonly repo: Repository<Notification>,
-    @InjectRepository(FcmNotificationUser)
-    private readonly fcmRepo: Repository<FcmNotificationUser>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async getUserNotifications(userId: number) {
-    const actor = new User();
-    actor.id = userId;
-
-    const notifications = await this.repo.find({
+    const notifications = await this.prisma.notification.findMany({
       where: {
-        actor,
+        actorId: userId,
         readed: false,
       },
-      order: {
-        created_at: 'ASC',
+      orderBy: {
+        created_at: 'asc',
       },
-      loadEagerRelations: true,
+      include: {
+        user: true,
+        actor: true,
+      },
     });
+
+    //TODO: entitytype
 
     return notifications;
   }
   async getUserReadedNotifications(userId: number) {
-    const actor = new User();
-    actor.id = userId;
-
-    const notifications = await this.repo.find({
+    const notifications = await this.prisma.notification.findMany({
       where: {
-        actor,
+        actorId: userId,
         readed: true,
       },
-      loadEagerRelations: true,
+      orderBy: {
+        created_at: 'asc',
+      },
+      include: {
+        user: true,
+        actor: true,
+      },
     });
 
     return notifications;
