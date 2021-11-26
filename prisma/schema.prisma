@@ -9,14 +9,14 @@ datasource db {
 
 model Block {
   id         Int      @id @default(autoincrement())
-  created_at DateTime @default(now()) @db.Timestamp(1)
-  updated_at DateTime @default(now()) @db.Timestamp(1)
+  created_at DateTime @default(now()) @db.Timestamp(3)
+  updated_at DateTime @default(now()) @db.Timestamp(3)
 }
 
 model Comment {
   id           Int       @id @default(autoincrement())
-  created_at   DateTime  @default(now()) @db.Timestamp(1)
-  updated_at   DateTime  @default(now()) @db.Timestamp(1)
+  created_at   DateTime  @default(now()) @db.Timestamp(3)
+  updated_at   DateTime  @default(now()) @db.Timestamp(3)
   content      String    @db.VarChar
   userId       Int?
   postId       Int?
@@ -30,8 +30,8 @@ model Comment {
 
 model FcmNotificationTokens {
   id         Int      @id @default(autoincrement())
-  created_at DateTime @default(now()) @db.Timestamp(1)
-  updated_at DateTime @default(now()) @db.Timestamp(1)
+  created_at DateTime @default(now()) @db.Timestamp(3)
+  updated_at DateTime @default(now()) @db.Timestamp(3)
   fcmToken   String   @db.VarChar
   userId     Int?     @unique
   user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -39,8 +39,8 @@ model FcmNotificationTokens {
 
 model Follower {
   id         Int      @id @default(autoincrement())
-  created_at DateTime @default(now()) @db.Timestamp(1)
-  updated_at DateTime @default(now()) @db.Timestamp(1)
+  created_at DateTime @default(now()) @db.Timestamp(3)
+  updated_at DateTime @default(now()) @db.Timestamp(3)
   userId     Int?
   actorId    Int?
   user       User?    @relation("userFollowings", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -49,8 +49,8 @@ model Follower {
 
 model MessageRequest {
   id            Int      @id @default(autoincrement())
-  created_at    DateTime @default(now()) @db.Timestamp(1)
-  updated_at    DateTime @default(now()) @db.Timestamp(1)
+  created_at    DateTime @default(now()) @db.Timestamp(3)
+  updated_at    DateTime @default(now()) @db.Timestamp(3)
   request       Boolean  @default(true)
   requestFromId Int?
   requestToId   Int?
@@ -60,8 +60,8 @@ model MessageRequest {
 
 model Messages {
   id         Int      @id @default(autoincrement())
-  created_at DateTime @default(now()) @db.Timestamp(1)
-  updated_at DateTime @default(now()) @db.Timestamp(1)
+  created_at DateTime @default(now()) @db.Timestamp(3)
+  updated_at DateTime @default(now()) @db.Timestamp(3)
   message    String   @db.VarChar
   seen       Boolean  @default(false)
   roomId     Int
@@ -74,8 +74,8 @@ model Messages {
 
 model Notification {
   id               Int      @id @default(autoincrement())
-  created_at       DateTime @default(now()) @db.Timestamp(1)
-  updated_at       DateTime @default(now()) @db.Timestamp(1)
+  created_at       DateTime @default(now()) @db.Timestamp(3)
+  updated_at       DateTime @default(now()) @db.Timestamp(3)
   notificationType Int
   readed           Boolean  @default(false)
   userId           Int?
@@ -88,8 +88,8 @@ model Notification {
 
 model PostLike {
   id         Int       @id @default(autoincrement())
-  created_at DateTime  @default(now()) @db.Timestamp(1)
-  updated_at DateTime  @default(now()) @db.Timestamp(1)
+  created_at DateTime  @default(now()) @db.Timestamp(3)
+  updated_at DateTime  @default(now()) @db.Timestamp(3)
   likeCount  Int       @default(0) @db.SmallInt
   userLike   UserLike?
   postId     Int?      @unique
@@ -105,8 +105,8 @@ model Posts {
   content    String    @db.VarChar
   type       Int
   slug       String?   @unique @db.VarChar
-  created_at DateTime  @default(now()) @db.Timestamp(1)
-  updated_at DateTime  @default(now()) @db.Timestamp(1)
+  created_at DateTime  @default(now()) @db.Timestamp(3)
+  updated_at DateTime  @default(now()) @db.Timestamp(3)
   userId     Int
   title      String?   @db.VarChar
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -118,17 +118,17 @@ model Posts {
 
 model Room {
   id         Int        @id @default(autoincrement())
-  created_at DateTime   @default(now()) @db.Timestamp(1)
-  updated_at DateTime   @default(now()) @db.Timestamp(1)
+  created_at DateTime   @default(now()) @db.Timestamp(3)
+  updated_at DateTime   @default(now()) @db.Timestamp(3)
   roomAdress String     @db.VarChar
-  expireDate DateTime   @default(now()) @db.Timestamp(1)
+  expireDate DateTime   @default(now()) @db.Timestamp(3)
   Messages   Messages[]
 }
 
 model SpotifyCurrentlyListening {
   id         Int      @id @default(autoincrement())
-  created_at DateTime @default(now()) @db.Timestamp(1)
-  updated_at DateTime @default(now()) @db.Timestamp(1)
+  created_at DateTime @default(now()) @db.Timestamp(3)
+  updated_at DateTime @default(now()) @db.Timestamp(3)
   songName   String   @db.VarChar
   artistName String   @db.VarChar
   userId     Int?     @unique
@@ -138,8 +138,8 @@ model SpotifyCurrentlyListening {
 
 model Star {
   id         Int      @id @default(autoincrement())
-  created_at DateTime @default(now()) @db.Timestamp(1)
-  updated_at DateTime @default(now()) @db.Timestamp(1)
+  created_at DateTime @default(now()) @db.Timestamp(3)
+  updated_at DateTime @default(now()) @db.Timestamp(3)
   starCount  Int      @default(0) @db.SmallInt
   userId     Int?     @unique
   user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -154,10 +154,10 @@ model User {
   password               String                     @db.VarChar
   isEmailConfirmed       Boolean                    @default(false)
   emailConfirmationCode  Int?
-  created_at             DateTime                   @default(now()) @db.Timestamp(1)
-  updated_at             DateTime                   @default(now()) @db.Timestamp(1)
+  created_at             DateTime                   @default(now()) @db.Timestamp(3)
+  updated_at             DateTime                   @default(now()) @db.Timestamp(3)
   forgotPasswordCode     Int?
-  birthday               DateTime?                  @db.Timestamp(1)
+  birthday               DateTime?                  @db.Timestamp(3)
   blockIncomingCalls     Boolean?                   @default(false)
   avatar                 String?                    @db.VarChar
   userParentComments     Comment[]                  @relation("parentUser")
@@ -179,15 +179,15 @@ model User {
 
 model UserAvatarMeta {
   id         Int      @id @default(autoincrement())
-  created_at DateTime @default(now()) @db.Timestamp(1)
-  updated_at DateTime @default(now()) @db.Timestamp(1)
+  created_at DateTime @default(now()) @db.Timestamp(3)
+  updated_at DateTime @default(now()) @db.Timestamp(3)
   avatar     Json
 }
 
 model UserLike {
   id         Int       @id @default(autoincrement())
-  created_at DateTime  @default(now()) @db.Timestamp(1)
-  updated_at DateTime  @default(now()) @db.Timestamp(1)
+  created_at DateTime  @default(now()) @db.Timestamp(3)
+  updated_at DateTime  @default(now()) @db.Timestamp(3)
   liked      Boolean
   userId     Int?
   postId     Int?      @unique
