@@ -45,7 +45,8 @@ export interface ISaveMessageProps {
   seen: boolean;
 }
 export interface ICheckForRoomProps {
-  roomAdress: string;
+  roomAdress?: string;
+  roomId?: number;
 }
 
 export interface IRemoveMessageRequest {

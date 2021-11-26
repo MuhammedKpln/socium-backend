@@ -8,7 +8,7 @@ import { getRandomString } from 'src/helpers/randomString';
 import { PaginationParams } from 'src/inputypes/pagination.input';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PUB_SUB } from 'src/pubsub/pubsub.module';
-import { P } from 'src/types';
+import { P, PBool } from 'src/types';
 import { ICheckForRoomProps, ISaveMessageProps } from './chat.types';
 import { MESSAGE_REQUEST_ACCEPTED } from './events.pubsub';
 
@@ -83,10 +83,8 @@ export class ChatService {
   }
 
   async checkForExistingRoom(data: ICheckForRoomProps): Promise<Room | false> {
-    const { roomAdress } = data;
-
     const result = await this.prisma.room.findFirst({
-      where: { roomAdress },
+      where: { ...data },
     });
 
     if (result) {
@@ -240,47 +238,39 @@ export class ChatService {
     return messageRooms;
   }
 
-  // async removeRoom(roomId: number) {
-  //   const deleted = await this.roomRepo.delete({
-  //     id: roomId,
-  //   });
+  async removeRoom(roomId: number) {
+    const deleted = await this.prisma.room.delete({
+      where: { id: roomId },
+    });
 
-  //   if (deleted.affected) {
-  //     return true;
-  //   }
+    if (deleted) {
+      return true;
+    }
 
-  //   return false;
-  // }
+    return false;
+  }
 
-  // async getMessages(roomId: number, pagination: PaginationParams) {
-  //   const { offset, limit } = pagination;
-  //   console.log(offset, limit);
+  async getMessages(roomId: number, pagination: PaginationParams) {
+    const { offset, limit } = pagination;
 
-  //   const messages = this.messageRepo
-  //     .createQueryBuilder('message')
-  //     .where('message.roomId = :roomId', { roomId })
-  //     .leftJoinAndSelect('message.room', 'room')
-  //     .leftJoinAndSelect('message.sender', 'sender')
-  //     .leftJoinAndSelect('message.receiver', 'receiver')
-  //     .offset(offset)
-  //     .addOrderBy('message.created_at', 'DESC')
-  //     .limit(limit);
+    const messages = await this.prisma.messages.findMany({
+      where: {
+        roomId,
+      },
+      include: {
+        room: true,
+        sender: true,
+        receiver: true,
+      },
+      orderBy: {
+        created_at: 'desc',
+      },
+      skip: offset,
+      take: limit,
+    });
 
-  //   const response = await messages.getMany();
-
-  //   return response.reverse();
-  // }
-
-  // private async addQueue(roomId: number) {
-  //   await this.queue.add(
-  //     {
-  //       roomId,
-  //     },
-  //     {
-  //       delay: 86400000,
-  //     },
-  //   );
-  // }
+    return messages.reverse();
+  }
 
   // async alreadyBlocked(userId: number, actorId: number): Promise<boolean> {
   //   const user = new User();
@@ -326,46 +316,46 @@ export class ChatService {
   //   return false;
   // }
 
-  // async markAllMessagesRead(roomId: number): PBool {
-  //   const unseenMessages = await this.messageRepo.update(
-  //     {
-  //       room: {
-  //         id: roomId,
-  //       },
-  //     },
-  //     {
-  //       seen: true,
-  //     },
-  //   );
+  async markAllMessagesRead(roomId: number): PBool {
+    const unseenMessages = await this.prisma.messages.updateMany({
+      where: {
+        roomId,
+      },
+      data: {
+        seen: true,
+      },
+    });
 
-  //   if (unseenMessages.affected > 0) {
-  //     return true;
-  //   }
+    if (unseenMessages.count > 0) {
+      return true;
+    }
 
-  //   return false;
-  // }
+    return false;
+  }
 
-  // async retrieveMessageRequest(requestId: number): PBool {
-  //   const deleteRequest = await this.messageRequestRepo.delete({
-  //     id: requestId,
-  //   });
+  async retrieveMessageRequest(requestId: number): PBool {
+    const deleteRequest = await this.prisma.messageRequest.delete({
+      where: { id: requestId },
+    });
 
-  //   if (deleteRequest.affected > 0) {
-  //     return true;
-  //   }
+    if (deleteRequest) {
+      return true;
+    }
 
-  //   return false;
-  // }
+    return false;
+  }
 
-  // async removeMessage(messageId: number): PBool {
-  //   const deleteRequest = await this.messageRepo.delete({
-  //     id: messageId,
-  //   });
+  async removeMessage(messageId: number): PBool {
+    const deleteRequest = await this.prisma.messages.delete({
+      where: {
+        id: messageId,
+      },
+    });
 
-  //   if (deleteRequest.affected > 0) {
-  //     return true;
-  //   }
+    if (deleteRequest) {
+      return true;
+    }
 
-  //   return false;
-  // }
+    return false;
+  }
 }

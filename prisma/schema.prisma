@@ -120,7 +120,7 @@ model Room {
   id         Int        @id @default(autoincrement())
   created_at DateTime   @default(now()) @db.Timestamp(3)
   updated_at DateTime   @default(now()) @db.Timestamp(3)
-  roomAdress String     @db.VarChar
+  roomAdress String     @unique @db.VarChar
   expireDate DateTime   @default(now()) @db.Timestamp(3)
   Messages   Messages[]
 }
