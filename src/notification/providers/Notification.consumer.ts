@@ -11,6 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DoneCallback, Job } from 'bull';
 import * as firebase from 'firebase-admin';
 import { User } from 'src/auth/entities/user.entity';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { Repository } from 'typeorm';
 import { FcmNotificationUser } from '../entities/fcmNotifications.entity';
 import {
@@ -33,13 +34,7 @@ export interface INotificationJobData {
 
 @Processor('notification')
 export class NotificationConsumer {
-  constructor(
-    @InjectRepository(FcmNotificationUser)
-    private readonly fcmRepo: Repository<FcmNotificationUser>,
-
-    @InjectRepository(Notification)
-    private readonly notificationRepo: Repository<Notification>,
-  ) {
+  constructor(private readonly prisma: PrismaService) {
     const adminConfig: firebase.ServiceAccount = {
       projectId: process.env.FIREBASE_PROJECT_ID,
       privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
@@ -54,11 +49,11 @@ export class NotificationConsumer {
   @Process('sendNotification')
   async sendVerificationMail(job: Job<INotificationJobData>, cb: DoneCallback) {
     console.log('SAQ');
-    const user = new User();
-    user.id = job.data.toUser;
 
-    const fcmUser = await this.fcmRepo.findOne({
-      user,
+    const fcmUser = await this.prisma.fcmNotificationTokens.findFirst({
+      where: {
+        userId: job.data.toUser,
+      },
     });
     await this.saveNotificationToDatabase(job.data);
 
@@ -91,20 +86,17 @@ export class NotificationConsumer {
 
   async saveNotificationToDatabase(data: INotificationJobData) {
     const { toUser, fromUser, notificationType, entityId, entityType } = data;
-    console.log('WSSS');
-    const toUserModel = new User();
-    toUserModel.id = toUser;
 
-    const model = this.notificationRepo.create({
-      actor: toUserModel,
-      user: fromUser,
-      notificationType,
-      readed: false,
-      entityId,
-      entityType,
+    await this.prisma.notification.create({
+      data: {
+        actorId: toUser,
+        userId: fromUser.id,
+        notificationType,
+        readed: false,
+        entityId,
+        entityType,
+      },
     });
-
-    await this.notificationRepo.save(model);
   }
 
   @OnQueueStalled()

@@ -19,16 +19,6 @@ import { Star } from 'src/star/entities/star.entity';
 import { UpdateUserAgeAndGenderDto } from './dtos/UpdateUserAgeAndGender.dto';
 import { UserService } from './user.service';
 
-@ObjectType()
-class CustomUserResponse extends User {
-  @Field()
-  postsCount: number;
-  @Field()
-  followersCount: number;
-  @Field()
-  followingsCount: number;
-}
-
 @Resolver((_of) => User)
 export class UserResolver {
   constructor(
@@ -36,12 +26,11 @@ export class UserResolver {
     @Inject(PUB_SUB) private pubSub: PubSub,
   ) {}
 
-  @Query((_returns) => CustomUserResponse)
+  @Query((_returns) => User)
   async getUser(@Args('username') username: string) {
     const user = await this.usersService.getUserByUsername(username);
 
     if (user) {
-      console.log('hello', user);
       return user;
     }
 

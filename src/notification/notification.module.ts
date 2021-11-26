@@ -1,5 +1,6 @@
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
+import { PrismaModule } from 'src/prisma/prisma.module';
 import { PubsubModule } from 'src/pubsub/pubsub.module';
 import { Queues } from 'src/types';
 import { NotificationResolver } from './notification.resolver';
@@ -8,6 +9,7 @@ import { NotificationConsumer } from './providers/Notification.consumer';
 
 @Module({
   imports: [
+    PrismaModule,
     PubsubModule,
     BullModule.registerQueueAsync({
       name: Queues.Notification,

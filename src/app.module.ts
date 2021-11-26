@@ -22,29 +22,8 @@ import { UserModule } from './user/user.module';
 import { SpotifyModule } from './spotify/spotify.module';
 import { PrismaModule } from './prisma/prisma.module';
 
-let DATABASE_OPTIONS: TypeOrmModuleOptions;
-
-if (process.env.NODE_ENV === 'production') {
-  DATABASE_OPTIONS = {
-    type: 'postgres',
-    url: process.env.DATABASE_URL,
-    autoLoadEntities: true,
-    synchronize: true,
-  };
-} else {
-  DATABASE_OPTIONS = {
-    type: 'postgres',
-    host: 'localhost',
-    database: 'postgres',
-    username: 'postgres',
-    synchronize: false,
-    autoLoadEntities: true,
-  };
-}
-
 @Module({
   imports: [
-    TypeOrmModule.forRoot(DATABASE_OPTIONS),
     MailerModule.forRoot({
       transport: {
         host: process.env.MAILGUN_SMTP_SERVER,

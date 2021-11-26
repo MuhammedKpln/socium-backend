@@ -37,15 +37,15 @@ export class MessagesResolver {
     @Args('roomId') roomId: number,
     @Args('pagination') pagination: PaginationParams,
   ) {
-    const roomsService = await this.chatService.getMessages(roomId, pagination);
-
-    return roomsService;
+    //TODO:unutma
+    // const roomsService = await this.chatService.getMessages(roomId, pagination);
+    // return roomsService;
   }
 
   @Mutation((_returns) => Boolean)
   async deleteRoom(@Args('roomId') roomId: number) {
-    const roomsService = await this.chatService.removeRoom(roomId);
-
-    return roomsService;
+    //TODO:unutma
+    // const roomsService = await this.chatService.removeRoom(roomId);
+    // return roomsService;
   }
 }

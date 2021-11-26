@@ -1,10 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Follower, Notification, Posts } from '@prisma/client';
 import { User } from 'src/auth/entities/user.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Repository } from 'typeorm';
 import { FcmNotificationUser } from './entities/fcmNotifications.entity';
-import { Notification } from './entities/notification.entity';
+import { INotificationEntity } from './entities/notification.entity';
+
+type ICustomNotification = Notification & {
+  user: User;
+  actor: User;
+  entity: Follower | Posts;
+};
 
 @Injectable()
 export class NotificationService {
@@ -23,6 +30,38 @@ export class NotificationService {
         user: true,
         actor: true,
       },
+    });
+
+    notifications.forEach(async (notification: ICustomNotification) => {
+      switch (notification.entityType) {
+        case INotificationEntity.Post:
+          const post = await this.prisma.notification.findFirst({
+            where: {
+              id: notification.entityId,
+            },
+            include: {
+              actor: true,
+              user: true,
+            },
+          });
+
+          notification.entity = post;
+          break;
+
+        case INotificationEntity.Follower:
+          const followerEntity = await this.prisma.follower.findFirst({
+            where: {
+              id: notification.entityId,
+            },
+            include: {
+              actor: true,
+              user: true,
+            },
+          });
+
+          notification.entity = followerEntity;
+          break;
+      }
     });
 
     //TODO: entitytype
@@ -48,22 +87,24 @@ export class NotificationService {
   }
 
   async markNotificationAsRead(id: number) {
-    const notification = await this.repo.findOne(id);
+    const notification = await this.prisma.notification.findFirst({
+      where: { id },
+    });
 
     if (notification.readed) {
       return false;
     }
 
-    const update = await this.repo.update(
-      {
+    const update = await this.prisma.notification.update({
+      where: {
         id,
       },
-      {
+      data: {
         readed: true,
       },
-    );
+    });
 
-    if (update.affected !== 0) {
+    if (update) {
       return true;
     }
 
@@ -71,29 +112,30 @@ export class NotificationService {
   }
 
   async saveFcmToken(userId: number, fcmToken: string) {
-    const user = new User();
-    user.id = userId;
-
-    const fcmTokenExists = await this.fcmRepo.findOne({
-      user,
+    const fcmTokenExists = await this.prisma.fcmNotificationTokens.findFirst({
+      where: {
+        userId,
+      },
     });
 
     if (!fcmTokenExists) {
-      const model = this.fcmRepo.create({
-        fcmToken,
-        user,
+      await this.prisma.fcmNotificationTokens.create({
+        data: {
+          fcmToken,
+          userId,
+        },
       });
-
-      await this.fcmRepo.save(model);
 
       return true;
     } else {
-      const model = this.fcmRepo.create({
-        ...fcmTokenExists,
-        fcmToken,
+      await this.prisma.fcmNotificationTokens.update({
+        where: {
+          userId,
+        },
+        data: {
+          fcmToken,
+        },
       });
-
-      await this.fcmRepo.save(model);
 
       return true;
     }

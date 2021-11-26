@@ -169,7 +169,6 @@ export class AuthService {
             email: email,
           },
           data: {
-            ...user,
             isEmailConfirmed: true,
             emailConfirmationCode: null,
           },

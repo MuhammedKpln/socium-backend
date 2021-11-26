@@ -1,5 +1,4 @@
 import { Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -11,8 +10,7 @@ import * as firebase from 'firebase-admin';
 import { RedisClient } from 'redis';
 import { Server, Socket } from 'socket.io';
 import { redisClient, redisUrl } from 'src/main';
-import { FcmNotificationUser } from 'src/notification/entities/fcmNotifications.entity';
-import { Repository } from 'typeorm';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { rangeNumber, shuffleArray } from '../helpers';
 import { ChatService } from './chat.service';
 import {
@@ -33,8 +31,7 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
   private redis: RedisClient;
   constructor(
     private chatService: ChatService,
-    @InjectRepository(FcmNotificationUser)
-    private readonly fcmRepo: Repository<FcmNotificationUser>,
+    private readonly prisma: PrismaService,
   ) {
     this.redis = new RedisClient({
       url: redisUrl,
@@ -122,7 +119,8 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
         seen: true,
       });
 
-      await this.chatService.markAllMessagesRead(data.roomId);
+      //TODO:unutma
+      // await this.chatService.markAllMessagesRead(data.roomId);
     }
   }
 
@@ -146,8 +144,10 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
           seen,
         });
 
-        const fcmUser = await this.fcmRepo.findOne({
-          user: receiver,
+        const fcmUser = await this.prisma.fcmNotificationTokens.findFirst({
+          where: {
+            userId: receiver.id,
+          },
         });
 
         if (fcmUser) {
@@ -277,7 +277,8 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
 
     this.server.to(roomAdress).emit('remove message requested', { messageId });
 
-    await this.chatService.removeMessage(messageId);
+    //TODO:unutma
+    // await this.chatService.removeMessage(messageId);
   }
 
   @SubscribeMessage('get online users count')

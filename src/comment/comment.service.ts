@@ -10,6 +10,24 @@ import { CreteNewCommentDto } from './dtos/CreateNewComment.dto';
 export class CommentService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async getCommentById(id: number) {
+    return await this.prisma.comment.findUnique({
+      where: { id },
+      include: {
+        post: {
+          include: {
+            user: true,
+            postLike: true,
+            userLike: true,
+          },
+        },
+        postLike: true,
+        userLike: true,
+        user: true,
+      },
+    });
+  }
+
   async _getPostComments(
     postId: number,
     option: PaginationParams,
@@ -21,9 +39,16 @@ export class CommentService {
       skip: option.offset,
       take: option.limit,
       include: {
-        post: true,
+        post: {
+          include: {
+            user: true,
+            postLike: true,
+            userLike: true,
+          },
+        },
         postLike: true,
         userLike: true,
+        user: true,
       },
     });
   }
@@ -35,20 +60,17 @@ export class CommentService {
         postId,
         userId: user.id,
       },
-      include: {
-        post: {
-          include: {
-            user: true,
-            postLike: true,
-            userLike: true,
-          },
-        },
-        postLike: true,
-        userLike: true,
-      },
     });
 
-    return model;
+    if (model) {
+      await this.prisma.postLike.create({
+        data: {
+          commentId: model.id,
+        },
+      });
+    }
+
+    return this.getCommentById(model.id);
   }
 
   async removeComment(commentId: number): PBool {

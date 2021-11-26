@@ -7,11 +7,13 @@ export async function generateStarEntity(
 ): P<Prisma.MiddlewareParams> {
   const user: User = params.args.data;
 
-  await prisma.star.create({
-    data: {
-      userId: user.id,
-    },
-  });
+  if (user?.password) {
+    await prisma.star.create({
+      data: {
+        userId: user.id,
+      },
+    });
+  }
 
   return params;
 }

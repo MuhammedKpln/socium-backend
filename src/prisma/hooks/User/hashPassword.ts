@@ -7,9 +7,11 @@ export async function hashPasswordMiddleware(
 ): P<Prisma.MiddlewareParams> {
   const user: User = params.args.data;
 
-  const hash = await hashText(user.password);
-  user.password = hash;
-  params.args.data = user;
+  if (user?.password) {
+    const hash = await hashText(user.password);
+    user.password = hash;
+    params.args.data = user;
+  }
 
   return params;
 }

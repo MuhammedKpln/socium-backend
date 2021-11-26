@@ -8,6 +8,7 @@ import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
 import { ERROR_CODES } from 'src/error_code';
 import { PaginationParams } from 'src/inputypes/pagination.input';
 import { PUB_SUB } from 'src/pubsub/pubsub.module';
+import { StarService } from 'src/star/star.service';
 import { ChatService } from './chat.service';
 import { MessageRequest } from './entities/messageRequest.entity';
 import { Messages } from './entities/messages.entity';
@@ -19,7 +20,8 @@ import {
 @Resolver((_of) => MessageRequest)
 export class ChatResolver {
   constructor(
-    private chatService: ChatService,
+    private readonly chatService: ChatService,
+    private readonly starService: StarService,
     @Inject(PUB_SUB) private readonly pubSub: PubSub,
   ) {}
 
@@ -82,9 +84,9 @@ export class ChatResolver {
     @Args('toUserId') toUserId: number,
     @UserDecorator() user: User,
   ) {
-    const checkForStars = await this.chatService.checkIfUserHasStars(user.id);
+    const checkForStars = await this.starService.userStars(user.id);
 
-    if (!checkForStars) {
+    if (checkForStars && checkForStars.starCount < 0) {
       throw new ApolloError('Not enough stars', 'NOT_ENOUGH_STARS', {
         error_code: ERROR_CODES.NOT_ENOUGH_STARS,
       });
@@ -150,12 +152,14 @@ export class ChatResolver {
   @Mutation((_returns) => Boolean)
   @UseGuards(JwtAuthGuard)
   async markAllMessagesRead(@Args('roomId') roomId: number) {
-    return await this.chatService.markAllMessagesRead(roomId);
+    //TODO:unutma
+    // return await this.chatService.markAllMessagesRead(roomId);
   }
 
   @Mutation((_returns) => Boolean)
   @UseGuards(JwtAuthGuard)
   async retrieveMessageRequest(@Args('requestId') requestId: number) {
-    return await this.chatService.retrieveMessageRequest(requestId);
+    //TODO:unutma
+    // return await this.chatService.retrieveMessageRequest(requestId);
   }
 }

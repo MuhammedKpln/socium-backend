@@ -87,9 +87,6 @@ export class PostEntity {
   @Field()
   updated_at?: Date;
 
-  @Field()
-  commentsCount?: number;
-
   @Field((_) => ICount)
   _count?: ICount;
 

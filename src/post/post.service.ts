@@ -8,6 +8,8 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { P } from 'src/types';
 import { CreatePostDto } from './dtos/createPost';
 import { PostEntity } from './entities/post.entity';
+import slugify from 'slugify';
+import { getRandomString } from 'src/helpers/randomString';
 
 const essentialDatabaseOptions = {
   include: {
@@ -130,27 +132,25 @@ export class PostService {
   }
 
   async createPost(post: CreatePostDto, user: User) {
-    const postLike = await this.prisma.postLike.create({
-      data: {},
-    });
-
     const save = await this.prisma.posts.create({
       data: {
         ...post,
-        postLike: {
-          connect: postLike,
-        },
-        user: {
-          connect: {
-            id: user.id,
-          },
-        },
+        userId: user.id,
+        slug: slugify(getRandomString(100)),
       },
       ...essentialDatabaseOptions,
     });
 
     if (save) {
-      return save;
+      const createPostlike = await this.prisma.postLike.create({
+        data: {
+          postId: save.id,
+        },
+      });
+
+      if (createPostlike) {
+        return await this.getOneBySlug(save.slug);
+      }
     }
 
     throw new Error('Could not create post');

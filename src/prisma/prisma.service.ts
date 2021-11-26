@@ -1,6 +1,5 @@
 import { INestApplication, Injectable, OnModuleInit } from '@nestjs/common';
 import { Prisma, PrismaClient } from '@prisma/client';
-import { createPostLikeEntity } from './hooks/Comment/createPostLikeEntity';
 import { generateStarEntity } from './hooks/User/generateStarEntity';
 import { hashPasswordMiddleware } from './hooks/User/hashPassword';
 import { generateRandomEmailConfirmationCode } from './hooks/User/randomEmailCodeGen';
@@ -20,13 +19,10 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
         (params.action == 'create' || params.action == 'update') &&
         params.model === 'User'
       ) {
+        console.log(params);
         p = await hashPasswordMiddleware(p);
         p = await generateStarEntity(p, this);
         p = generateRandomEmailConfirmationCode(p);
-      }
-
-      if (params.action == 'create' && params.model === 'Comment') {
-        p = await createPostLikeEntity(p, this);
       }
 
       if (params.action == 'create' && params.model === 'UserLike') {
