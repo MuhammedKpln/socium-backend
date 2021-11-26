@@ -171,11 +171,8 @@ export class ChatService {
     userId: number,
     receiverId: number,
   ): P<MessageRequest | false> {
-    const update = await this.prisma.messageRequest.update({
+    const update = await this.prisma.messageRequest.delete({
       where: { id },
-      data: {
-        request: false,
-      },
     });
 
     if (update) {
@@ -186,8 +183,8 @@ export class ChatService {
       if (room) {
         const message = await this.saveMessage({
           message: 'Merhaba! nasılsın ☺️',
-          receiverId,
-          userId,
+          receiverId: userId,
+          userId: receiverId,
           seen: false,
           roomAdress: room.roomAdress,
         });
@@ -220,10 +217,14 @@ export class ChatService {
   async findMessageRoom(userId: number, options: PaginationParams) {
     const messageRooms = await this.prisma.messages.findMany({
       where: {
-        receiverId: userId,
-        OR: {
-          senderId: userId,
-        },
+        OR: [
+          {
+            senderId: userId,
+          },
+          {
+            receiverId: userId,
+          },
+        ],
       },
       include: {
         receiver: true,

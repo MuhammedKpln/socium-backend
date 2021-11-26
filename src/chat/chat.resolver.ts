@@ -86,7 +86,7 @@ export class ChatResolver {
   ) {
     const checkForStars = await this.starService.userStars(user.id);
 
-    if (checkForStars && checkForStars.starCount < 0) {
+    if (!checkForStars || checkForStars.starCount <= 0) {
       throw new ApolloError('Not enough stars', 'NOT_ENOUGH_STARS', {
         error_code: ERROR_CODES.NOT_ENOUGH_STARS,
       });
@@ -152,14 +152,12 @@ export class ChatResolver {
   @Mutation((_returns) => Boolean)
   @UseGuards(JwtAuthGuard)
   async markAllMessagesRead(@Args('roomId') roomId: number) {
-    //TODO:unutma
-    // return await this.chatService.markAllMessagesRead(roomId);
+    return await this.chatService.markAllMessagesRead(roomId);
   }
 
   @Mutation((_returns) => Boolean)
   @UseGuards(JwtAuthGuard)
   async retrieveMessageRequest(@Args('requestId') requestId: number) {
-    //TODO:unutma
-    // return await this.chatService.retrieveMessageRequest(requestId);
+    return await this.chatService.retrieveMessageRequest(requestId);
   }
 }

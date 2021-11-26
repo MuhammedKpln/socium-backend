@@ -118,9 +118,7 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
       client.broadcast.to(data.roomAdress).emit('seen status updated', {
         seen: true,
       });
-
-      //TODO:unutma
-      // await this.chatService.markAllMessagesRead(data.roomId);
+      await this.chatService.markAllMessagesRead(data.roomId);
     }
   }
 
@@ -277,8 +275,7 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
 
     this.server.to(roomAdress).emit('remove message requested', { messageId });
 
-    //TODO:unutma
-    // await this.chatService.removeMessage(messageId);
+    await this.chatService.removeMessage(messageId);
   }
 
   @SubscribeMessage('get online users count')
