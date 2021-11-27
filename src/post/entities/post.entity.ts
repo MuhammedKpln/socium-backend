@@ -3,6 +3,7 @@ import { User } from 'src/auth/entities/user.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { PostLike } from 'src/likes/entities/PostLike.entity';
 import { UserLike } from 'src/likes/entities/UserLike.entity';
+import { BaseStruct } from 'src/typeorm/BaseStruct';
 
 export enum PostType {
   Content = 0,
@@ -19,10 +20,7 @@ class ICount {
 }
 
 @ObjectType()
-export class PostEntity {
-  @Field()
-  id?: number;
-
+export class PostEntity extends BaseStruct {
   @Field({ nullable: true })
   title: string;
 
@@ -38,9 +36,6 @@ export class PostEntity {
   @Field()
   slug?: string;
 
-  @Field()
-  created_at?: Date;
-
   @Field((_returns) => [Comment])
   comments?: Comment[];
 
@@ -49,8 +44,6 @@ export class PostEntity {
 
   @Field((_returns) => PostLike)
   postLike?: PostLike;
-
-  updated_at?: Date;
 
   @Field((_) => ICount)
   _count?: ICount;
