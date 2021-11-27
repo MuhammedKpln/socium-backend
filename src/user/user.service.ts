@@ -1,12 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Star } from '@prisma/client';
 import { ApolloError } from 'apollo-server-errors';
 import { User } from 'src/auth/entities/user.entity';
-import { UserLike } from 'src/likes/entities/UserLike.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { StarService } from 'src/star/star.service';
-import { Repository } from 'typeorm';
 import { UpdateUserAgeAndGenderDto } from './dtos/UpdateUserAgeAndGender.dto';
 
 @Injectable()

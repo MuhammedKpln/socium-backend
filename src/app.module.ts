@@ -2,7 +2,6 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { verify } from 'jsonwebtoken';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';

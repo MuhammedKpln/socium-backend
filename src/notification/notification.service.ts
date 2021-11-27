@@ -1,10 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Follower, Notification, Posts } from '@prisma/client';
 import { User } from 'src/auth/entities/user.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Repository } from 'typeorm';
-import { FcmNotificationUser } from './entities/fcmNotifications.entity';
 import { INotificationEntity } from './entities/notification.entity';
 
 type ICustomNotification = Notification & {

@@ -1,15 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Posts } from '@prisma/client';
 import * as shuffleArray from 'lodash.shuffle';
+import slugify from 'slugify';
 import { User } from 'src/auth/entities/user.entity';
+import { getRandomString } from 'src/helpers/randomString';
 import { PaginationParams } from 'src/inputypes/pagination.input';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { P } from 'src/types';
 import { CreatePostDto } from './dtos/createPost';
-import { PostEntity } from './entities/post.entity';
-import slugify from 'slugify';
-import { getRandomString } from 'src/helpers/randomString';
 
 const essentialDatabaseOptions = {
   include: {
@@ -86,10 +84,15 @@ export class PostService {
     return posts;
   }
 
+  //TODO: does not work
   async getUserLikedPosts(userId: number): P<Posts[]> {
     return await this.prisma.posts.findMany({
       where: {
         userId,
+        userLike: {
+          userId,
+          liked: true,
+        },
       },
       ...essentialDatabaseOptions,
     });

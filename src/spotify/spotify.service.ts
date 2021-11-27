@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { Mutation } from '@nestjs/graphql';
-import { InjectRepository } from '@nestjs/typeorm';
 import { SpotifyCurrentlyListening } from '@prisma/client';
-import { User } from 'src/auth/entities/user.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PBool } from 'src/types';
-import { Repository } from 'typeorm';
 import { UpdateCurrentTrackDto } from './dtos/UpdateCurrentTrack.dto';
 
 @Injectable()

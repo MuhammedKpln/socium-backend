@@ -1,12 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/auth/entities/user.entity';
-import { Comment } from 'src/comment/entities/comment.entity';
-import { PostEntity } from 'src/post/entities/post.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PBool } from 'src/types';
-import { Repository } from 'typeorm';
-import { UserLike } from './entities/UserLike.entity';
 
 @Injectable()
 export class LikesService {

@@ -7,17 +7,11 @@ import {
   Process,
   Processor,
 } from '@nestjs/bull';
-import { InjectRepository } from '@nestjs/typeorm';
 import { DoneCallback, Job } from 'bull';
 import * as firebase from 'firebase-admin';
 import { User } from 'src/auth/entities/user.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Repository } from 'typeorm';
-import { FcmNotificationUser } from '../entities/fcmNotifications.entity';
-import {
-  INotificationEntityTypes,
-  Notification,
-} from '../entities/notification.entity';
+import { INotificationEntityTypes } from '../entities/notification.entity';
 import {
   NotificationTitle,
   NotificationType,

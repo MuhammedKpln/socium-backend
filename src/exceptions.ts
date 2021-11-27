@@ -5,7 +5,6 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { TypeORMError } from 'typeorm';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -14,16 +13,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse();
     const request = ctx.getRequest();
     console.error(exception);
-
-    if (exception instanceof TypeORMError) {
-      if (exception['errno'] === 19) {
-        return response.status(HttpStatus.NOT_ACCEPTABLE).json({
-          statusCode: HttpStatus.NOT_ACCEPTABLE,
-          timestamp: new Date().toISOString(),
-          path: request.url,
-        });
-      }
-    }
 
     const status =
       exception instanceof HttpException

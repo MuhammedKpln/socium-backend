@@ -1,11 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Follower } from '@prisma/client';
 import { User } from 'src/auth/entities/user.entity';
 import { PaginationParams } from 'src/inputypes/pagination.input';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { P, PBool } from 'src/types';
-import { Repository } from 'typeorm';
 
 @Injectable()
 export class FollowerService {
