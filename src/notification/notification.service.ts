@@ -79,6 +79,39 @@ export class NotificationService {
       },
     });
 
+    for (let i = 0; i < notifications.length; i++) {
+      const notification = notifications[i] as ICustomNotification;
+      switch (notification.entityType) {
+        case INotificationEntity.Post:
+          const post = await this.prisma.notification.findFirst({
+            where: {
+              id: notification.entityId,
+            },
+            include: {
+              actor: true,
+              user: true,
+            },
+          });
+
+          notification.entity = post;
+          break;
+
+        case INotificationEntity.Follower:
+          const followerEntity = await this.prisma.follower.findFirst({
+            where: {
+              id: notification.entityId,
+            },
+            include: {
+              actor: true,
+              user: true,
+            },
+          });
+
+          notification.entity = followerEntity;
+          break;
+      }
+    }
+
     return notifications;
   }
 
