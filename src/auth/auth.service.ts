@@ -21,6 +21,11 @@ import { LoginUserDto } from './dtos/loginUser.dto';
 import { LoginUserGoogleDto } from './dtos/loginUserGoogle.dto';
 
 const userIncludesMeta: Prisma.UserInclude = {
+  userAvatarMeta: {
+    select: {
+      avatar: true,
+    },
+  },
   _count: {
     select: {
       posts: true,
@@ -81,7 +86,7 @@ export class AuthService {
 
   async login(user: LoginUserDto) {
     const payload = { email: user.email };
-    const userDb = await this.findOneWithEmail(user.email);
+    const userDb = await this.findOneWithEmail(user.email, userIncludesMeta);
 
     return {
       access_token: await this.jwtService.signAsync(payload),

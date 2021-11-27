@@ -31,6 +31,11 @@ export class ProfileResolver {
       profile.avatar = randomFileName;
     }
 
+    if (profile?.avatarMeta) {
+      await this.profileService.updateAvatarMeta(user.id, profile.avatarMeta);
+      profile.avatarMeta = undefined;
+    }
+
     const updateProfile = await this.profileService.editProfile(
       user.id,
       profile,

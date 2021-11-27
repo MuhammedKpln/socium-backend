@@ -1,5 +1,11 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsBase64, IsDate, IsMimeType, IsOptional } from 'class-validator';
+import {
+  IsBase64,
+  IsDate,
+  IsJSON,
+  IsMimeType,
+  IsOptional,
+} from 'class-validator';
 
 @InputType()
 export class EditProfileDto {
@@ -24,4 +30,9 @@ export class EditProfileDto {
   @IsDate()
   @Field({ nullable: true })
   birthday: Date;
+
+  @IsOptional()
+  @IsJSON()
+  @Field({ nullable: true })
+  avatarMeta: string;
 }

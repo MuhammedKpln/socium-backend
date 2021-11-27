@@ -20,6 +20,12 @@ class IUserCountMap {
 }
 
 @ObjectType()
+class IUserAvatarMeta {
+  @Field()
+  avatar: string;
+}
+
+@ObjectType()
 export class User {
   @Field()
   id: number;
@@ -64,6 +70,9 @@ export class User {
   @Field()
   updated_at: Date;
 
-  @Field()
+  @Field((_) => IUserCountMap)
   _count: IUserCountMap;
+
+  @Field((_) => IUserAvatarMeta, { nullable: true })
+  userAvatarMeta?: IUserAvatarMeta;
 }
