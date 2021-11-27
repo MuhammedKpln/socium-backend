@@ -31,7 +31,6 @@
     "@nestjs/passport": "^8.0.1",
     "@nestjs/platform-fastify": "^8.1.1",
     "@nestjs/platform-socket.io": "^8.1.1",
-    "@nestjs/typeorm": "^8.0.2",
     "@nestjs/websockets": "^8.1.1",
     "@prisma/client": "3.5.0",
     "@socket.io/redis-adapter": "^7.0.0",
@@ -60,8 +59,7 @@
     "rxjs": "^7.2.0",
     "sharp": "^0.29.3",
     "slugify": "^1.6.0",
-    "socket.io-client": "4.2.0",
-    "typeorm": "^0.2.37"
+    "socket.io-client": "4.2.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^8.0.0",
