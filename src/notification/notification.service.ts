@@ -29,7 +29,8 @@ export class NotificationService {
       },
     });
 
-    notifications.forEach(async (notification: ICustomNotification) => {
+    for (let i = 0; i < notifications.length; i++) {
+      const notification = notifications[i] as ICustomNotification;
       switch (notification.entityType) {
         case INotificationEntity.Post:
           const post = await this.prisma.notification.findFirst({
@@ -59,9 +60,7 @@ export class NotificationService {
           notification.entity = followerEntity;
           break;
       }
-    });
-
-    //TODO: entitytype
+    }
 
     return notifications;
   }

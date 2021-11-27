@@ -1,7 +1,7 @@
 import { createUnionType, Field, ObjectType } from '@nestjs/graphql';
+import { Follower, Posts } from '@prisma/client';
 import { User } from 'src/auth/entities/user.entity';
-import { Comment } from 'src/comment/entities/comment.entity';
-import { Follower } from 'src/follower/entities/follower.entity';
+import { Follower as FollowerEntity } from 'src/follower/entities/follower.entity';
 import { PostEntity } from 'src/post/entities/post.entity';
 import { BaseStruct } from 'src/typeorm/BaseStruct';
 import { NotificationType } from './notification.type';
@@ -17,7 +17,15 @@ export enum INotificationEntity {
 
 const gqlEntityType = createUnionType({
   name: 'entity',
-  types: () => [Comment, PostEntity, Follower],
+  types: () => [PostEntity, FollowerEntity],
+  resolveType: (value) => {
+    if (value?.actor) {
+      return FollowerEntity;
+    }
+    if (value?.title || value?.content) {
+      return PostEntity;
+    }
+  },
 });
 
 @ObjectType()
@@ -41,5 +49,5 @@ export class Notification extends BaseStruct {
   readed: boolean;
 
   @Field((_returns) => gqlEntityType)
-  entity: PostEntity | Comment | Follower;
+  entity: Follower | Posts;
 }
