@@ -153,9 +153,18 @@ export class AuthService {
   async loginGoogle(user: LoginUserGoogleDto) {
     const userDb = await this.findOneWithEmail(user.email, userIncludesMeta);
     const payload = { email: userDb.email };
+    const refreshToken = await this.createRefreshToken(
+      getRandomString(10),
+      userDb,
+    );
+    const hashedToken = await hashText(refreshToken);
+    const expireDate = new Date();
+    expireDate.setUTCMinutes(expireDate.getUTCMinutes() + 15);
 
     return {
       access_token: await this.jwtService.signAsync(payload),
+      refresh_token: hashedToken,
+      expire_date: expireDate,
       user: userDb,
     };
   }
@@ -206,17 +215,34 @@ export class AuthService {
   async registerGoogle(user: CreateUserGoogleDto) {
     const createUser = await this.prisma.user.create({
       data: {
-        ...user,
+        username: user.username,
+        email: user.email,
         password: user.idToken,
         isEmailConfirmed: true,
       },
     });
 
     if (createUser) {
+      await this.prisma.star.create({
+        data: {
+          userId: createUser.id,
+        },
+      });
+
+      const refreshToken = await this.createRefreshToken(
+        getRandomString(10),
+        createUser,
+      );
+      const hashedToken = await hashText(refreshToken);
+      const expireDate = new Date();
+      expireDate.setUTCMinutes(expireDate.getUTCMinutes() + 15);
+
       return {
         access_token: await this.jwtService.signAsync({
           email: user.email,
         }),
+        refresh_token: hashedToken,
+        expire_date: expireDate,
         user: createUser,
       };
     }

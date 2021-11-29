@@ -41,8 +41,6 @@ export class AuthResolver {
 
   @Mutation((returns) => LoginUserGoogleResponse)
   async loginGoogle(@Args('data') login: LoginUserGoogleDto) {
-    const { email, idToken } = login;
-
     const user = await this.authService.loginGoogle(login);
 
     if (!user) {
