@@ -134,14 +134,17 @@ export class UserService {
         username: user.username,
       },
       include: {
-        posts: {
+        userLike: {
           include: {
-            postLike: true,
-            userLike: true,
-            user: true,
-            _count: {
-              select: {
-                comment: true,
+            post: {
+              include: {
+                postLike: true,
+                user: true,
+                _count: {
+                  select: {
+                    comment: true,
+                  },
+                },
               },
             },
           },
@@ -149,6 +152,6 @@ export class UserService {
       },
     });
 
-    return userPosts.posts;
+    return userPosts.userLike;
   }
 }
