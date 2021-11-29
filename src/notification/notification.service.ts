@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Follower, Notification, Posts } from '@prisma/client';
-import { User } from 'src/auth/entities/user.entity';
+import { Follower, Notification, Posts, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { INotificationEntity } from './entities/notification.entity';
 
