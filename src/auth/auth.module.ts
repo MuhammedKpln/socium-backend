@@ -31,7 +31,7 @@ import { JwtStrategy } from './providers/jwt.strategy';
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.SECRET_KEY,
-      signOptions: { expiresIn: '7 days' },
+      signOptions: { expiresIn: '15 minutes' },
     }),
     BullModule.registerQueue(
       {

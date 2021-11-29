@@ -18,5 +18,9 @@ export class LoginResponse {
   @Field()
   access_token: string;
   @Field()
+  refresh_token: string;
+  @Field()
   user: User;
+  @Field()
+  expire_date: Date;
 }

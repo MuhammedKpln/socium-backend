@@ -145,4 +145,18 @@ export class AuthResolver {
 
     return false;
   }
+
+  @Mutation((returns) => LoginResponse)
+  async refreshToken(
+    @Args('refreshToken') refreshToken: string,
+    @Args('userId') userId: number,
+  ) {
+    const refreshed = await this.authService.refreshToken(refreshToken, userId);
+
+    if (refreshed) {
+      return refreshed;
+    }
+
+    return false;
+  }
 }

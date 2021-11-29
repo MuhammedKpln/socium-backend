@@ -160,6 +160,7 @@ model User {
   birthday               DateTime?                  @db.Timestamp(3)
   blockIncomingCalls     Boolean?                   @default(false)
   avatar                 String?                    @db.VarChar
+  refreshToken           String?                    @db.VarChar
   userParentComments     Comment[]                  @relation("parentUser")
   comments               Comment[]                  @relation("comments")
   FcmNotificationTokens  FcmNotificationTokens?

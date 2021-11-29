@@ -9,8 +9,9 @@ import { JwtService } from '@nestjs/jwt';
 import { Prisma, User } from '@prisma/client';
 import { ApolloError } from 'apollo-server-fastify';
 import { Queue } from 'bull';
-import { compareHash } from 'src/cryptHelper';
+import { compareHash, hashText } from 'src/cryptHelper';
 import { ERROR_CODES } from 'src/error_code';
+import { getRandomString } from 'src/helpers/randomString';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { P, QueueEvents, Queues } from 'src/types';
 import { jwtConstants } from './constans';
@@ -84,14 +85,69 @@ export class AuthService {
     return false;
   }
 
+  async createRefreshToken(token: string, user: User) {
+    const tokenCreated = await this.prisma.user.update({
+      where: {
+        username: user.username,
+      },
+      data: {
+        refreshToken: token,
+      },
+    });
+
+    return tokenCreated.refreshToken;
+  }
+
   async login(user: LoginUserDto) {
     const payload = { email: user.email };
     const userDb = await this.findOneWithEmail(user.email, userIncludesMeta);
+    const refreshToken = await this.createRefreshToken(
+      getRandomString(10),
+      userDb,
+    );
+    const hashedToken = await hashText(refreshToken);
+    const expireDate = new Date();
+    expireDate.setUTCMinutes(expireDate.getUTCMinutes() + 15);
 
     return {
       access_token: await this.jwtService.signAsync(payload),
+      refresh_token: hashedToken,
+      expire_date: expireDate,
       user: userDb,
     };
+  }
+
+  async refreshToken(refreshToken: string, userId: number) {
+    const findUser = await this.prisma.user.findFirst({
+      where: { id: userId },
+    });
+
+    if (findUser) {
+      const isEqual = await compareHash(findUser.refreshToken, refreshToken);
+
+      if (isEqual) {
+        const newRefreshToken = await this.createRefreshToken(
+          getRandomString(10),
+          findUser,
+        );
+        const newRefreshTokenHashed = await hashText(newRefreshToken);
+        const expireDate = new Date();
+        expireDate.setUTCMinutes(expireDate.getUTCMinutes() + 15);
+
+        return {
+          access_token: await this.jwtService.signAsync({
+            email: findUser.email,
+          }),
+          refresh_token: newRefreshTokenHashed,
+          expire_date: expireDate,
+          user: findUser,
+        };
+      } else {
+        throw new Error('Refresh token mismatch');
+      }
+    } else {
+      throw new Error('Unknown refresh token');
+    }
   }
 
   async loginGoogle(user: LoginUserGoogleDto) {
