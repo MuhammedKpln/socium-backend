@@ -6,11 +6,10 @@ import {
 } from '@nestjs/platform-fastify';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { createAdapter } from '@socket.io/redis-adapter';
-import { readFile } from 'fs/promises';
+import { fastifyHelmet } from 'fastify-helmet';
 import { createClient } from 'redis';
 import { ServerOptions } from 'socket.io';
 import { AppModule } from './app.module';
-import { fastifyHelmet } from 'fastify-helmet';
 
 export const redisUrl =
   process.env.NODE_ENV !== 'production'
@@ -60,13 +59,6 @@ export class SocketAdapter extends IoAdapter {
 
 async function bootstrap() {
   redisClient.on('error', (err) => console.log('Redis Client Error', err));
-
-  const badWordsJson = await readFile(__dirname + '/data/badWords.json');
-  const badWords: string[] = JSON.parse(Buffer.from(badWordsJson).toString());
-
-  badWords.forEach((badWord) => {
-    redisClient.set(badWord, badWord);
-  });
 
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,

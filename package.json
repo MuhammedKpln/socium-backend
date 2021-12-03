@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "nest build && mkdir dist/data && cp src/data/badWords.json dist/data/badWords.json",
+    "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "env-cmd -f .env nest start",
     "start:dev": "env-cmd -f .env nest start --watch",

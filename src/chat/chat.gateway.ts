@@ -127,54 +127,47 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
     const { message, roomName, user, receiver } = data;
 
     if (message) {
-      const splittedMessage = message.split(' ');
-      const abuseDetected = await this.abuseDetector(splittedMessage);
+      const date = new Date();
+      const seen = false;
 
-      if (!abuseDetected) {
-        const date = new Date();
-        const seen = false;
+      const m = await this.chatService.saveMessage({
+        message,
+        receiverId: receiver.id,
+        userId: user.id,
+        roomAdress: roomName,
+        seen,
+      });
 
-        const m = await this.chatService.saveMessage({
-          message,
-          receiverId: receiver.id,
-          userId: user.id,
-          roomAdress: roomName,
-          seen,
-        });
+      const fcmUser = await this.prisma.fcmNotificationTokens.findFirst({
+        where: {
+          userId: receiver.id,
+        },
+      });
 
-        const fcmUser = await this.prisma.fcmNotificationTokens.findFirst({
-          where: {
-            userId: receiver.id,
+      if (fcmUser) {
+        await firebase.messaging().sendToDevice(fcmUser.fcmToken, {
+          data: {
+            entityType: 'message',
+            entityId: String(m.room.id),
+            link: 'com.derdevam://message-room/' + m.room.id,
+          },
+          notification: {
+            title: user.username + ' kullanicisindan yeni bir mesajiniz var',
+            body: message,
           },
         });
-
-        if (fcmUser) {
-          await firebase.messaging().sendToDevice(fcmUser.fcmToken, {
-            data: {
-              entityType: 'message',
-              entityId: String(m.room.id),
-              link: 'com.derdevam://message-room/' + m.room.id,
-            },
-            notification: {
-              title: user.username + ' kullanicisindan yeni bir mesajiniz var',
-              body: message,
-            },
-          });
-        }
-
-        this.server.to(data.roomName).emit('message', {
-          message: message,
-          clientId: client.id,
-          date,
-          user,
-          receiver,
-          roomName,
-          id: m.id,
-          roomId: m.room.id,
-        });
-      } else {
-        this.server.to(client.id).emit('abuse is detected');
       }
+
+      this.server.to(data.roomName).emit('message', {
+        message: message,
+        clientId: client.id,
+        date,
+        user,
+        receiver,
+        roomName,
+        id: m.id,
+        roomId: m.room.id,
+      });
     }
   }
 
@@ -244,26 +237,6 @@ export class ChatGateway implements OnGatewayDisconnect, OnGatewayConnection {
       }
       console.log(reply);
     });
-  }
-
-  private async abuseDetector(messages: string[]): Promise<boolean> {
-    const abuseDetectedMessages: string[] = [];
-
-    for (let i = 0; i < messages.length; i++) {
-      const message = messages[i];
-
-      redisClient.get(message.toLowerCase(), (err, key) => {
-        if (key && !err) {
-          abuseDetectedMessages.push(key);
-        }
-      });
-    }
-
-    if (abuseDetectedMessages.length > 0) {
-      return true;
-    }
-
-    return false;
   }
 
   @SubscribeMessage('remove single message request')
