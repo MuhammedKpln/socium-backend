@@ -359,4 +359,29 @@ export class ChatService {
 
     return false;
   }
+
+  async rateUser(userId: number, rate: number) {
+    const exists = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!exists) {
+      throw new Error('User does not exists');
+    }
+
+    const created = await this.prisma.userRating.create({
+      data: {
+        userId,
+        rate,
+      },
+    });
+
+    if (created) {
+      return true;
+    }
+
+    return false;
+  }
 }

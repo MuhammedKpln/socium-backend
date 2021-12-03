@@ -10,6 +10,7 @@ import { PaginationParams } from 'src/inputypes/pagination.input';
 import { PUB_SUB } from 'src/pubsub/pubsub.module';
 import { StarService } from 'src/star/star.service';
 import { ChatService } from './chat.service';
+import { RateUserDto } from './dtos/RateUser.dto';
 import { MessageRequest } from './entities/messageRequest.entity';
 import { Messages } from './entities/messages.entity';
 import {
@@ -28,6 +29,14 @@ export class ChatResolver {
   @Query((_returns) => [MessageRequest])
   @UseGuards(JwtAuthGuard)
   async messageRequests(
+    @Args('pagination') pagination: PaginationParams,
+    @UserDecorator() user: User,
+  ) {
+    return await this.chatService.currentUserRequests(user.id, pagination);
+  }
+
+  @Query((_returns) => Boolean)
+  async tess(
     @Args('pagination') pagination: PaginationParams,
     @UserDecorator() user: User,
   ) {
@@ -159,5 +168,11 @@ export class ChatResolver {
   @UseGuards(JwtAuthGuard)
   async retrieveMessageRequest(@Args('requestId') requestId: number) {
     return await this.chatService.retrieveMessageRequest(requestId);
+  }
+
+  @Mutation((_returns) => Boolean)
+  @UseGuards(JwtAuthGuard)
+  async rateUser(@Args('rate') rate: RateUserDto) {
+    return await this.chatService.rateUser(rate.userId, rate.rating);
   }
 }
