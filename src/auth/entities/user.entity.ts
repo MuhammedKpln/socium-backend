@@ -66,7 +66,6 @@ export class User {
   @Field({ nullable: true })
   birthday: Date;
 
-  //TODO: onupdate change date auto
   @Field()
   updated_at: Date;
 
