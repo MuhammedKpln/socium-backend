@@ -11,6 +11,7 @@ import { CreatePostDto } from './dtos/createPost';
 
 const essentialDatabaseOptions = {
   include: {
+    category: true,
     userLike: true,
     postLike: true,
     user: true,

@@ -1,5 +1,6 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { User } from 'src/auth/entities/user.entity';
+import { Category } from 'src/category/entities/category.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { PostLike } from 'src/likes/entities/PostLike.entity';
 import { UserLike } from 'src/likes/entities/UserLike.entity';
@@ -50,4 +51,7 @@ export class PostEntity extends BaseStruct {
 
   @Field({ nullable: true })
   postFromFollowers?: boolean;
+
+  @Field()
+  category: Category;
 }

@@ -1,17 +1,24 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsNotEmpty, IsOptional, Validate } from 'class-validator';
+import { IsNotEmpty, IsNumber, MinLength, Validate } from 'class-validator';
 import { OneOf } from 'src/validators/oneof.validator';
 import { PostType } from '../entities/post.entity';
 
 @InputType()
 export class CreatePostDto {
-  @IsOptional()
-  @Field({ nullable: true })
+  @IsNotEmpty()
+  @Field()
+  @MinLength(15)
   title: string;
 
   @IsNotEmpty()
   @Field()
+  @MinLength(15)
   content: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  @Field()
+  categoryId: number;
 
   @IsNotEmpty()
   @Validate(OneOf, [

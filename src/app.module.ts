@@ -20,6 +20,7 @@ import { StarModule } from './star/star.module';
 import { UserModule } from './user/user.module';
 import { SpotifyModule } from './spotify/spotify.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { CategoryModule } from './category/category.module';
 
 @Module({
   imports: [
@@ -97,6 +98,7 @@ import { PrismaModule } from './prisma/prisma.module';
     PubsubModule,
     SpotifyModule,
     PrismaModule,
+    CategoryModule,
   ],
   providers: [AppService, PostService],
   controllers: [AppController],
