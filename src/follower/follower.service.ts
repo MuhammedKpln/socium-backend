@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Follower } from '@prisma/client';
+import * as shuffleArray from 'lodash.shuffle';
 import { User } from 'src/auth/entities/user.entity';
 import { PaginationParams } from 'src/inputypes/pagination.input';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -110,5 +111,33 @@ export class FollowerService {
     }
 
     return false;
+  }
+
+  async shouldFollowThoseUsers(user?: User) {
+    if (user) {
+      const users = await this.prisma.user.findMany({
+        take: 5,
+        where: {
+          followers: {
+            none: {
+              userId: user.id,
+            },
+          },
+          AND: {
+            NOT: {
+              id: user.id,
+            },
+          },
+        },
+      });
+
+      return shuffleArray(users);
+    }
+
+    const users = await this.prisma.user.findMany({
+      take: 5,
+    });
+
+    return shuffleArray(users);
   }
 }

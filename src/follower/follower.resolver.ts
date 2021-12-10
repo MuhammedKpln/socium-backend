@@ -98,4 +98,9 @@ export class FollowerResolver {
 
     return false;
   }
+
+  @Query((_) => [User])
+  async shouldFollowThoseUsers(@UserDecorator() user: User) {
+    return await this.followersService.shouldFollowThoseUsers(user);
+  }
 }
