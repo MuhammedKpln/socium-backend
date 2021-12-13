@@ -106,7 +106,7 @@ export class PostsResolver {
     @Args('post') post: CreatePostDto,
     @UserDecorator() user: User,
   ) {
-    const postContent: string = post?.content;
+    const postContent: string = post?.title;
 
     if (postContent.includes('http') || post?.title?.includes('http')) {
       if (post.type === PostType.Content || post.type === PostType.Blog) {
@@ -125,7 +125,8 @@ export class PostsResolver {
       }
 
       const youtubeMetaData = await fetchYoutubeMetaData(videoId);
-      post.content = `youtube##${postContent}##${youtubeMetaData.title}`;
+      post.title = youtubeMetaData.title;
+      post.content = postContent;
     }
 
     if (post.type === PostType.Twitter) {
@@ -137,15 +138,16 @@ export class PostsResolver {
       } else {
         title = text.split('—')[0];
       }
-
-      post.content = `twitter##${postContent}##${title}`;
+      post.title = title;
+      post.content = postContent;
     }
 
     if (post.type === PostType.Instagram) {
       const instagramMetaData = await fetchInstagramMetaData(postContent);
       const thumbnailUrl: string = instagramMetaData.thumbnail_url;
 
-      post.content = `instagram##${postContent}##${thumbnailUrl}`;
+      post.title = thumbnailUrl;
+      post.content = postContent;
     }
 
     const postModel = await this.postService

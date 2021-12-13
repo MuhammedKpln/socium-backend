@@ -10,9 +10,7 @@ export class CreatePostDto {
   @MinLength(15)
   title: string;
 
-  @IsNotEmpty()
   @Field()
-  @MinLength(15)
   content: string;
 
   @IsNumber()
