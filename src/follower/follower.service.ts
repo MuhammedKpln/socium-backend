@@ -116,7 +116,7 @@ export class FollowerService {
   async shouldFollowThoseUsers(user?: User) {
     if (user) {
       const users = await this.prisma.user.findMany({
-        take: 5,
+        take: 10,
         where: {
           followers: {
             none: {
@@ -135,7 +135,7 @@ export class FollowerService {
     }
 
     const users = await this.prisma.user.findMany({
-      take: 5,
+      take: 10,
     });
 
     return shuffleArray(users);
