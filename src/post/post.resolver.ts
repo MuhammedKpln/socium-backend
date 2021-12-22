@@ -33,9 +33,16 @@ export class PostsResolver {
 
   @Query((returns) => [PostEntity])
   async posts(
+    @Args('categoryId', { nullable: true }) categoryId: number,
     @Args('pagination') pagination: PaginationParams,
     @UserDecorator() user: User,
   ): Promise<Posts[]> {
+    if (categoryId) {
+      return await this.postService.getPostsByCategoryId(
+        categoryId,
+        pagination,
+      );
+    }
     return await this.postService.getAllPosts(pagination);
   }
 

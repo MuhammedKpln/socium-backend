@@ -179,4 +179,15 @@ export class PostService {
       throw new NotFoundException();
     }
   }
+
+  async getPostsByCategoryId(categoryId: number, pagination: PaginationParams) {
+    return await this.prisma.posts.findMany({
+      where: {
+        categoryId,
+      },
+      ...essentialDatabaseOptions,
+      take: pagination.limit,
+      skip: pagination.offset,
+    });
+  }
 }
