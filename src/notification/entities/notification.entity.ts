@@ -8,11 +8,13 @@ import { NotificationType } from './notification.type';
 
 export type INotificationEntityTypes =
   | INotificationEntity.Post
-  | INotificationEntity.Follower;
+  | INotificationEntity.Follower
+  | INotificationEntity.MessageRequest;
 
 export enum INotificationEntity {
   Post = 'post',
   Follower = 'follower',
+  MessageRequest = 'user',
 }
 
 const gqlEntityType = createUnionType({
@@ -50,4 +52,18 @@ export class Notification extends BaseStruct {
 
   @Field((_returns) => gqlEntityType)
   entity: Follower | Posts;
+}
+
+@ObjectType()
+export class NotificationSettingsEntity extends BaseStruct {
+  @Field()
+  follower: boolean;
+  @Field()
+  messageRequest: boolean;
+  @Field()
+  comments: boolean;
+  @Field()
+  disableAll: boolean;
+  @Field()
+  user: User;
 }

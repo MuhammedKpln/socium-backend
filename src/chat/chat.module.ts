@@ -1,6 +1,7 @@
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { join } from 'path';
+import { NotificationModule } from 'src/notification/notification.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { PubsubModule } from 'src/pubsub/pubsub.module';
 import { StarModule } from 'src/star/star.module';
@@ -18,6 +19,7 @@ import { MessagesResolver } from './messages.resolver';
       processors: [join(__dirname, 'deleteOudatedMessages.queue.js')],
     }),
     PubsubModule,
+    NotificationModule,
   ],
   providers: [ChatService, ChatGateway, ChatResolver, MessagesResolver],
 })

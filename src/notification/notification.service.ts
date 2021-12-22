@@ -1,6 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { Follower, Notification, Posts, User } from '@prisma/client';
+import {
+  Follower,
+  Notification,
+  NotificationSettings,
+  Posts,
+  User,
+} from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { P } from 'src/types';
+import { EditNotificationSettingsDto } from './dtos/EditNotificationSettings.dto';
 import { INotificationEntity } from './entities/notification.entity';
 
 type ICustomNotification = Notification & {
@@ -167,5 +175,25 @@ export class NotificationService {
 
       return true;
     }
+  }
+
+  async editNotificationSettings(
+    userId: number,
+    settings: EditNotificationSettingsDto,
+  ): P<NotificationSettings> {
+    return await this.prisma.notificationSettings.update({
+      data: settings,
+      where: {
+        userId,
+      },
+    });
+  }
+
+  async notificationSettings(userId: number): P<NotificationSettings> {
+    return await this.prisma.notificationSettings.findUnique({
+      where: {
+        userId,
+      },
+    });
   }
 }

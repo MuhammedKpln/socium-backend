@@ -1,14 +1,20 @@
+import { InjectQueue } from '@nestjs/bull';
 import { Inject, NotFoundException, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
 import { ApolloError } from 'apollo-server-errors';
+import { Queue } from 'bull';
 import { PubSub } from 'graphql-subscriptions';
 import { User as UserDecorator } from 'src/auth/decorators/user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
 import { ERROR_CODES } from 'src/error_code';
 import { PaginationParams } from 'src/inputypes/pagination.input';
+import { INotificationEntity } from 'src/notification/entities/notification.entity';
+import { NotificationType } from 'src/notification/entities/notification.type';
+import { INotificationJobData } from 'src/notification/providers/Notification.consumer';
 import { PUB_SUB } from 'src/pubsub/pubsub.module';
 import { StarService } from 'src/star/star.service';
+import { Queues } from 'src/types';
 import { ChatService } from './chat.service';
 import { RateUserDto } from './dtos/RateUser.dto';
 import { MessageRequest } from './entities/messageRequest.entity';
@@ -24,6 +30,8 @@ export class ChatResolver {
     private readonly chatService: ChatService,
     private readonly starService: StarService,
     @Inject(PUB_SUB) private readonly pubSub: PubSub,
+    @InjectQueue(Queues.Notification)
+    private readonly notification: Queue<INotificationJobData>,
   ) {}
 
   @Query((_returns) => [MessageRequest])
@@ -68,25 +76,6 @@ export class ChatResolver {
     return availableRequest;
   }
 
-  @Subscription((_returns) => MessageRequest, {
-    filter: (payload, variables) =>
-      payload.newMessageRequestSended.requestTo.id === variables.toUserId,
-  })
-  newMessageRequestSended(@Args('toUserId') userId: number) {
-    return this.pubSub.asyncIterator(NEW_MESSAGE_REQUEST_SENDED_EVENT);
-  }
-
-  @Subscription((_returns) => Messages, {
-    filter: (payload, variables) => {
-      console.log(payload, variables);
-
-      return payload.messageRequestAccepted.sender.id === variables.toUserId;
-    },
-  })
-  messageRequestAccepted(@Args('toUserId') userId: number) {
-    return this.pubSub.asyncIterator(MESSAGE_REQUEST_ACCEPTED);
-  }
-
   @Mutation((_returns) => Boolean)
   @UseGuards(JwtAuthGuard)
   async newMessageRequest(
@@ -121,11 +110,21 @@ export class ChatResolver {
       toUserId,
     );
 
-    this.pubSub.publish(NEW_MESSAGE_REQUEST_SENDED_EVENT, {
-      newMessageRequestSended: create,
-    });
-
     if (create) {
+      await this.notification.add(
+        Queues.SendNotification,
+        {
+          fromUser: user,
+          toUser: toUserId,
+          notificationType: NotificationType.MessageRequestSended,
+          entityId: toUserId,
+          entityType: INotificationEntity.MessageRequest,
+        },
+        {
+          priority: 0.3,
+          lifo: true,
+        },
+      );
       return true;
     }
 
@@ -144,6 +143,21 @@ export class ChatResolver {
     if (!model) {
       throw new ApolloError('COULD_NOT_ACCEPT', 'COULD_NOT_ACCEPT');
     }
+
+    await this.notification.add(
+      Queues.SendNotification,
+      {
+        fromUser: user,
+        toUser: receiverId,
+        notificationType: NotificationType.MessageRequestAccepted,
+        entityId: user.id,
+        entityType: INotificationEntity.MessageRequest,
+      },
+      {
+        priority: 0.3,
+        lifo: true,
+      },
+    );
 
     return model;
   }

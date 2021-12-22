@@ -11,7 +11,10 @@ import { DoneCallback, Job } from 'bull';
 import * as firebase from 'firebase-admin';
 import { User } from 'src/auth/entities/user.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { INotificationEntityTypes } from '../entities/notification.entity';
+import {
+  INotificationEntity,
+  INotificationEntityTypes,
+} from '../entities/notification.entity';
 import {
   NotificationTitle,
   NotificationType,
@@ -41,8 +44,13 @@ export class NotificationConsumer {
   }
 
   @Process('sendNotification')
-  async sendVerificationMail(job: Job<INotificationJobData>, cb: DoneCallback) {
-    console.log('SAQ');
+  async sendNotification(job: Job<INotificationJobData>, cb: DoneCallback) {
+    const isUserDisabledNotification = await this.isUserDisabledNotification(
+      job.data.toUser,
+      job.data.entityType,
+    );
+
+    if (isUserDisabledNotification) return cb(null, true);
 
     const fcmUser = await this.prisma.fcmNotificationTokens.findFirst({
       where: {
@@ -91,6 +99,30 @@ export class NotificationConsumer {
         entityType,
       },
     });
+  }
+
+  private async isUserDisabledNotification(
+    userId: number,
+    entityType: INotificationEntity,
+  ) {
+    const userSettings = await this.prisma.notificationSettings.findUnique({
+      where: {
+        userId,
+      },
+    });
+
+    switch (entityType) {
+      case INotificationEntity.Follower:
+        if (userSettings.follower || !userSettings.disableAll) return true;
+      case INotificationEntity.Post:
+        if (userSettings.comments || !userSettings.disableAll) return true;
+      case INotificationEntity.MessageRequest:
+        if (userSettings.messageRequest || !userSettings.disableAll)
+          return true;
+
+      default:
+        return false;
+    }
   }
 
   @OnQueueStalled()

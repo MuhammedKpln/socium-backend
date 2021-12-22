@@ -187,6 +187,12 @@ export class AuthService {
           userId: createUser.id,
         },
       });
+      await this.prisma.notificationSettings.create({
+        data: {
+          userId: createUser.id,
+        },
+      });
+
       const randomNumber = createUser.emailConfirmationCode;
 
       await this.mailQueue.add(
