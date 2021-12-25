@@ -190,4 +190,17 @@ export class PostService {
       skip: pagination.offset,
     });
   }
+
+  async getMostLikedPosts(pagination: PaginationParams) {
+    return await this.prisma.posts.findMany({
+      orderBy: {
+        postLike: {
+          likeCount: 'desc',
+        },
+      },
+      take: pagination.limit,
+      skip: pagination.offset,
+      ...essentialDatabaseOptions,
+    });
+  }
 }

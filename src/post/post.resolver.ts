@@ -107,6 +107,13 @@ export class PostsResolver {
     return recipe;
   }
 
+  @Query((returns) => [PostEntity])
+  async mostLikedPosts(@Args('pagination') pagination: PaginationParams) {
+    const recipe = await this.postService.getMostLikedPosts(pagination);
+    console.log(recipe);
+    return recipe;
+  }
+
   @Mutation((returns) => PostEntity)
   @UseGuards(JwtAuthGuard)
   async createPost(
