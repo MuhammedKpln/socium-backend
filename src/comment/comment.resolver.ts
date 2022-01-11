@@ -36,6 +36,19 @@ export class CommentResolver {
     return posts;
   }
 
+  @Query((returns) => [Comment])
+  async getUserComments(
+    @Args('userId') userId: number,
+    @Args('pagination', { nullable: true }) pagination: PaginationParams,
+  ) {
+    const comments = await this.commentsService.getUserComments(
+      userId,
+      pagination,
+    );
+
+    return comments;
+  }
+
   @Subscription((_returns) => Comment, {
     filter: (payload, variables) => {
       console.log(payload);

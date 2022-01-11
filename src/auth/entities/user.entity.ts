@@ -1,5 +1,6 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Exclude } from 'class-transformer';
+import { Comment } from 'src/comment/entities/comment.entity';
 
 export enum Gender {
   Male = 0,
@@ -74,4 +75,7 @@ export class User {
 
   @Field((_) => IUserAvatarMeta, { nullable: true })
   userAvatarMeta?: IUserAvatarMeta;
+
+  @Field((_) => [Comment], { nullable: true })
+  userParentComments?: Comment[];
 }

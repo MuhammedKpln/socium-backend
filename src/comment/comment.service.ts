@@ -32,7 +32,7 @@ export class CommentService {
     postId: number,
     option: PaginationParams,
   ): P<Comment[]> {
-    return await this.prisma.comment.findMany({
+    const comments = await this.prisma.comment.findMany({
       where: {
         postId,
       },
@@ -49,8 +49,57 @@ export class CommentService {
         postLike: true,
         userLike: true,
         user: true,
+        parentUser: {
+          include: {
+            userParentComments: {
+              include: {
+                postLike: true,
+                user: true,
+              },
+            },
+          },
+        },
       },
     });
+
+    return comments;
+  }
+
+  async getUserComments(
+    userId: number,
+    option: PaginationParams,
+  ): P<Comment[]> {
+    const comments = await this.prisma.comment.findMany({
+      where: {
+        userId,
+      },
+      skip: option.offset,
+      take: option.limit,
+      include: {
+        post: {
+          include: {
+            user: true,
+            postLike: true,
+            userLike: true,
+          },
+        },
+        postLike: true,
+        userLike: true,
+        user: true,
+        parentUser: {
+          include: {
+            userParentComments: {
+              include: {
+                postLike: true,
+                user: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return comments;
   }
 
   async createEntity(postId: number, entity: CreteNewCommentDto, user: User) {

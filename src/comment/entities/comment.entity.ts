@@ -16,7 +16,7 @@ export class Comment extends BaseStruct {
   @Field((_returns) => PostEntity)
   post: PostEntity;
 
-  @Field((_returns) => User)
+  @Field((_returns) => User, { nullable: true })
   parentUser: User;
 
   @Field((_returns) => PostLike)
