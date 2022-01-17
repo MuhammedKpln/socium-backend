@@ -22,11 +22,6 @@ import { LoginUserDto } from './dtos/loginUser.dto';
 import { LoginUserGoogleDto } from './dtos/loginUserGoogle.dto';
 
 const userIncludesMeta: Prisma.UserInclude = {
-  userAvatarMeta: {
-    select: {
-      avatar: true,
-    },
-  },
   _count: {
     select: {
       posts: true,

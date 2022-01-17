@@ -23,7 +23,7 @@ class ICount {
 @ObjectType()
 export class PostEntity extends BaseStruct {
   @Field({ nullable: true })
-  title: string;
+  additional: string;
 
   @Field()
   content: string;

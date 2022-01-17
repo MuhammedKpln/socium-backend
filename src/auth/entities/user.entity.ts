@@ -73,9 +73,6 @@ export class User {
   @Field((_) => IUserCountMap)
   _count: IUserCountMap;
 
-  @Field((_) => IUserAvatarMeta, { nullable: true })
-  userAvatarMeta?: IUserAvatarMeta;
-
   @Field((_) => [Comment], { nullable: true })
   userParentComments?: Comment[];
 }

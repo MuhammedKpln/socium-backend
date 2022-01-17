@@ -5,10 +5,8 @@ import { PostType } from '../entities/post.entity';
 
 @InputType()
 export class CreatePostDto {
-  @IsNotEmpty()
-  @Field()
-  @MinLength(15)
-  title: string;
+  @Field({ nullable: true })
+  additional: string;
 
   @Field()
   content: string;

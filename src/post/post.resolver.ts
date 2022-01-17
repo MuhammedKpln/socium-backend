@@ -120,9 +120,9 @@ export class PostsResolver {
     @Args('post') post: CreatePostDto,
     @UserDecorator() user: User,
   ) {
-    const postContent: string = post?.title;
+    const postContent: string = post?.content;
 
-    if (postContent.includes('http') || post?.title?.includes('http')) {
+    if (postContent.includes('http')) {
       if (post.type === PostType.Content || post.type === PostType.Blog) {
         throw new NotAcceptableException();
       }
@@ -139,7 +139,6 @@ export class PostsResolver {
       }
 
       const youtubeMetaData = await fetchYoutubeMetaData(videoId);
-      post.title = youtubeMetaData.title;
       post.content = postContent;
     }
 
@@ -152,7 +151,6 @@ export class PostsResolver {
       } else {
         title = text.split('—')[0];
       }
-      post.title = title;
       post.content = postContent;
     }
 
@@ -160,7 +158,6 @@ export class PostsResolver {
       const instagramMetaData = await fetchInstagramMetaData(postContent);
       const thumbnailUrl: string = instagramMetaData.thumbnail_url;
 
-      post.title = thumbnailUrl;
       post.content = postContent;
     }
 

@@ -15,11 +15,6 @@ export class UserService {
         username,
       },
       include: {
-        userAvatarMeta: {
-          select: {
-            avatar: true,
-          },
-        },
         _count: {
           select: {
             posts: true,
@@ -36,11 +31,6 @@ export class UserService {
         email,
       },
       include: {
-        userAvatarMeta: {
-          select: {
-            avatar: true,
-          },
-        },
         _count: {
           select: {
             posts: true,
