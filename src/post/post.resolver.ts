@@ -14,6 +14,7 @@ import { PaginationParams } from 'src/inputypes/pagination.input';
 import {
   fetchInstagramMetaData,
   fetchTwitterMetaData,
+  fetchTwitterPost,
   fetchYoutubeMetaData,
 } from 'src/likes/utils/fetchMetaData';
 import { PUB_SUB } from 'src/pubsub/pubsub.module';
@@ -23,6 +24,7 @@ import { PostService } from './post.service';
 import { CREATED_POST } from './pubsub.events';
 import type { Posts } from '@prisma/client';
 import { P } from 'src/types';
+import { TwitterPost } from './entities/twitter.entity';
 
 @Resolver((of) => PostEntity)
 export class PostsResolver {
@@ -128,39 +130,6 @@ export class PostsResolver {
       }
     }
 
-    if (post.type === PostType.Youtube) {
-      let videoId: string;
-
-      if (postContent.includes('youtu.be')) {
-        videoId = postContent.split('https://youtu.be/')[1];
-      }
-      if (postContent.includes('watch?v=')) {
-        videoId = postContent.split('watch?v=')[1];
-      }
-
-      const youtubeMetaData = await fetchYoutubeMetaData(videoId);
-      post.content = postContent;
-    }
-
-    if (post.type === PostType.Twitter) {
-      const twitterMetaData = await fetchTwitterMetaData(postContent);
-      const text: string = stripHtml(twitterMetaData.html);
-      let title: string;
-      if (text.includes('pic.twitter.com')) {
-        title = text.split('pic.twitter.com')[0];
-      } else {
-        title = text.split('—')[0];
-      }
-      post.content = postContent;
-    }
-
-    if (post.type === PostType.Instagram) {
-      const instagramMetaData = await fetchInstagramMetaData(postContent);
-      const thumbnailUrl: string = instagramMetaData.thumbnail_url;
-
-      post.content = postContent;
-    }
-
     const postModel = await this.postService
       .createPost(post, user)
       .catch((err) => {
@@ -180,5 +149,10 @@ export class PostsResolver {
   @Subscription((_returns) => PostEntity)
   createdNewPost() {
     return this.pubSub.asyncIterator(CREATED_POST);
+  }
+
+  @Query((_returns) => TwitterPost)
+  async getTwitterPost(@Args('twitterId') twitterId: string) {
+    return await fetchTwitterPost(twitterId);
   }
 }

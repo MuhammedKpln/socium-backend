@@ -43,3 +43,38 @@ export interface IInstagramMeta {
   thumbnail_width: number;
   thumbnail_height: number;
 }
+
+interface Attachments {
+  media_keys: string[];
+}
+
+interface Datum {
+  text: string;
+  author_id: string;
+  id: string;
+  attachments: Attachments;
+}
+
+interface Medium {
+  media_key: string;
+  type: string;
+  url: string;
+}
+
+interface User {
+  profile_image_url: string;
+  id: string;
+  created_at: Date;
+  username: string;
+  name: string;
+}
+
+interface Includes {
+  media: Medium[];
+  users: User[];
+}
+
+export interface ITwitterPost {
+  data: Datum[];
+  includes: Includes;
+}

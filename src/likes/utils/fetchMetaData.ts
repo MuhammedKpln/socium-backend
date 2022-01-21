@@ -2,6 +2,7 @@ import got from 'got';
 import {
   IInstagramMeta,
   ITwitterMeta,
+  ITwitterPost,
   IYoutubeMeta,
 } from './fetchMetaData.types';
 
@@ -32,6 +33,20 @@ export const fetchInstagramMetaData = async (
   const response = await got
     .get(`https://api.instagram.com/oembed/?url=${instagramUrl}`)
     .json<IInstagramMeta>();
+
+  return response;
+};
+
+export const fetchTwitterPost = async (twitterId: string) => {
+  const twitterApi = `https://api.twitter.com/2/tweets?ids=${twitterId}&expansions=author_id,attachments.media_keys,entities.mentions.username&tweet.fields=text,attachments&user.fields=created_at,name,username,profile_image_url&media.fields=preview_image_url,url`;
+
+  const response = await got
+    .get(twitterApi, {
+      headers: {
+        Authorization: `Bearer ${process.env.TWITTER_API_KEY}`,
+      },
+    })
+    .json<ITwitterPost>();
 
   return response;
 };
