@@ -1,30 +1,44 @@
 import { Injectable } from '@nestjs/common';
 import { User } from 'src/auth/entities/user.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { PBool } from 'src/types';
 
 @Injectable()
 export class LikesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async likePost(user: User, postId: number) {
-    return await this.prisma.userLike.create({
+    return await this.prisma.postLike.update({
       data: {
+        likeCount: {
+          increment: 1,
+        },
+        userLike: {
+          connectOrCreate: {
+            create: {
+              postId,
+              userId: user.id,
+              liked: true,
+            },
+            where: {
+              postId,
+            },
+          },
+        },
+      },
+      where: {
         postId,
-        userId: user.id,
-        liked: true,
+      },
+      include: {
+        userLike: true,
       },
     });
   }
 
-  async unlikePost(postId: number, user: User): PBool {
+  async unlikePost(postId: number, user: User) {
     const likeEntity = await this.prisma.userLike.findFirst({
       where: {
         postId,
         userId: user.id,
-      },
-      include: {
-        post: true,
       },
     });
 
@@ -36,20 +50,51 @@ export class LikesService {
       });
 
       if (deleteEntity) {
-        return true;
+        const postLike = await this.prisma.postLike.update({
+          where: {
+            postId,
+          },
+          data: {
+            likeCount: {
+              decrement: 1,
+            },
+          },
+          include: {
+            userLike: true,
+          },
+        });
+
+        return postLike;
       }
 
-      return false;
+      throw new Error("Can't unlike post");
     }
-
-    return false;
+    throw new Error("Can't unlike post");
   }
   async likeComment(user: User, commentId: number) {
-    return await this.prisma.userLike.create({
+    return await this.prisma.postLike.update({
       data: {
+        likeCount: {
+          increment: 1,
+        },
+        userLike: {
+          connectOrCreate: {
+            create: {
+              commentId,
+              userId: user.id,
+              liked: true,
+            },
+            where: {
+              commentId,
+            },
+          },
+        },
+      },
+      where: {
         commentId,
-        userId: user.id,
-        liked: true,
+      },
+      include: {
+        userLike: true,
       },
     });
   }
@@ -60,9 +105,6 @@ export class LikesService {
         commentId,
         userId: user.id,
       },
-      include: {
-        comment: true,
-      },
     });
 
     if (likeEntity) {
@@ -73,12 +115,24 @@ export class LikesService {
       });
 
       if (deleteEntity) {
-        return true;
-      }
+        const postLike = await this.prisma.postLike.update({
+          where: {
+            commentId,
+          },
+          data: {
+            likeCount: {
+              decrement: 1,
+            },
+          },
+          include: {
+            userLike: true,
+          },
+        });
 
-      return false;
+        return postLike;
+      }
     }
 
-    return false;
+    throw new Error("Can't unlike comment");
   }
 }

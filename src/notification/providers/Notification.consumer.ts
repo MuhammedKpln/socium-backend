@@ -11,6 +11,7 @@ import { DoneCallback, Job } from 'bull';
 import * as firebase from 'firebase-admin';
 import { User } from 'src/auth/entities/user.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Queues } from 'src/types';
 import {
   INotificationEntity,
   INotificationEntityTypes,
@@ -43,7 +44,7 @@ export class NotificationConsumer {
     });
   }
 
-  @Process('sendNotification')
+  @Process(Queues.SendNotification)
   async sendNotification(job: Job<INotificationJobData>, cb: DoneCallback) {
     const isUserDisabledNotification = await this.isUserDisabledNotification(
       job.data.toUser,

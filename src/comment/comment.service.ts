@@ -35,6 +35,7 @@ export class CommentService {
     const comments = await this.prisma.comment.findMany({
       where: {
         postId,
+        parentCommentId: null,
       },
       skip: option.offset,
       take: option.limit,
@@ -49,14 +50,10 @@ export class CommentService {
         postLike: true,
         userLike: true,
         user: true,
-        parentUser: {
+        parentComments: {
           include: {
-            userParentComments: {
-              include: {
-                postLike: true,
-                user: true,
-              },
-            },
+            postLike: true,
+            user: true,
           },
         },
       },
@@ -86,9 +83,9 @@ export class CommentService {
         postLike: true,
         userLike: true,
         user: true,
-        parentUser: {
+        parentComments: {
           include: {
-            userParentComments: {
+            parentComments: {
               include: {
                 postLike: true,
                 user: true,
@@ -102,24 +99,44 @@ export class CommentService {
     return comments;
   }
 
-  async createEntity(postId: number, entity: CreteNewCommentDto, user: User) {
+  async createEntity(
+    postId: number,
+    parentId: number,
+    entity: CreteNewCommentDto,
+    user: User,
+  ) {
     const model = await this.prisma.comment.create({
       data: {
         ...entity,
         postId,
+        parentCommentId: parentId,
         userId: user.id,
+        postLike: {
+          create: {},
+        },
+      },
+      include: {
+        post: {
+          include: {
+            user: true,
+          },
+        },
+        postLike: true,
+        userLike: true,
+        user: true,
+        parentComment: {
+          include: {
+            user: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
       },
     });
 
-    if (model) {
-      await this.prisma.postLike.create({
-        data: {
-          commentId: model.id,
-        },
-      });
-    }
-
-    return this.getCommentById(model.id);
+    return model;
   }
 
   async removeComment(commentId: number): PBool {

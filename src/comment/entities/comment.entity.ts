@@ -24,4 +24,7 @@ export class Comment extends BaseStruct {
 
   @Field((_returns) => UserLike, { nullable: true })
   userLike?: UserLike;
+
+  @Field((_returns) => [Comment], { nullable: true })
+  parentComments: Comment[];
 }

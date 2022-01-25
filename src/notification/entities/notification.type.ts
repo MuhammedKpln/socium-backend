@@ -3,6 +3,7 @@ export const enum NotificationType {
   CommentedToPost = 2,
   MessageRequestSended = 3,
   MessageRequestAccepted = 4,
+  CommentedToComment = 5,
 }
 
 export const NotificationTitle = {
@@ -13,4 +14,6 @@ export const NotificationTitle = {
     '{0} adlı kullanıcı size bir mesaj isteği gönderdi!',
   [NotificationType.MessageRequestAccepted]:
     '{0} adlı kullanıcı mesaj isteğinizi kabul etti!',
+  [NotificationType.CommentedToComment]:
+    '{0} adlı kullanıcı yorumunuzu yorumladı.',
 };

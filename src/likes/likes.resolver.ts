@@ -6,6 +6,7 @@ import { User } from 'src/auth/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
 import { ERROR_CODES } from 'src/error_code';
 import { CreateUserLikeDto } from './dtos/CreateUserLike.dto';
+import { PostLike } from './entities/PostLike.entity';
 import { UserLike } from './entities/UserLike.entity';
 import { LikesService } from './likes.service';
 
@@ -14,7 +15,7 @@ import { LikesService } from './likes.service';
 export class LikesResolver {
   constructor(private readonly likesService: LikesService) {}
 
-  @Mutation((_returns) => UserLike)
+  @Mutation((_returns) => PostLike)
   async likeEntry(
     @UserDecorator() user: User,
     @Args('data') data: CreateUserLikeDto,
@@ -43,7 +44,7 @@ export class LikesResolver {
     });
   }
 
-  @Mutation((_returns) => Boolean)
+  @Mutation((_returns) => PostLike)
   async unlikeEntry(
     @UserDecorator() user: User,
     @Args('data') data: CreateUserLikeDto,

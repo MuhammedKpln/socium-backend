@@ -14,18 +14,19 @@ model Block {
 }
 
 model Comment {
-  id           Int       @id @default(autoincrement())
-  created_at   DateTime  @default(now()) @db.Timestamp(3)
-  updated_at   DateTime  @default(now()) @db.Timestamp(3)
-  content      String    @db.VarChar
-  userId       Int?
-  postId       Int?
-  parentUserId Int?
-  parentUser   User?     @relation("parentUser", fields: [parentUserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  post         Posts?    @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  user         User?     @relation("comments", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  userLike     UserLike?
-  postLike     PostLike?
+  id              Int       @id @default(autoincrement())
+  created_at      DateTime  @default(now()) @db.Timestamp(3)
+  updated_at      DateTime  @default(now()) @db.Timestamp(3)
+  content         String    @db.VarChar
+  userId          Int?
+  postId          Int?
+  parentCommentId Int?
+  parentComment   Comment?  @relation("parentComment", fields: [parentCommentId], references: [id])
+  post            Posts?    @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user            User?     @relation("comments", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  userLike        UserLike?
+  postLike        PostLike?
+  parentComments  Comment[] @relation("parentComment")
 }
 
 model FcmNotificationTokens {
@@ -96,8 +97,6 @@ model PostLike {
   commentId  Int?      @unique
   post       Posts?    @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   comment    Comment?  @relation(fields: [commentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-
 }
 
 model Posts {
@@ -170,9 +169,8 @@ model User {
   forgotPasswordCode     Int?
   birthday               DateTime?                  @db.Timestamp(3)
   blockIncomingCalls     Boolean?                   @default(false)
-  avatar                 String?                    @db.VarChar
+  avatar                 String?                    @default("avatar1") @db.VarChar
   refreshToken           String?                    @db.VarChar
-  userParentComments     Comment[]                  @relation("parentUser")
   comments               Comment[]                  @relation("comments")
   FcmNotificationTokens  FcmNotificationTokens?
   followers              Follower[]                 @relation("userFollowers")

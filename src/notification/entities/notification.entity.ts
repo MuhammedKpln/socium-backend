@@ -9,12 +9,14 @@ import { NotificationType } from './notification.type';
 export type INotificationEntityTypes =
   | INotificationEntity.Post
   | INotificationEntity.Follower
-  | INotificationEntity.MessageRequest;
+  | INotificationEntity.MessageRequest
+  | INotificationEntity.ParentComment;
 
 export enum INotificationEntity {
   Post = 'post',
   Follower = 'follower',
   MessageRequest = 'user',
+  ParentComment = 'comment',
 }
 
 const gqlEntityType = createUnionType({

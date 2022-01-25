@@ -62,24 +62,37 @@ export class CommentResolver {
   @Mutation((returns) => Comment)
   @UseGuards(JwtAuthGuard)
   async newComment(
-    @Args('postId') postId: number,
+    @Args('postId', { nullable: true }) postId: number,
+    @Args('parentId', { nullable: true }) parentId: number,
     @Args('data') comment: CreteNewCommentDto,
     @UserDecorator() user: User,
   ) {
     const commentEntity = await this.commentsService.createEntity(
       postId,
+      parentId,
       comment,
       user,
     );
 
-    await this.notification.add(Queues.SendNotification, {
-      fromUser: user,
-      toUser: commentEntity.post.user.id,
-      notificationType: NotificationType.CommentedToPost,
-      entityId: postId,
-      entityType: INotificationEntity.Post,
-      body: comment.content,
-    });
+    if (parentId) {
+      await this.notification.add(Queues.SendNotification, {
+        fromUser: user,
+        toUser: commentEntity.parentComment.userId,
+        notificationType: NotificationType.CommentedToComment,
+        entityId: parentId,
+        entityType: INotificationEntity.ParentComment,
+        body: comment.content,
+      });
+    } else {
+      await this.notification.add(Queues.SendNotification, {
+        fromUser: user,
+        toUser: commentEntity.post.user.id,
+        notificationType: NotificationType.CommentedToPost,
+        entityId: postId,
+        entityType: INotificationEntity.Post,
+        body: comment.content,
+      });
+    }
 
     await this.pubSub.publish(NEW_COMMENT_EVENT, {
       newCommentPublished: commentEntity,
