@@ -13,6 +13,7 @@ import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
 import { PaginationParams } from 'src/inputypes/pagination.input';
 import { ChatService } from './chat.service';
 import { Messages } from './entities/messages.entity';
+import { Room } from './entities/room.entity';
 
 @Resolver((_of) => Messages)
 @UseGuards(JwtAuthGuard)
@@ -41,7 +42,7 @@ export class MessagesResolver {
     return roomsService;
   }
 
-  @Mutation((_returns) => Boolean)
+  @Mutation((_returns) => Room)
   async deleteRoom(@Args('roomId') roomId: number) {
     const roomsService = await this.chatService.removeRoom(roomId);
     return roomsService;

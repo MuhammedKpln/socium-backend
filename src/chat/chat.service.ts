@@ -245,10 +245,10 @@ export class ChatService {
     });
 
     if (deleted) {
-      return true;
+      return deleted;
     }
 
-    return false;
+    throw new Error('Could not delete room');
   }
 
   async getMessages(roomId: number, pagination: PaginationParams) {
