@@ -180,7 +180,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   app.useWebSocketAdapter(
     new UWebSocketAdapter({
-      port: parseInt(process.env.PORT || '3001'),
+      port: 3001,
       sslCert: process.env.SSL_CERT,
       sslKey: process.env.SSL_KEY,
     }),
