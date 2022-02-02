@@ -1052,6 +1052,14 @@
     optional "0.1.4"
     tslib "2.3.0"
 
+"@nestjs/websockets@^7.4.0":
+  version "7.6.18"
+  resolved "https://registry.yarnpkg.com/@nestjs/websockets/-/websockets-7.6.18.tgz#504426eb241ce528226a8d3ed308c6793cbe4d6c"
+  integrity sha512-QBp+zVAGMksNKa5HnfpZfXzO8FbDO+vGcGbxuXLPqEeH2/HsS1O09uPvi4uG02WtGWIJ+DewWdq/odsukl4lDg==
+  dependencies:
+    iterare "1.2.1"
+    tslib "2.2.0"
+
 "@nestjs/websockets@^8.1.1":
   version "8.1.1"
   resolved "https://registry.yarnpkg.com/@nestjs/websockets/-/websockets-8.1.1.tgz#81869b1a216054aa144cea0a9e82652570fc7918"
@@ -6439,6 +6447,15 @@ neo-async@^2.6.0, neo-async@^2.6.2:
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.2.tgz#b4aafb93e3aeb2d8174ca53cf163ab7d7308305f"
   integrity sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==
 
+nestjs-uws@^1.0.11:
+  version "1.0.11"
+  resolved "https://registry.yarnpkg.com/nestjs-uws/-/nestjs-uws-1.0.11.tgz#f179cf662ecd8b86cfc7fd3632eb3caa29503a53"
+  integrity sha512-K1ioCibn7/oe0na1oUwOcroaRL786PS+qvn3cmbb886AJP5JDVF3IJ5/WhmSCAsodiPLxc++63nvTx0noXIBMA==
+  dependencies:
+    "@nestjs/websockets" "^7.4.0"
+    rxjs "^6.6.0"
+    uwebsockets.js "^19.0.0-docs"
+
 netmask@^2.0.1:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/netmask/-/netmask-2.0.2.tgz#8b01a07644065d536383835823bc52004ebac5e7"
@@ -8611,6 +8628,11 @@ tsconfig-paths@3.10.1, tsconfig-paths@^3.10.1, tsconfig-paths@^3.9.0:
     minimist "^1.2.0"
     strip-bom "^3.0.0"
 
+tslib@2.2.0, tslib@~2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.2.0.tgz#fb2c475977e35e241311ede2693cee1ec6698f5c"
+  integrity sha512-gS9GVHRU+RGn5KQM2rllAlR3dU6m7AcpJKdtH8gFvQiC4Otgk98XnmMU+nZenHt/+VhnBPWwgrJsyrdcw6i23w==
+
 tslib@2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.3.0.tgz#803b8cdab3e12ba581a4ca41c8839bbb0dacb09e"
@@ -8635,11 +8657,6 @@ tslib@~2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.1.0.tgz#da60860f1c2ecaa5703ab7d39bc05b6bf988b97a"
   integrity sha512-hcVC3wYEziELGGmEEXue7D75zbwIIVUMWAVbHItGPx0ziyXxrOMQx4rQEVEV45Ut/1IotuEvwqPopzIOkDMf0A==
-
-tslib@~2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.2.0.tgz#fb2c475977e35e241311ede2693cee1ec6698f5c"
-  integrity sha512-gS9GVHRU+RGn5KQM2rllAlR3dU6m7AcpJKdtH8gFvQiC4Otgk98XnmMU+nZenHt/+VhnBPWwgrJsyrdcw6i23w==
 
 tsutils@^3.21.0:
   version "3.21.0"
@@ -8695,6 +8712,10 @@ typescript@4.3.5, typescript@^4.3.5:
   version "4.3.5"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.3.5.tgz#4d1c37cc16e893973c45a06886b7113234f119f4"
   integrity sha512-DqQgihaQ9cUrskJo9kIyW/+g0Vxsk8cDtZ52a3NGh0YNTfpUSArXSohyUGnvbPazEPLu398C0UxmKSOrPumUzA==
+
+uWebSockets.js@uNetworking/uWebSockets.js#v20.3.0:
+  version "20.3.0"
+  resolved "https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/e5d6241a7bbfb0d9258780dbf6175ae34d6f18e9"
 
 uc.micro@^1.0.1:
   version "1.0.6"
@@ -8804,6 +8825,17 @@ uuid@8.3.2, uuid@^8.0.0, uuid@^8.3.0, uuid@^8.3.2:
   version "8.3.2"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
+
+uwebsockets.js@^19.0.0-docs:
+  version "19.0.0-docs"
+  resolved "https://registry.yarnpkg.com/uwebsockets.js/-/uwebsockets.js-19.0.0-docs.tgz#11e76442212d430fd8213806af86b1baa74cea9d"
+  integrity sha512-XIi5sJY74rlb+bpp9tq9m8OcSsLWcqK5T+LTZVJT97BANwZ86PGxusTx0A+xCl0WqgwcB3goy6bZi4JF5MmLnw==
+  dependencies:
+    uws.js "https://github.com/uNetworking/uWebSockets.js#v19.0.0"
+
+"uws.js@https://github.com/uNetworking/uWebSockets.js#v19.0.0":
+  version "19.0.0"
+  resolved "https://github.com/uNetworking/uWebSockets.js#301930dae3392b5094a9c0946e178833deb8dc73"
 
 v8-compile-cache@^2.0.3:
   version "2.3.0"

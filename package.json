@@ -50,6 +50,7 @@
     "lodash.shuffle": "^4.2.0",
     "lodash.uniqby": "^4.7.0",
     "md5": "^2.3.0",
+    "nestjs-uws": "^1.0.11",
     "nodemailer": "^6.6.3",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
@@ -59,7 +60,8 @@
     "rxjs": "^7.2.0",
     "sharp": "^0.29.3",
     "slugify": "^1.6.0",
-    "socket.io-client": "4.2.0"
+    "socket.io-client": "4.2.0",
+    "uWebSockets.js": "uNetworking/uWebSockets.js#v20.3.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^8.0.0",

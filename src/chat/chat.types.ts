@@ -5,9 +5,8 @@ export enum Role {
   'Dinleyici' = 0,
 }
 
-export interface IData {
-  role: Role;
-  userId: number;
+export interface IJoinQueue {
+  user: User;
 }
 export interface ICallOffer {
   offer: string;
@@ -31,7 +30,7 @@ export interface IRoomMessage {
 }
 
 export interface ISendMessage {
-  roomName: string;
+  room: string;
   message?: string;
   user: User;
   receiver: User;
@@ -51,4 +50,18 @@ export interface ICheckForRoomProps {
 
 export interface IRemoveMessageRequest {
   messageId: number;
+  room: string;
+}
+
+export interface IPool {
+  uuid: string;
+  user: User;
+}
+
+export enum IResponseEvents {
+  ClientPaired = 'CLIENT_PAIRED',
+  MessageSended = 'MESSAGE_RECEIVED',
+  Typing = 'USER_IS_TYPING',
+  DoneTyping = 'USER_IS_DONE_TYPING',
+  MessageRemoved = 'MESSAGE_REMOVED',
 }

@@ -1,14 +1,18 @@
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, WebSocketAdapter } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
-import { IoAdapter } from '@nestjs/platform-socket.io';
-import { createAdapter } from '@socket.io/redis-adapter';
+import { MessageMappingProperties } from '@nestjs/websockets';
+import { randomUUID } from 'crypto';
+import * as events from 'events';
 import { fastifyHelmet } from 'fastify-helmet';
+
 import { createClient } from 'redis';
-import { ServerOptions } from 'socket.io';
+import { EMPTY, fromEvent, Observable } from 'rxjs';
+import { filter, mergeMap } from 'rxjs/operators';
+import * as UWS from 'uWebSockets.js';
 import { AppModule } from './app.module';
 
 export const redisUrl =
@@ -30,30 +34,122 @@ redisSocketClient.on('error', function (error) {
   console.error(error);
 });
 
-export class SocketAdapter extends IoAdapter {
-  createIOServer(
-    port: number,
-    options?: ServerOptions & {
-      namespace?: string;
-      server?: any;
-    },
-  ) {
-    const server = super.createIOServer(3001, {
-      ...options,
-      cors: {
-        origin: process.env.CORS_ORIGIN,
-        credentials: true,
-        methods: ['GET', 'POST'],
-      },
-      allowEIO3: false,
-      transports: ['websocket', 'polling'],
+export interface ICreateServerArgs {
+  port: number;
+}
+export interface ICreateServerSecureArgs extends ICreateServerArgs {
+  sslKey?: string;
+  sslCert?: string;
+}
+export interface ICreateServerOptionsArgs {
+  isSSL: boolean;
+  port: number;
+  sslKey?: string;
+  sslCert?: string;
+}
+
+export class UWSBuilder {
+  static buildSSLApp(params: ICreateServerSecureArgs): UWS.TemplatedApp {
+    return UWS.SSLApp({
+      cert_file_name: params.sslCert,
+      key_file_name: params.sslKey,
     });
+  }
 
-    const redisAdapter = createAdapter(redisSocketClient, subClient);
+  static buildApp(params: ICreateServerArgs): UWS.TemplatedApp {
+    return UWS.App();
+  }
+}
 
-    server.adapter(redisAdapter);
+export class UWebSocketAdapter implements WebSocketAdapter {
+  private instance: UWS.TemplatedApp = null;
+  private listenSocket: string = null;
+  private port = 0;
 
-    return server;
+  constructor(args: ICreateServerArgs & ICreateServerSecureArgs) {
+    this.port = args.port;
+    if (args.sslKey) {
+      this.instance = UWSBuilder.buildSSLApp(args as ICreateServerSecureArgs);
+    } else {
+      this.instance = UWSBuilder.buildApp(args);
+    }
+  }
+
+  bindClientConnect(
+    server: UWS.TemplatedApp,
+    callback: (socket: any) => void,
+  ): any {
+    this.instance
+      .ws('/*', {
+        maxBackpressure: 2048 * 2048,
+        compression: UWS.DEDICATED_COMPRESSOR_128KB,
+        open: (socket) => {
+          socket.id = randomUUID();
+
+          Object.defineProperty(socket, 'emitter', {
+            configurable: false,
+            value: new events.EventEmitter(),
+          });
+          callback(socket);
+        },
+        message: (socket, message, isBinary) => {
+          socket['emitter'].emit('message', { message, isBinary });
+        },
+      })
+      .any('/*', (res, req) => {
+        res.end('Nothing to see here!');
+      });
+  }
+
+  bindMessageHandlers(
+    client: UWS.WebSocket,
+    handlers: MessageMappingProperties[],
+    process: (data: any) => Observable<any>,
+  ): any {
+    fromEvent(client['emitter'], 'message')
+      .pipe(
+        mergeMap((data: { message: ArrayBuffer; isBinary: boolean }) =>
+          this.bindMessageHandler(data, handlers, process),
+        ),
+        filter((result) => result),
+      )
+      .subscribe((response) => client.send(JSON.stringify(response)));
+  }
+
+  bindMessageHandler(
+    buffer: { message: ArrayBuffer; isBinary: boolean },
+    handlers: MessageMappingProperties[],
+    process: (data: any) => Observable<any>,
+  ): Observable<any> {
+    const stringMessageData = Buffer.from(buffer.message).toString('utf-8');
+    const message = JSON.parse(stringMessageData);
+    const messageHandler = handlers.find(
+      (handler) => handler.message === message.event,
+    );
+    if (!messageHandler) {
+      console.error('empty');
+      return EMPTY;
+    }
+
+    return process(messageHandler.callback(message.data));
+  }
+
+  close(): any {
+    UWS.us_listen_socket_close(this.listenSocket);
+    this.instance = null;
+  }
+
+  async create(): Promise<UWS.TemplatedApp> {
+    return new Promise((resolve, reject) =>
+      this.instance.listen(this.port, (token) => {
+        if (token) {
+          this.listenSocket = token;
+          resolve(this.instance);
+        } else {
+          reject("Can't start listening...");
+        }
+      }),
+    );
   }
 }
 
@@ -82,7 +178,13 @@ async function bootstrap() {
   });
 
   app.useGlobalPipes(new ValidationPipe());
-  app.useWebSocketAdapter(new SocketAdapter(app));
+  app.useWebSocketAdapter(
+    new UWebSocketAdapter({
+      port: parseInt(process.env.PORT || '3001'),
+      sslCert: process.env.SSL_CERT,
+      sslKey: process.env.SSL_KEY,
+    }),
+  );
 
   // app.useGlobalFilters(new AllExceptionsFilter());
 
