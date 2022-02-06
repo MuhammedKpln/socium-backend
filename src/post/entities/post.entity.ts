@@ -1,7 +1,8 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, Float, ObjectType } from '@nestjs/graphql';
 import { User } from 'src/auth/entities/user.entity';
 import { Category } from 'src/category/entities/category.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
+import { Follower } from 'src/follower/entities/follower.entity';
 import { PostLike } from 'src/likes/entities/PostLike.entity';
 import { UserLike } from 'src/likes/entities/UserLike.entity';
 import { BaseStruct } from 'src/typeorm/BaseStruct';
@@ -32,6 +33,9 @@ export class PostEntity extends BaseStruct {
   user: User;
 
   @Field()
+  cursor: number;
+
+  @Field()
   type: PostType;
 
   @Field()
@@ -54,4 +58,25 @@ export class PostEntity extends BaseStruct {
 
   @Field()
   category: Category;
+
+  @Field((_returns) => Follower, { nullable: true })
+  isFollowed?: Follower;
+}
+
+@ObjectType()
+class Cursor {
+  @Field({ nullable: true })
+  startCursor: number;
+
+  @Field({ nullable: true })
+  endCursor: number;
+
+  @Field()
+  hasNextPage: boolean;
+}
+
+@ObjectType()
+export class PostEntityy extends Cursor {
+  @Field((_returns) => [PostEntity])
+  posts: PostEntity[];
 }

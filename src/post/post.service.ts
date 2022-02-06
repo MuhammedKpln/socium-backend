@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Posts } from '@prisma/client';
-import * as shuffleArray from 'lodash.shuffle';
 import slugify from 'slugify';
 import { User } from 'src/auth/entities/user.entity';
 import { getRandomString } from 'src/helpers/randomString';
@@ -29,39 +28,34 @@ export class PostService {
 
   async getAllPosts(
     pagination: PaginationParams,
-    blogPosts?: boolean,
+    user?: User,
   ): Promise<Posts[]> {
-    let query = {
-      ...essentialDatabaseOptions,
+    const posts = await this.prisma.posts.findMany({
       take: pagination.limit,
       skip: pagination.offset,
-    };
+      ...essentialDatabaseOptions,
+    });
 
-    if (blogPosts !== undefined && blogPosts === false) {
-      const where = {
-        where: {
-          type: {
-            not: 4,
+    if (user) {
+      const postsWithFollowedAuthors = posts.map(async (post) => {
+        const isFollowed = await this.prisma.follower.findFirst({
+          where: {
+            userId: user.id,
+            actorId: post.userId,
           },
-        },
-      };
-
-      query = { ...query, ...where };
-    } else if (blogPosts !== undefined && blogPosts === true) {
-      const where = {
-        where: {
-          type: {
-            equals: 4,
+          select: {
+            actorId: true,
+            userId: true,
           },
-        },
-      };
+        });
 
-      query = { ...query, ...where };
+        return { ...post, isFollowed };
+      });
+
+      return Promise.all(postsWithFollowedAuthors);
     }
 
-    const randomPosts = await this.prisma.posts.findMany(query);
-
-    return shuffleArray(randomPosts);
+    return posts;
   }
 
   async getAllPostsFromUser(username: string): P<Posts[]> {

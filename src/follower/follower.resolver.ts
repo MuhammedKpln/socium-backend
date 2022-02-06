@@ -55,7 +55,7 @@ export class FollowerResolver {
     return this.followersService.getFollowingsById(userId, pagination);
   }
 
-  @Mutation((_results) => Boolean)
+  @Mutation((_results) => Follower)
   @UseGuards(JwtAuthGuard)
   async followUser(
     @Args('actorId') actorId: number,
@@ -78,10 +78,9 @@ export class FollowerResolver {
           lifo: true,
         },
       );
-      return true;
     }
 
-    return false;
+    return followed;
   }
 
   @Mutation((_results) => Boolean)

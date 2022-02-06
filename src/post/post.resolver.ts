@@ -19,7 +19,7 @@ import {
 } from 'src/likes/utils/fetchMetaData';
 import { PUB_SUB } from 'src/pubsub/pubsub.module';
 import { CreatePostDto } from './dtos/createPost';
-import { PostEntity, PostType } from './entities/post.entity';
+import { PostEntity, PostEntityy, PostType } from './entities/post.entity';
 import { PostService } from './post.service';
 import { CREATED_POST } from './pubsub.events';
 import type { Posts } from '@prisma/client';
@@ -45,22 +45,7 @@ export class PostsResolver {
         pagination,
       );
     }
-    return await this.postService.getAllPosts(pagination);
-  }
-
-  @Query((returns) => [PostEntity])
-  async postsWithoutBlog(
-    @Args('pagination') pagination: PaginationParams,
-    @UserDecorator() user: User,
-  ): Promise<Posts[]> {
-    return await this.postService.getAllPosts(pagination, false);
-  }
-  @Query((returns) => [PostEntity])
-  async postsOnlyBlog(
-    @Args('pagination') pagination: PaginationParams,
-    @UserDecorator() user: User,
-  ): Promise<Posts[]> {
-    return await this.postService.getAllPosts(pagination, true);
+    return await this.postService.getAllPosts(pagination, user);
   }
 
   @Query((returns) => PostEntity)

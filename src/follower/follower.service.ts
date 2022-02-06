@@ -72,11 +72,15 @@ export class FollowerService {
           userId: user.id,
           actorId,
         },
+        include: {
+          actor: true,
+          user: true,
+        },
       });
 
       return model;
     } else {
-      return false;
+      return alreadyFollowing;
     }
   }
   async unFollowUser(user: User, actorId: number): PBool {

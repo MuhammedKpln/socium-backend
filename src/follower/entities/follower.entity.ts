@@ -9,4 +9,13 @@ export class Follower extends BaseStruct {
 
   @Field((_returns) => User)
   actor: User;
+
+  @Field({ nullable: true })
+  userId: number;
+
+  @Field({ nullable: true })
+  actorId: number;
+
+  @Field({ nullable: true })
+  isFollowing: boolean;
 }
