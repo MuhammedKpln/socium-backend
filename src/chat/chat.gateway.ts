@@ -12,6 +12,8 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import * as uws from 'uWebSockets.js';
 import { ChatService } from './chat.service';
 import {
+  ICallAnswer,
+  ICallData,
   IJoinQueue,
   IPool,
   IRemoveMessageRequest,
@@ -53,6 +55,7 @@ export class ChatGateway implements OnGatewayConnection {
         const genRoom = getRandomString(10);
 
         try {
+          console.log('#QWEQ', socket.id);
           socket.publish(
             connectedSocket.uuid,
             JSON.stringify({
@@ -60,13 +63,16 @@ export class ChatGateway implements OnGatewayConnection {
               data: {
                 room: genRoom,
                 user: user.user,
+                uuid: socket.id,
               },
             }),
           );
+          console.log('WEWE', connectedSocket.uuid);
 
           resolve({
             room: genRoom,
             connectedUser: connectedSocket.user,
+            uuid: connectedSocket.uuid,
           });
 
           this.pool = this.pool.filter((id) => {
@@ -85,6 +91,7 @@ export class ChatGateway implements OnGatewayConnection {
 
   @SubscribeMessage('join queue')
   handleJoinQueue(socket: uws.WebSocket, data: IJoinQueue) {
+    socket.subscribe(socket.id);
     const alreadyInQueue = this.pool.find((id) => id.uuid === socket.id);
     if (alreadyInQueue) {
       console.log('Already in queue');
@@ -99,17 +106,20 @@ export class ChatGateway implements OnGatewayConnection {
 
     this.pair(socket)
       .then((room: any) => {
+        console.log('eeee', room.uuid);
+
         socket.send(
           JSON.stringify({
             event: IResponseEvents.ClientPaired,
             data: {
               room: room.room,
               user: room.connectedUser,
+              uuid: room.uuid,
             },
           }),
         );
       })
-      .catch((err) => console.error(err));
+      .catch((err) => console.error('ERR', err));
   }
 
   @SubscribeMessage('leave room')
@@ -184,6 +194,41 @@ export class ChatGateway implements OnGatewayConnection {
     } else {
       socket.publish(data.room, this.eventHandler(IResponseEvents.DoneTyping));
     }
+  }
+
+  @SubscribeMessage('leave queue')
+  handleLeaveQueue(socket: uws.WebSocket) {
+    socket.unsubscribe(socket.id);
+    this.pool = this.pool.filter((id) => id.uuid !== socket.id);
+  }
+
+  @SubscribeMessage('call user')
+  handleCallUser(socket: uws.WebSocket, { offer, uuid }: ICallData) {
+    socket.publish(
+      uuid,
+      this.eventHandler(IResponseEvents.CallMade, { offer, uuid: socket.id }),
+    );
+  }
+
+  @SubscribeMessage('make answer')
+  handleCallAnswer(socket: uws.WebSocket, data: ICallAnswer) {
+    socket.publish(
+      data.uuid,
+      this.eventHandler(IResponseEvents.AnswerMade, {
+        answer: data.answer,
+        uuid: socket.id,
+      }),
+    );
+  }
+  @SubscribeMessage('ice')
+  ice(socket: uws.WebSocket, data) {
+    socket.publish(
+      data.uuid,
+      this.eventHandler('got ice', {
+        ice: data.ice,
+        uuid: socket.id,
+      }),
+    );
   }
 
   handleConnection(client: uws.WebSocket, ...args: any[]) {

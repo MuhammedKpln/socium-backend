@@ -14,7 +14,7 @@ export interface ICallOffer {
 }
 export interface ICallAnswer {
   answer: string;
-  to: string;
+  uuid: string;
 }
 
 export interface ITypingData {
@@ -58,10 +58,17 @@ export interface IPool {
   user: User;
 }
 
+export interface ICallData {
+  offer: RTCSessionDescription;
+  uuid: string;
+}
+
 export enum IResponseEvents {
   ClientPaired = 'CLIENT_PAIRED',
   MessageSended = 'MESSAGE_RECEIVED',
   Typing = 'USER_IS_TYPING',
   DoneTyping = 'USER_IS_DONE_TYPING',
   MessageRemoved = 'MESSAGE_REMOVED',
+  CallMade = 'CALL_MADE',
+  AnswerMade = 'ANSWER_MADE',
 }
