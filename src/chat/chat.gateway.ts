@@ -12,12 +12,15 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import * as uws from 'uWebSockets.js';
 import { ChatService } from './chat.service';
 import {
+  IAddIceCandidate,
   ICallAnswer,
   ICallData,
   IJoinQueue,
+  IMicMuted,
   IPool,
   IRemoveMessageRequest,
   IResponseEvents,
+  IRetrieveCall,
   ISendMessage,
 } from './chat.types';
 
@@ -220,12 +223,29 @@ export class ChatGateway implements OnGatewayConnection {
       }),
     );
   }
-  @SubscribeMessage('ice')
-  ice(socket: uws.WebSocket, data) {
+
+  @SubscribeMessage('add ice candidate')
+  handleAddIceCandidate(socket: uws.WebSocket, data: IAddIceCandidate) {
     socket.publish(
       data.uuid,
-      this.eventHandler('got ice', {
-        ice: data.ice,
+      this.eventHandler(IResponseEvents.ReceivedIceCandidate, {
+        candidate: data.candidate,
+        uuid: socket.id,
+      }),
+    );
+  }
+
+  @SubscribeMessage('retrieve call')
+  handleRetrieveCall(socket: uws.WebSocket, data: IRetrieveCall) {
+    socket.publish(data.uuid, this.eventHandler(IResponseEvents.RetrieveCall));
+  }
+
+  @SubscribeMessage('microphone muted')
+  handleMicMuted(socket: uws.WebSocket, data: IMicMuted) {
+    socket.publish(
+      data.uuid,
+      this.eventHandler(IResponseEvents.MicMuted, {
+        isMuted: data.isMuted,
         uuid: socket.id,
       }),
     );

@@ -5,6 +5,10 @@ export enum Role {
   'Dinleyici' = 0,
 }
 
+interface IUUID {
+  uuid: string;
+}
+
 export interface IJoinQueue {
   user: User;
 }
@@ -71,4 +75,20 @@ export enum IResponseEvents {
   MessageRemoved = 'MESSAGE_REMOVED',
   CallMade = 'CALL_MADE',
   AnswerMade = 'ANSWER_MADE',
+  ReceivedIceCandidate = 'RECEIVED_ICE_CANDIDATE',
+  RetrieveCall = 'CALL_RETRIEVED',
+  MicMuted = 'MIC_MUTED',
+}
+
+export interface IAddIceCandidate {
+  uuid: string;
+  candidate: RTCIceCandidateType;
+}
+
+export interface IRetrieveCall {
+  uuid: string;
+}
+
+export interface IMicMuted extends IUUID {
+  isMuted: boolean;
 }
