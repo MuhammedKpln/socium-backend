@@ -139,7 +139,6 @@ export class ChatGateway implements OnGatewayConnection {
   @SubscribeMessage('send message')
   async handleMessage(socket: uws.WebSocket, data: ISendMessage) {
     const { room, message, user, receiver } = data;
-
     const m = await this.chatService.saveMessage({
       message,
       receiverId: receiver.id,

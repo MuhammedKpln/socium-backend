@@ -1,4 +1,4 @@
-import { Field, InputType } from '@nestjs/graphql';
+import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import {
   IsEmail,
   IsNotEmpty,
@@ -6,6 +6,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { LoginResponse } from './loginUser.dto';
 
 @InputType()
 export class CreateUserDto {
@@ -42,3 +43,6 @@ export class VerifyEmailDto {
   @Field()
   verificationCode: number;
 }
+
+@ObjectType()
+export class RegisterResponse extends LoginResponse {}

@@ -4,7 +4,11 @@ import { UserInputError } from 'apollo-server-errors';
 import { ERROR_CODES } from 'src/error_code';
 import { AuthService } from './auth.service';
 import { User as UserDecorator } from './decorators/user.decorator';
-import { CreateUserDto, VerifyEmailDto } from './dtos/createUser.dto';
+import {
+  CreateUserDto,
+  RegisterResponse,
+  VerifyEmailDto,
+} from './dtos/createUser.dto';
 import { CreateUserGoogleDto } from './dtos/createUserGoogle.dto';
 import { ForgotPasswordDto } from './dtos/forgotPassword.dto';
 import { LoginResponse, LoginUserDto } from './dtos/loginUser.dto';
@@ -61,7 +65,7 @@ export class AuthResolver {
     return false;
   }
 
-  @Mutation((returns) => User)
+  @Mutation((returns) => RegisterResponse)
   async register(@Args('data') user: CreateUserDto) {
     const alreadyRegistered = await this.authService.findOneWithEmail(
       user.email,

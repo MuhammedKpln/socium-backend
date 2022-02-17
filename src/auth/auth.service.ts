@@ -164,7 +164,7 @@ export class AuthService {
     };
   }
 
-  async register(user: CreateUserDto): Promise<User> {
+  async register(user: CreateUserDto) {
     const { email, password, username } = user;
 
     const createUser = await this.prisma.user.create({
@@ -202,7 +202,10 @@ export class AuthService {
         },
       );
 
-      return createUser;
+      return await this.login({
+        email: createUser.email,
+        password: user.password,
+      });
     } else {
       throw new HttpException(
         {
