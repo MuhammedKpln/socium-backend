@@ -73,6 +73,8 @@ export class ChatService {
         },
         include: {
           room: true,
+          receiver: true,
+          sender: true,
         },
       });
     } else {
