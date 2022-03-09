@@ -1,6 +1,6 @@
 import { InjectQueue } from '@nestjs/bull';
 import { Inject, Injectable } from '@nestjs/common';
-import { MessageRequest, Room } from '@prisma/client';
+import { MessageRequest, Messages, Room } from '@prisma/client';
 import { Queue } from 'bull';
 import { PubSub } from 'graphql-subscriptions';
 import { User } from 'src/auth/entities/user.entity';

@@ -23,6 +23,7 @@ import {
   IRetrieveCall,
   ISendMessage,
 } from './chat.types';
+import * as firebase from 'firebase-admin';
 
 @WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection {
@@ -148,6 +149,34 @@ export class ChatGateway implements OnGatewayConnection {
     });
 
     if (m) {
+      const fcmUser = await this.prisma.fcmNotificationTokens.findFirst({
+        where: {
+          userId: receiver.id,
+        },
+      });
+
+      console.log(fcmUser);
+
+      if (fcmUser) {
+        await firebase
+          .messaging()
+          .sendToDevice(fcmUser.fcmToken, {
+            data: {
+              entityType: 'message',
+              entity: JSON.stringify({
+                room: m.room,
+                user: m.sender,
+              }),
+              link: 'com.derdevam://message-room/' + m.room.id,
+            },
+            notification: {
+              title: user.username + ' kullanicisindan yeni bir mesajiniz var',
+              body: message,
+            },
+          })
+          .catch((err) => console.log(err));
+      }
+
       socket.publish(
         room,
         this.eventHandler(IResponseEvents.MessageSended, {

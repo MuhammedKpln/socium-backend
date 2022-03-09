@@ -1,6 +1,6 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { IsEmail, IsNotEmpty } from 'class-validator';
-import { User } from '../entities/user.entity';
+import { LoginResponse } from './loginUser.dto';
 
 @InputType()
 export class LoginUserGoogleDto {
@@ -15,9 +15,4 @@ export class LoginUserGoogleDto {
 }
 
 @ObjectType()
-export class LoginUserGoogleResponse {
-  @Field()
-  access_token: string;
-  @Field()
-  user: User;
-}
+export class LoginUserGoogleResponse extends LoginResponse {}
