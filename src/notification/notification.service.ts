@@ -40,12 +40,11 @@ export class NotificationService {
       const notification = notifications[i] as ICustomNotification;
       switch (notification.entityType) {
         case INotificationEntity.Post:
-          const post = await this.prisma.notification.findFirst({
+          const post = await this.prisma.posts.findFirst({
             where: {
               id: notification.entityId,
             },
             include: {
-              actor: true,
               user: true,
             },
           });
@@ -90,12 +89,11 @@ export class NotificationService {
       const notification = notifications[i] as ICustomNotification;
       switch (notification.entityType) {
         case INotificationEntity.Post:
-          const post = await this.prisma.notification.findFirst({
+          const post = await this.prisma.posts.findFirst({
             where: {
               id: notification.entityId,
             },
             include: {
-              actor: true,
               user: true,
             },
           });
@@ -134,6 +132,30 @@ export class NotificationService {
     const update = await this.prisma.notification.update({
       where: {
         id,
+      },
+      data: {
+        readed: true,
+      },
+    });
+
+    if (update) {
+      return true;
+    }
+
+    return false;
+  }
+
+  async markAllNotificationAsRead(user: User) {
+    const update = await this.prisma.notification.updateMany({
+      where: {
+        OR: [
+          {
+            actorId: user.id,
+          },
+          {
+            userId: user.id,
+          },
+        ],
       },
       data: {
         readed: true,

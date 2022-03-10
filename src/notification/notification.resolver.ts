@@ -1,7 +1,7 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { User } from '@prisma/client';
 import { User as UserDecorator } from 'src/auth/decorators/user.decorator';
-import { User } from 'src/auth/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
 import { EditNotificationSettingsDto } from './dtos/EditNotificationSettings.dto';
 import {
@@ -26,6 +26,10 @@ export class NotificationResolver {
   @Mutation((_returns) => Boolean)
   async markNotificationAsRead(@Args('id') id: number) {
     return await this.notificationService.markNotificationAsRead(id);
+  }
+  @Mutation((_returns) => Boolean)
+  async markAllNotificationAsRead(@UserDecorator() user: User) {
+    return await this.notificationService.markAllNotificationAsRead(user);
   }
 
   @Mutation((_returns) => Boolean)
