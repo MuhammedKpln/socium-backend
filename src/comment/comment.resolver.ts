@@ -51,7 +51,6 @@ export class CommentResolver {
 
   @Subscription((_returns) => Comment, {
     filter: (payload, variables) => {
-      console.log(payload);
       return payload.newCommentPublished.post.slug === variables.postSlug;
     },
   })

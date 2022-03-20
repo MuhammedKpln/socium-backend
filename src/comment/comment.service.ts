@@ -54,6 +54,7 @@ export class CommentService {
           include: {
             postLike: true,
             user: true,
+            userLike: true,
           },
         },
       },
@@ -89,6 +90,7 @@ export class CommentService {
               include: {
                 postLike: true,
                 user: true,
+                userLike: true,
               },
             },
           },
