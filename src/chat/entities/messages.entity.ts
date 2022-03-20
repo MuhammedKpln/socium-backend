@@ -14,6 +14,9 @@ export class Messages extends BaseStruct {
   @Field((_returns) => User)
   receiver: User;
 
+  @Field((_) => Messages, { nullable: true })
+  repliedToMessage?: Messages;
+
   @Field()
   message: string;
 

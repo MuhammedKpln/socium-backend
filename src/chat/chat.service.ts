@@ -70,11 +70,17 @@ export class ChatService {
           message,
           seen,
           roomId: room.id,
+          repliedToMessageId: data?.repliedToId ?? undefined,
         },
         include: {
           room: true,
           receiver: true,
           sender: true,
+          repliedToMessage: {
+            include: {
+              sender: true,
+            },
+          },
         },
       });
     } else {
@@ -264,6 +270,7 @@ export class ChatService {
         room: true,
         sender: true,
         receiver: true,
+        repliedToMessage: true,
       },
       orderBy: {
         created_at: 'desc',

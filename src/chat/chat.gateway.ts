@@ -139,12 +139,13 @@ export class ChatGateway implements OnGatewayConnection {
 
   @SubscribeMessage('send message')
   async handleMessage(socket: uws.WebSocket, data: ISendMessage) {
-    const { room, message, user, receiver } = data;
+    const { room, message, user, receiver, repliedToId } = data;
     const m = await this.chatService.saveMessage({
       message,
       receiverId: receiver.id,
       userId: user.id,
       roomAdress: room,
+      repliedToId,
       seen: false,
     });
 
@@ -154,8 +155,6 @@ export class ChatGateway implements OnGatewayConnection {
           userId: receiver.id,
         },
       });
-
-      console.log(fcmUser);
 
       if (fcmUser) {
         await firebase

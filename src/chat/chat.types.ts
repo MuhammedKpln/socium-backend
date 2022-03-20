@@ -38,6 +38,7 @@ export interface ISendMessage {
   message?: string;
   user: User;
   receiver: User;
+  repliedToId?: number;
 }
 
 export interface ISaveMessageProps {
@@ -46,6 +47,7 @@ export interface ISaveMessageProps {
   userId: number;
   receiverId: number;
   seen: boolean;
+  repliedToId?: number;
 }
 export interface ICheckForRoomProps {
   roomAdress?: string;
