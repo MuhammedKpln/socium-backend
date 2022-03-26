@@ -1,1 +1,0 @@
-export const NEW_COMMENT_EVENT = 'NEW_COMMENT_EVENT';

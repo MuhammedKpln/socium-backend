@@ -31,7 +31,6 @@ export class FollowerResolver {
       actorId,
     );
 
-    console.log(model);
     if (model) {
       return true;
     }

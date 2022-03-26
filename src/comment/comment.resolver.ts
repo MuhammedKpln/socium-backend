@@ -15,7 +15,6 @@ import { Queues } from 'src/types';
 import { CommentService } from './comment.service';
 import { CreteNewCommentDto } from './dtos/CreateNewComment.dto';
 import { Comment } from './entities/comment.entity';
-import { NEW_COMMENT_EVENT } from './events.pubsub';
 
 @Resolver((of) => Comment)
 export class CommentResolver {
@@ -47,15 +46,6 @@ export class CommentResolver {
     );
 
     return comments;
-  }
-
-  @Subscription((_returns) => Comment, {
-    filter: (payload, variables) => {
-      return payload.newCommentPublished.post.slug === variables.postSlug;
-    },
-  })
-  newCommentPublished(@Args('postSlug') postSlug: string) {
-    return this.pubSub.asyncIterator(NEW_COMMENT_EVENT);
   }
 
   @Mutation((returns) => Comment)
@@ -92,10 +82,6 @@ export class CommentResolver {
         body: comment.content,
       });
     }
-
-    await this.pubSub.publish(NEW_COMMENT_EVENT, {
-      newCommentPublished: commentEntity,
-    });
 
     return commentEntity;
   }

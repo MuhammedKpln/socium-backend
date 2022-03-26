@@ -55,7 +55,7 @@ import { CategoryModule } from './category/category.module';
             }
 
             const verified = verify(authToken, jwtConstants.SECRET_KEY);
-
+            console.log(verified);
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             //@ts-ignore
             if (verified.email) {
@@ -66,6 +66,9 @@ import { CategoryModule } from './category/category.module';
               return {};
             }
           },
+        },
+        'subscriptions-transport-ws': {
+          path: '/subscriptions',
         },
       },
     }),

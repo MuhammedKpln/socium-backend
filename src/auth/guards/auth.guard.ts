@@ -6,12 +6,16 @@ import {
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { AuthGuard } from '@nestjs/passport';
 import { ApolloError } from 'apollo-server-fastify';
+import { Console } from 'console';
 import { TokenExpiredError } from 'jsonwebtoken';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
   getRequest(context: ExecutionContext) {
     const ctx = GqlExecutionContext.create(context);
+
+    console.log(ctx);
+
     return ctx.getContext().req;
   }
 

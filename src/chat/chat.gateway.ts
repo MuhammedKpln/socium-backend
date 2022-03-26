@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import {
   OnGatewayConnection,
   SubscribeMessage,
@@ -24,6 +24,10 @@ import {
   ISendMessage,
 } from './chat.types';
 import * as firebase from 'firebase-admin';
+import { PUB_SUB } from 'src/pubsub/pubsub.module';
+import { PubSub } from 'graphql-subscriptions';
+import { MESSAGE_SENDED } from './events.pubsub';
+import { Messages } from '@prisma/client';
 
 @WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection {
@@ -33,6 +37,7 @@ export class ChatGateway implements OnGatewayConnection {
   constructor(
     private chatService: ChatService,
     private readonly prisma: PrismaService,
+    @Inject(PUB_SUB) private readonly pubSub: PubSub,
   ) {
     this.redis = new RedisClient({
       url: redisUrl,
@@ -175,6 +180,10 @@ export class ChatGateway implements OnGatewayConnection {
           })
           .catch((err) => console.log(err));
       }
+
+      this.pubSub.publish(MESSAGE_SENDED, {
+        messageSended: m,
+      });
 
       socket.publish(
         room,

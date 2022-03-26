@@ -61,7 +61,7 @@
     "sharp": "^0.29.3",
     "slugify": "^1.6.0",
     "socket.io-client": "4.2.0",
-    "uWebSockets.js": "uNetworking/uWebSockets.js#v20.3.0"
+    "uWebSockets.js": "uNetworking/uWebSockets.js#v20.6.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^8.0.0",
