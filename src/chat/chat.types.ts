@@ -80,6 +80,8 @@ export enum IResponseEvents {
   ReceivedIceCandidate = 'RECEIVED_ICE_CANDIDATE',
   RetrieveCall = 'CALL_RETRIEVED',
   MicMuted = 'MIC_MUTED',
+  MediaPermissionAsked = 'MEDIA_PERMISSION_ASKED',
+  MediaPermissionAnswered = 'MEDIA_PERMISSION_ANSWERED',
 }
 
 export interface IAddIceCandidate {
@@ -93,4 +95,14 @@ export interface IRetrieveCall {
 
 export interface IMicMuted extends IUUID {
   isMuted: boolean;
+}
+
+export interface IAskForMediaPermission extends IUUID {
+  video?: boolean;
+  audio?: boolean;
+}
+
+export interface IAnswerMediaControl extends IUUID {
+  video?: boolean;
+  audio?: boolean;
 }

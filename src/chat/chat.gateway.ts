@@ -13,6 +13,8 @@ import * as uws from 'uWebSockets.js';
 import { ChatService } from './chat.service';
 import {
   IAddIceCandidate,
+  IAnswerMediaControl,
+  IAskForMediaPermission,
   ICallAnswer,
   ICallData,
   IJoinQueue,
@@ -285,6 +287,36 @@ export class ChatGateway implements OnGatewayConnection {
         uuid: socket.id,
       }),
     );
+  }
+
+  @SubscribeMessage('ask for media permission')
+  handleAskForMediaPermission(
+    socket: uws.WebSocket,
+    data: IAskForMediaPermission,
+  ) {
+    socket.publish(
+      data.uuid,
+      this.eventHandler(IResponseEvents.MediaPermissionAsked, {
+        ...data,
+        uuid: socket.id,
+      }),
+    );
+  }
+
+  @SubscribeMessage('allow media controls')
+  handleMediaControl(socket: uws.WebSocket, data: IAnswerMediaControl) {
+    socket.publish(
+      data.uuid,
+      this.eventHandler(IResponseEvents.MediaPermissionAnswered, {
+        ...data,
+        uuid: socket.id,
+      }),
+    );
+  }
+
+  @SubscribeMessage('ping')
+  s(socket: uws.WebSocket, data: IMicMuted) {
+    socket.send('Pong!');
   }
 
   handleConnection(client: uws.WebSocket, ...args: any[]) {

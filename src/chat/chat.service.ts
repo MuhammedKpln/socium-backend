@@ -234,6 +234,7 @@ export class ChatService {
           },
         ],
       },
+
       include: {
         receiver: true,
         room: true,
@@ -241,7 +242,7 @@ export class ChatService {
       },
       take: options.limit,
       skip: options.offset,
-      distinct: 'roomId',
+      distinct: ['roomId', 'senderId', 'receiverId'],
     });
 
     return messageRooms;
@@ -279,7 +280,7 @@ export class ChatService {
       take: limit,
     });
 
-    return messages.reverse();
+    return messages;
   }
 
   // async alreadyBlocked(userId: number, actorId: number): Promise<boolean> {
