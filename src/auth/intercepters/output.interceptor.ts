@@ -4,12 +4,12 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { classToPlain } from 'class-transformer';
+import { instanceToPlain } from 'class-transformer';
 import { map, Observable } from 'rxjs';
 
 @Injectable()
 export class SerializeOutput implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    return next.handle().pipe(map((data) => classToPlain(data)));
+    return next.handle().pipe(map((data) => instanceToPlain(data)));
   }
 }
