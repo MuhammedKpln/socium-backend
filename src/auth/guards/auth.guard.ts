@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { AuthGuard } from '@nestjs/passport';
-import { ApolloError } from 'apollo-server-fastify';
+import { ApolloError } from 'apollo-server-express';
 import { Console } from 'console';
 import { TokenExpiredError } from 'jsonwebtoken';
 

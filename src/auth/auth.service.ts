@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma, User } from '@prisma/client';
-import { ApolloError } from 'apollo-server-fastify';
+import { ApolloError } from 'apollo-server-express';
 import { Queue } from 'bull';
 import { compareHash, hashText } from 'src/cryptHelper';
 import { ERROR_CODES } from 'src/error_code';

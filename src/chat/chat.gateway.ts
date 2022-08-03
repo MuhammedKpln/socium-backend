@@ -3,13 +3,13 @@ import {
   OnGatewayConnection,
   SubscribeMessage,
   WebSocketGateway,
+  WebSocketServer,
 } from '@nestjs/websockets';
 import { RedisClient } from 'redis';
 import { rangeNumber, shuffleArray } from 'src/helpers';
 import { getRandomString } from 'src/helpers/randomString';
 import { redisUrl } from 'src/main';
 import { PrismaService } from 'src/prisma/prisma.service';
-import * as uws from 'uWebSockets.js';
 import { ChatService } from './chat.service';
 import {
   IAddIceCandidate,
@@ -30,11 +30,15 @@ import { PUB_SUB } from 'src/pubsub/pubsub.module';
 import { PubSub } from 'graphql-subscriptions';
 import { MESSAGE_SENDED } from './events.pubsub';
 import { Messages } from '@prisma/client';
+import { Server, Socket } from 'socket.io';
+import { SocketType } from 'dgram';
 
-@WebSocketGateway()
+@WebSocketGateway(3001)
 export class ChatGateway implements OnGatewayConnection {
   private redis: RedisClient;
   private pool: IPool[] = [];
+  @WebSocketServer()
+  server: Server;
 
   constructor(
     private chatService: ChatService,
@@ -47,8 +51,6 @@ export class ChatGateway implements OnGatewayConnection {
     });
   }
 
-  private logger: Logger = new Logger();
-
   private eventHandler = (event: string, data?: any) => {
     return JSON.stringify({
       event,
@@ -56,7 +58,7 @@ export class ChatGateway implements OnGatewayConnection {
     });
   };
 
-  private pair(socket: uws.WebSocket) {
+  private pair(socket: Socket) {
     return new Promise((resolve, reject) => {
       const random = rangeNumber(0, this.pool.length - 1);
       const user = this.pool.find((id) => id.uuid === socket.id);
@@ -66,19 +68,15 @@ export class ChatGateway implements OnGatewayConnection {
         const genRoom = getRandomString(10);
 
         try {
-          console.log('#QWEQ', socket.id);
-          socket.publish(
-            connectedSocket.uuid,
-            JSON.stringify({
-              event: IResponseEvents.ClientPaired,
-              data: {
-                room: genRoom,
-                user: user.user,
-                uuid: socket.id,
-              },
-            }),
-          );
-          console.log('WEWE', connectedSocket.uuid);
+          console.log('user', user.user);
+          console.log('user', user.uuid);
+          this.server
+            .to(connectedSocket.uuid)
+            .emit(IResponseEvents.ClientPaired, {
+              room: genRoom,
+              user: user.user,
+              uuid: socket.id,
+            });
 
           resolve({
             room: genRoom,
@@ -101,8 +99,7 @@ export class ChatGateway implements OnGatewayConnection {
   }
 
   @SubscribeMessage('join queue')
-  handleJoinQueue(socket: uws.WebSocket, data: IJoinQueue) {
-    socket.subscribe(socket.id);
+  handleJoinQueue(socket: Socket, data: IJoinQueue) {
     const alreadyInQueue = this.pool.find((id) => id.uuid === socket.id);
     if (alreadyInQueue) {
       console.log('Already in queue');
@@ -112,40 +109,36 @@ export class ChatGateway implements OnGatewayConnection {
         uuid: socket.id,
         user: data.user,
       });
-      socket.subscribe(socket.id);
     }
 
     this.pair(socket)
       .then((room: any) => {
         console.log('eeee', room.uuid);
+        console.log('eeee', room.connectedUser);
+        console.log('eeee', room.room);
 
-        socket.send(
-          JSON.stringify({
-            event: IResponseEvents.ClientPaired,
-            data: {
-              room: room.room,
-              user: room.connectedUser,
-              uuid: room.uuid,
-            },
-          }),
-        );
+        socket.emit(IResponseEvents.ClientPaired, {
+          room: room.room,
+          user: room.connectedUser,
+          uuid: room.uuid,
+        });
       })
       .catch((err) => console.error('ERR', err));
   }
 
   @SubscribeMessage('leave room')
-  handleLeaveRoom(socket: uws.WebSocket, data) {
-    socket.publish(data.room, 'client disconnected');
-    socket.unsubscribe(data.room);
+  handleLeaveRoom(socket: Socket, data) {
+    socket.leave(data.room);
+    socket.to(data.room).emit('client disconnected');
   }
 
   @SubscribeMessage('join room')
-  handleJoinRoom(socket: uws.WebSocket, data) {
-    socket.subscribe(data.room);
+  handleJoinRoom(socket: Socket, data) {
+    socket.join(data.room);
   }
 
   @SubscribeMessage('send message')
-  async handleMessage(socket: uws.WebSocket, data: ISendMessage) {
+  async handleMessage(socket: Socket, data: ISendMessage) {
     const { room, message, user, receiver, repliedToId } = data;
     const m = await this.chatService.saveMessage({
       message,
@@ -187,140 +180,110 @@ export class ChatGateway implements OnGatewayConnection {
         messageSended: m,
       });
 
-      socket.publish(
-        room,
-        this.eventHandler(IResponseEvents.MessageSended, {
-          message: m,
-        }),
-      );
-
-      socket.send(
-        this.eventHandler(IResponseEvents.MessageSended, {
-          message: m,
-        }),
-      );
+      this.server.to(room).emit(IResponseEvents.MessageSended, {
+        message: m,
+      });
     }
   }
 
-  @SubscribeMessage('remove single message request')
-  async handleRemoveMessage(
-    socket: uws.WebSocket,
-    { messageId, room }: IRemoveMessageRequest,
-  ) {
-    socket.publish(
-      room,
-      this.eventHandler(IResponseEvents.MessageRemoved, {
-        messageId,
-      }),
-    );
+  // @SubscribeMessage('remove single message request')
+  // async handleRemoveMessage(
+  //   socket: uws.WebSocket,
+  //   { messageId, room }: IRemoveMessageRequest,
+  // ) {
+  //   socket.publish(
+  //     room,
+  //     this.eventHandler(IResponseEvents.MessageRemoved, {
+  //       messageId,
+  //     }),
+  //   );
 
-    socket.send(
-      this.eventHandler(IResponseEvents.MessageRemoved, {
-        messageId,
-      }),
-    );
+  //   socket.send(
+  //     this.eventHandler(IResponseEvents.MessageRemoved, {
+  //       messageId,
+  //     }),
+  //   );
 
-    await this.chatService.removeMessage(messageId);
-  }
+  //   await this.chatService.removeMessage(messageId);
+  // }
 
-  @SubscribeMessage('typing')
-  handleTypingStatus(socket: uws.WebSocket, data) {
-    if (data.typing) {
-      socket.publish(
-        data.room,
-        this.eventHandler(IResponseEvents.Typing, {
-          typing: true,
-        }),
-      );
-    } else {
-      socket.publish(data.room, this.eventHandler(IResponseEvents.DoneTyping));
-    }
-  }
+  // @SubscribeMessage('typing')
+  // handleTypingStatus(socket: uws.WebSocket, data) {
+  //   if (data.typing) {
+  //     socket.publish(
+  //       data.room,
+  //       this.eventHandler(IResponseEvents.Typing, {
+  //         typing: true,
+  //       }),
+  //     );
+  //   } else {
+  //     socket.publish(data.room, this.eventHandler(IResponseEvents.DoneTyping));
+  //   }
+  // }
 
   @SubscribeMessage('leave queue')
-  handleLeaveQueue(socket: uws.WebSocket) {
-    socket.unsubscribe(socket.id);
+  handleLeaveQueue(socket: Socket) {
     this.pool = this.pool.filter((id) => id.uuid !== socket.id);
   }
 
   @SubscribeMessage('call user')
-  handleCallUser(socket: uws.WebSocket, { offer, uuid }: ICallData) {
-    socket.publish(
-      uuid,
-      this.eventHandler(IResponseEvents.CallMade, { offer, uuid: socket.id }),
-    );
+  handleCallUser(socket: Socket, { offer, uuid }: ICallData) {
+    this.server
+      .to(uuid)
+      .emit(IResponseEvents.CallMade, { offer, uuid: socket.id });
   }
 
   @SubscribeMessage('make answer')
-  handleCallAnswer(socket: uws.WebSocket, data: ICallAnswer) {
-    socket.publish(
-      data.uuid,
-      this.eventHandler(IResponseEvents.AnswerMade, {
-        answer: data.answer,
-        uuid: socket.id,
-      }),
-    );
+  handleCallAnswer(socket: Socket, data: ICallAnswer) {
+    this.server.to(data.uuid).emit(IResponseEvents.AnswerMade, {
+      answer: data.answer,
+      uuid: socket.id,
+    });
   }
 
   @SubscribeMessage('add ice candidate')
-  handleAddIceCandidate(socket: uws.WebSocket, data: IAddIceCandidate) {
-    socket.publish(
-      data.uuid,
-      this.eventHandler(IResponseEvents.ReceivedIceCandidate, {
-        candidate: data.candidate,
-        uuid: socket.id,
-      }),
-    );
+  handleAddIceCandidate(socket: Socket, data: IAddIceCandidate) {
+    this.server.to(data.uuid).emit(IResponseEvents.ReceivedIceCandidate, {
+      candidate: data.candidate,
+      uuid: socket.id,
+    });
   }
 
-  @SubscribeMessage('retrieve call')
-  handleRetrieveCall(socket: uws.WebSocket, data: IRetrieveCall) {
-    socket.publish(data.uuid, this.eventHandler(IResponseEvents.RetrieveCall));
-  }
+  // @SubscribeMessage('retrieve call')
+  // handleRetrieveCall(socket: uws.WebSocket, data: IRetrieveCall) {
+  //   socket.publish(data.uuid, this.eventHandler(IResponseEvents.RetrieveCall));
+  // }
 
-  @SubscribeMessage('microphone muted')
-  handleMicMuted(socket: uws.WebSocket, data: IMicMuted) {
-    socket.publish(
-      data.uuid,
-      this.eventHandler(IResponseEvents.MicMuted, {
-        isMuted: data.isMuted,
-        uuid: socket.id,
-      }),
-    );
-  }
+  // @SubscribeMessage('microphone muted')
+  // handleMicMuted(socket: uws.WebSocket, data: IMicMuted) {
+  //   socket.publish(
+  //     data.uuid,
+  //     this.eventHandler(IResponseEvents.MicMuted, {
+  //       isMuted: data.isMuted,
+  //       uuid: socket.id,
+  //     }),
+  //   );
+  // }
 
   @SubscribeMessage('ask for media permission')
-  handleAskForMediaPermission(
-    socket: uws.WebSocket,
-    data: IAskForMediaPermission,
-  ) {
-    socket.publish(
-      data.uuid,
-      this.eventHandler(IResponseEvents.MediaPermissionAsked, {
-        ...data,
-        uuid: socket.id,
-      }),
-    );
+  handleAskForMediaPermission(socket: Socket, data: IAskForMediaPermission) {
+    console.log(data);
+    this.server.to(data.uuid).emit(IResponseEvents.MediaPermissionAsked, {
+      ...data,
+      uuid: socket.id,
+    });
   }
 
   @SubscribeMessage('allow media controls')
-  handleMediaControl(socket: uws.WebSocket, data: IAnswerMediaControl) {
-    socket.publish(
-      data.uuid,
-      this.eventHandler(IResponseEvents.MediaPermissionAnswered, {
-        ...data,
-        uuid: socket.id,
-      }),
-    );
+  handleMediaControl(socket: Socket, data: IAnswerMediaControl) {
+    this.server.to(data.uuid).emit(IResponseEvents.MediaPermissionAnswered, {
+      ...data,
+      uuid: socket.id,
+    });
   }
 
-  @SubscribeMessage('ping')
-  s(socket: uws.WebSocket, data: IMicMuted) {
-    socket.send('Pong!');
-  }
-
-  handleConnection(client: uws.WebSocket, ...args: any[]) {
-    console.log('connected', client);
-    client.subscribe(client.id);
+  handleConnection(client: Socket, ...args: any[]) {
+    console.log('connected');
+    // client.subscribe(client.id);
   }
 }
