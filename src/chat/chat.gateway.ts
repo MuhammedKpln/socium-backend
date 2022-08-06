@@ -129,7 +129,7 @@ export class ChatGateway implements OnGatewayConnection {
   @SubscribeMessage('leave room')
   handleLeaveRoom(socket: Socket, data) {
     socket.leave(data.room);
-    socket.to(data.room).emit('client disconnected');
+    socket.to(data.room).emit(IResponseEvents.ClientDisconnected);
   }
 
   @SubscribeMessage('join room')

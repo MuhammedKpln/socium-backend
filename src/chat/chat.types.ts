@@ -82,6 +82,7 @@ export enum IResponseEvents {
   MicMuted = 'MIC_MUTED',
   MediaPermissionAsked = 'MEDIA_PERMISSION_ASKED',
   MediaPermissionAnswered = 'MEDIA_PERMISSION_ANSWERED',
+  ClientDisconnected = 'CLIENT_DISCONNECTED',
 }
 
 export interface IAddIceCandidate {
