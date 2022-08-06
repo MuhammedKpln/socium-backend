@@ -235,7 +235,7 @@ export class ChatGateway implements OnGatewayConnection {
 
   @SubscribeMessage('make answer')
   handleCallAnswer(socket: Socket, data: ICallAnswer) {
-    this.server.to(data.uuid).emit(IResponseEvents.AnswerMade, {
+    this.server.to(`socket#${data.uuid}`).emit(IResponseEvents.AnswerMade, {
       answer: data.answer,
       uuid: socket.id,
     });
@@ -243,10 +243,12 @@ export class ChatGateway implements OnGatewayConnection {
 
   @SubscribeMessage('add ice candidate')
   handleAddIceCandidate(socket: Socket, data: IAddIceCandidate) {
-    this.server.to(data.uuid).emit(IResponseEvents.ReceivedIceCandidate, {
-      candidate: data.candidate,
-      uuid: socket.id,
-    });
+    this.server
+      .to(`socket#${data.uuid}`)
+      .emit(IResponseEvents.ReceivedIceCandidate, {
+        candidate: data.candidate,
+        uuid: socket.id,
+      });
   }
 
   // @SubscribeMessage('retrieve call')
@@ -268,18 +270,22 @@ export class ChatGateway implements OnGatewayConnection {
   @SubscribeMessage('ask for media permission')
   handleAskForMediaPermission(socket: Socket, data: IAskForMediaPermission) {
     console.log(data);
-    this.server.to(data.uuid).emit(IResponseEvents.MediaPermissionAsked, {
-      ...data,
-      uuid: socket.id,
-    });
+    this.server
+      .to(`socket#${data.uuid}`)
+      .emit(IResponseEvents.MediaPermissionAsked, {
+        ...data,
+        uuid: socket.id,
+      });
   }
 
   @SubscribeMessage('allow media controls')
   handleMediaControl(socket: Socket, data: IAnswerMediaControl) {
-    this.server.to(data.uuid).emit(IResponseEvents.MediaPermissionAnswered, {
-      ...data,
-      uuid: socket.id,
-    });
+    this.server
+      .to(`socket#${data.uuid}`)
+      .emit(IResponseEvents.MediaPermissionAnswered, {
+        ...data,
+        uuid: socket.id,
+      });
   }
 
   handleConnection(client: Socket, ...args: any[]) {
